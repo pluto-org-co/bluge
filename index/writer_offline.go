@@ -68,7 +68,9 @@ func (s *WriterOffline) Batch(batch *Batch) (err error) {
 		}
 	}
 
+	s.m.Lock()
 	newSegment, _, err := s.segPlugin.New(batch.documents, s.config.NormCalc)
+	s.m.Unlock()
 	if err != nil {
 		return err
 	}
@@ -81,8 +83,8 @@ func (s *WriterOffline) Batch(batch *Batch) (err error) {
 	}
 
 	s.m.Lock()
-	defer s.m.Unlock()
 	s.segIDs = append(s.segIDs, newId)
+	s.m.Unlock()
 
 	return nil
 }
