@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"sync/atomic"
 
 	"github.com/RoaringBitmap/roaring"
 
@@ -29,7 +30,7 @@ type WriterOffline struct {
 	config    Config
 	directory Directory
 	segPlugin *SegmentPlugin
-	segCount  uint64
+	segCount  atomic.Uint64
 	segIDs    []uint64
 
 	mergeMax int
@@ -57,9 +58,6 @@ func OpenOfflineWriter(config Config) (writer *WriterOffline, err error) {
 }
 
 func (s *WriterOffline) Batch(batch *Batch) (err error) {
-	s.m.Lock()
-	defer s.m.Unlock()
-
 	if len(batch.documents) == 0 {
 		return nil
 	}
@@ -75,12 +73,16 @@ func (s *WriterOffline) Batch(batch *Batch) (err error) {
 		return err
 	}
 
-	err = s.directory.Persist(ItemKindSegment, s.segCount, newSegment, nil)
+	newId := s.segCount.Add(1)
+	// There is zero chance of collision we can safely use the computed id
+	err = s.directory.Persist(ItemKindSegment, newId, newSegment, nil)
 	if err != nil {
 		return fmt.Errorf("error persisting segment: %v", err)
 	}
-	s.segIDs = append(s.segIDs, s.segCount)
-	s.segCount++
+
+	s.m.Lock()
+	defer s.m.Unlock()
+	s.segIDs = append(s.segIDs, newId)
 
 	return nil
 }
@@ -136,13 +138,13 @@ func (s *WriterOffline) doMerge() error {
 		drops := make([]*roaring.Bitmap, mergeCount)
 		merger := s.segPlugin.Merge(mergeSegs, drops, s.config.MergeBufferSize)
 
-		err := s.directory.Persist(ItemKindSegment, s.segCount, merger, nil)
+		newId := s.segCount.Add(1)
+		err := s.directory.Persist(ItemKindSegment, newId, merger, nil)
 		if err != nil {
 			_ = closeOpenedSegs()
 			return fmt.Errorf("error merging segments (%v): %w", mergeIDs, err)
 		}
-		s.segIDs = append(s.segIDs, s.segCount)
-		s.segCount++
+		s.segIDs = append(s.segIDs, newId)
 
 		// close segments opened for merge
 		err = closeOpenedSegs()
