@@ -15,8 +15,11 @@
 package index
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"runtime"
+	"slices"
 	"sync"
 	"sync/atomic"
 
@@ -89,76 +92,100 @@ func (s *WriterOffline) Batch(batch *Batch) (err error) {
 
 func (s *WriterOffline) doMerge() error {
 	for len(s.segIDs) > 1 {
-		// merge the next <mergeMax> number of segments into one new one
-		// or, if there are fewer than <mergeMax> remaining, merge them all
-		mergeCount := s.mergeMax
-		if mergeCount > len(s.segIDs) {
-			mergeCount = len(s.segIDs)
+		var newIdsMutex sync.Mutex
+		var newIds = make([]uint64, 0, len(s.segIDs))
+
+		// Do not spawn infinite goroutines even the OS has a limit.
+		// Attempt to use all available CPU but if there are too many
+		// Just use 4, even SSD has a limit
+		var workersCount = min(4, runtime.NumCPU())
+		var workersCh = make(chan struct{}, workersCount)
+		for range workersCount {
+			workersCh <- struct{}{}
 		}
 
-		mergeIDs := s.segIDs[0:mergeCount]
-		s.segIDs = s.segIDs[mergeCount:]
+		var wg sync.WaitGroup
+		var errorsCh = make(chan error, max(1, len(s.segIDs)/s.mergeMax))
+		for chunk := range slices.Chunk(s.segIDs, s.mergeMax) {
+			<-workersCh
+			wg.Go(func() {
+				defer func() { workersCh <- struct{}{} }()
+				// Cleanup code once merging is completed
+				var closers = make([]io.Closer, 0, len(chunk))
+				defer func() {
+					for index, closer := range closers {
+						err := closer.Close()
+						if err != nil {
+							errorsCh <- fmt.Errorf("failed to close closer at index: %d: %w", index, err)
+						}
+					}
+				}()
 
-		// open each of the segments to be merged
-		mergeSegs := make([]segment.Segment, 0, mergeCount)
+				var mergeSegments = make([]segment.Segment, 0, len(chunk))
+				for _, mergeID := range chunk {
+					data, closer, err := s.directory.Load(ItemKindSegment, mergeID)
+					if err != nil {
+						errorsCh <- fmt.Errorf("error loading segment from directory: id: %d: %w", mergeID, err)
+						return
+					}
 
-		var closers []io.Closer
-		// closeOpenedSegs attempts to close all opened
-		// segments even if an error occurs, in which case
-		// the first error is returned
-		closeOpenedSegs := func() error {
-			var err error
-			for _, closer := range closers {
-				clErr := closer.Close()
-				if clErr != nil && err == nil {
-					err = clErr
+					if closer == nil { // Is there actually a chance of closer being nil?
+						continue
+					}
+
+					closers = append(closers, closer)
+
+					seg, err := s.segPlugin.Load(data)
+					if err != nil {
+						errorsCh <- fmt.Errorf("error loading segment: id: %d: %w", mergeID, err)
+						return
+					}
+
+					mergeSegments = append(mergeSegments, seg)
 				}
-			}
-			return err
+
+				// do the merge
+				drops := make([]*roaring.Bitmap, len(chunk))
+				merger := s.segPlugin.Merge(mergeSegments, drops, s.config.MergeBufferSize)
+
+				newId := s.segCount.Add(1)
+				err := s.directory.Persist(ItemKindSegment, newId, merger, nil)
+				if err != nil {
+					errorsCh <- fmt.Errorf("error merging segments (%v): %w", chunk, err)
+					return
+				}
+
+				newIdsMutex.Lock()
+				newIds = append(newIds, newId)
+				newIdsMutex.Unlock()
+
+				// remove merged segments
+				for _, mergeID := range chunk {
+					err = s.directory.Remove(ItemKindSegment, mergeID)
+					if err != nil {
+						errorsCh <- fmt.Errorf("error removing segment %v after merge: %w", chunk, err)
+						return
+					}
+				}
+			})
+		}
+		go func() { wg.Wait(); close(errorsCh) }()
+
+		// Wait for errors once there are no workers channel will automatically closed
+		var mergingErrs = make([]error, 0, max(1, len(s.segIDs)/s.mergeMax))
+		for err := range errorsCh {
+			mergingErrs = append(mergingErrs, err)
 		}
 
-		for _, mergeID := range mergeIDs {
-			data, closer, err := s.directory.Load(ItemKindSegment, mergeID)
-			if err != nil {
-				_ = closeOpenedSegs()
-				return fmt.Errorf("error loading segment from directory: %w", err)
-			}
-			if closer != nil {
-				closers = append(closers, closer)
-			}
-			seg, err := s.segPlugin.Load(data)
-			if err != nil {
-				_ = closeOpenedSegs()
-				return fmt.Errorf("error loading segment: %w", err)
-			}
-			mergeSegs = append(mergeSegs, seg)
+		switch len(mergingErrs) {
+		case 0:
+			s.segIDs = newIds
+		case 1:
+			return fmt.Errorf("an error ocurred during merge: %w", mergingErrs[0])
+		default:
+			return fmt.Errorf("multiple errors during merge: %w", errors.Join(mergingErrs...))
 		}
 
-		// do the merge
-		drops := make([]*roaring.Bitmap, mergeCount)
-		merger := s.segPlugin.Merge(mergeSegs, drops, s.config.MergeBufferSize)
-
-		newId := s.segCount.Add(1)
-		err := s.directory.Persist(ItemKindSegment, newId, merger, nil)
-		if err != nil {
-			_ = closeOpenedSegs()
-			return fmt.Errorf("error merging segments (%v): %w", mergeIDs, err)
-		}
-		s.segIDs = append(s.segIDs, newId)
-
-		// close segments opened for merge
-		err = closeOpenedSegs()
-		if err != nil {
-			return fmt.Errorf("error closing opened segments: %w", err)
-		}
-
-		// remove merged segments
-		for _, mergeID := range mergeIDs {
-			err = s.directory.Remove(ItemKindSegment, mergeID)
-			if err != nil {
-				return fmt.Errorf("error removing segment %v after merge: %w", mergeIDs, err)
-			}
-		}
 	}
 
 	return nil
