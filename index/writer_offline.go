@@ -112,14 +112,23 @@ func (s *WriterOffline) doMerge() error {
 				defer func() { workersCh <- struct{}{} }()
 				// Cleanup code once merging is completed
 				var closers = make([]io.Closer, 0, len(chunk))
-				defer func() {
+				var cleaned bool
+				cleanupClosers := func() {
+					if cleaned {
+						return
+					}
+
 					for index, closer := range closers {
 						err := closer.Close()
 						if err != nil {
 							errorsCh <- fmt.Errorf("failed to close closer at index: %d: %w", index, err)
 						}
 					}
-				}()
+					cleaned = true
+				}
+
+				// Capture any early return
+				defer cleanupClosers()
 
 				var mergeSegments = make([]segment.Segment, 0, len(chunk))
 				for _, mergeID := range chunk {
@@ -159,6 +168,8 @@ func (s *WriterOffline) doMerge() error {
 				newIds = append(newIds, newId)
 				newIdsMutex.Unlock()
 
+				// This is mandatory, otherwise open handles will prevent from removing old ones
+				cleanupClosers()
 				// remove merged segments
 				for _, mergeID := range chunk {
 					err = s.directory.Remove(ItemKindSegment, mergeID)
