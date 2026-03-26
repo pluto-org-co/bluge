@@ -91,8 +91,8 @@ func (tf *TokenFreq) EachLocation(location segment.VisitLocation) {
 type TokenFrequencies map[uint64]*TokenFreq
 
 func (tfs TokenFrequencies) Size() int {
-	rv := sizeOfMap
-	rv += len(tfs) * (sizeOfString + sizeOfPtr)
+	rv := int(sizeOfMap)
+	rv += len(tfs) * int(sizeOfString+sizeOfPtr)
 	for _, v := range tfs {
 		// rv += len(k)
 		rv += v.Size()
