@@ -17,6 +17,8 @@ package analysis
 import (
 	"reflect"
 	"testing"
+
+	"github.com/zeebo/xxh3"
 )
 
 func TestTokenFrequency(t *testing.T) {
@@ -35,7 +37,7 @@ func TestTokenFrequency(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -60,7 +62,7 @@ func TestTokenFrequency(t *testing.T) {
 
 func TestTokenFrequenciesMergeAll(t *testing.T) {
 	tf1 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -77,7 +79,7 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 		},
 	}
 	tf2 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -94,7 +96,7 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -131,7 +133,7 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
 	tf1 := TokenFrequencies{}
 	tf2 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -148,7 +150,7 @@ func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
