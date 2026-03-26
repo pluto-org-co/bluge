@@ -15,21 +15,14 @@
 package analysis
 
 import (
-	"reflect"
+	"unsafe"
 
 	segment "github.com/blugelabs/bluge_segment_api"
 	"github.com/zeebo/xxh3"
 )
 
-var reflectStaticSizeTokenLocation int
-var reflectStaticSizeTokenFreq int
-
-func init() {
-	var tl TokenLocation
-	reflectStaticSizeTokenLocation = int(reflect.TypeOf(tl).Size())
-	var tf TokenFreq
-	reflectStaticSizeTokenFreq = int(reflect.TypeOf(tf).Size())
-}
+const reflectStaticSizeTokenLocation = unsafe.Sizeof(TokenLocation{})
+const reflectStaticSizeTokenFreq = unsafe.Sizeof(TokenFreq{})
 
 // TokenLocation represents one occurrence of a term at a particular location in
 // a field. Start, End and Position have the same meaning as in analysis.Token.
@@ -59,7 +52,7 @@ func (tl *TokenLocation) End() int {
 }
 
 func (tl *TokenLocation) Size() int {
-	return reflectStaticSizeTokenLocation
+	return int(reflectStaticSizeTokenLocation)
 }
 
 // TokenFreq represents all the occurrences of a term in all fields of a
@@ -71,7 +64,7 @@ type TokenFreq struct {
 }
 
 func (tf *TokenFreq) Size() int {
-	rv := reflectStaticSizeTokenFreq
+	rv := int(reflectStaticSizeTokenFreq)
 	rv += len(tf.TermVal)
 	for _, loc := range tf.Locations {
 		rv += loc.Size()
