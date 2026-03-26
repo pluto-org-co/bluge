@@ -17,12 +17,12 @@ package analysis
 import (
 	"bufio"
 	"bytes"
-	"io"
-	"io/ioutil"
-	"strings"
+	"os"
+
+	"github.com/zeebo/xxh3"
 )
 
-type TokenMap map[string]bool
+type TokenMap map[uint64]struct{}
 
 func NewTokenMap() TokenMap {
 	return make(TokenMap)
@@ -32,7 +32,7 @@ func NewTokenMap() TokenMap {
 // one per line.
 // Comments are supported using `#` or `|`
 func (t TokenMap) LoadFile(filename string) error {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		return err
 	}
@@ -45,33 +45,49 @@ func (t TokenMap) LoadFile(filename string) error {
 // Comments are supported using `#` or `|`
 func (t TokenMap) LoadBytes(data []byte) {
 	bytesReader := bytes.NewReader(data)
-	bufioReader := bufio.NewReader(bytesReader)
-	line, err := bufioReader.ReadString('\n')
-	for err == nil {
+
+	scanner := bufio.NewScanner(bytesReader)
+	for scanner.Scan() {
+		line := scanner.Bytes()
+
 		t.LoadLine(line)
-		line, err = bufioReader.ReadString('\n')
 	}
+
+	err := scanner.Err()
 	// if the err was EOF we still need to process the last value
-	if err == io.EOF {
-		t.LoadLine(line)
-	} else {
+	if err != nil {
 		panic(err)
 	}
 }
 
-func (t TokenMap) LoadLine(line string) {
+func (t TokenMap) LoadLine(line []byte) {
 	// find the start of a comment, if any
-	startComment := strings.IndexAny(line, "#|")
+	startComment := bytes.IndexAny(line, "#|")
 	if startComment >= 0 {
 		line = line[:startComment]
 	}
 
-	tokens := strings.Fields(line)
-	for _, token := range tokens {
-		t.AddToken(token)
+	for token := range bytes.FieldsSeq(line) {
+		t.Add(token)
 	}
 }
 
-func (t TokenMap) AddToken(token string) {
-	t[token] = true
+func (t TokenMap) Has(token []byte) (has bool) {
+	_, has = t[xxh3.Hash(token)]
+	return has
+}
+
+func (t TokenMap) HasRunes(token []rune) (has bool) {
+	asBytes := []byte(string(token))
+
+	_, has = t[xxh3.Hash(asBytes)]
+	return has
+}
+
+func (t TokenMap) Add(token []byte) {
+	t[xxh3.Hash(token)] = struct{}{}
+}
+
+func (t TokenMap) AddString(token string) {
+	t[xxh3.HashString(token)] = struct{}{}
 }

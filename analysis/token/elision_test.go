@@ -57,7 +57,7 @@ func TestElisionFilter(t *testing.T) {
 	}
 
 	tokenMap := analysis.NewTokenMap()
-	tokenMap.AddToken("ar")
+	tokenMap.AddString("ar")
 	elisionFilter := NewElisionFilter(tokenMap)
 	for _, test := range tests {
 		actual := elisionFilter.Filter(test.input)

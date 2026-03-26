@@ -67,9 +67,9 @@ func (f *DictionaryCompoundFilter) decompose(token *analysis.Token) []*analysis.
 			if i+j > rlen {
 				break
 			}
-			_, inDict := f.dict[string(runes[i:i+j])]
-			if inDict {
+			if f.dict.HasRunes(runes[i : i+j]) {
 				newtoken := analysis.Token{
+					// This term field assignment tends to fragment memory
 					Term:         []byte(string(runes[i : i+j])),
 					PositionIncr: 0,
 					Start:        token.Start + i,

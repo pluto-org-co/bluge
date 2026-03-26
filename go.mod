@@ -16,12 +16,14 @@ require (
 	github.com/blugelabs/ice/v2 v2.0.1
 	github.com/caio/go-tdigest v3.1.0+incompatible
 	github.com/spf13/cobra v0.0.5
+	github.com/stretchr/testify v1.4.0
 	github.com/zeebo/xxh3 v1.1.0
 	golang.org/x/sys v0.30.0
 	golang.org/x/text v0.3.0
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-metro v0.0.0-20180109044635-280f6062b5bc // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
@@ -29,6 +31,8 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/leesper/go_rng v0.0.0-20190531154944-a612b043e353 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.3 // indirect
 	gonum.org/v1/gonum v0.7.0 // indirect
+	gopkg.in/yaml.v2 v2.2.2 // indirect
 )

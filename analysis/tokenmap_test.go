@@ -27,15 +27,15 @@ func TestTokenMapLoadFile(t *testing.T) {
 	}
 
 	expectedTokens := NewTokenMap()
-	expectedTokens.AddToken("marty")
-	expectedTokens.AddToken("steve")
-	expectedTokens.AddToken("dustin")
-	expectedTokens.AddToken("siri")
-	expectedTokens.AddToken("multiple")
-	expectedTokens.AddToken("words")
-	expectedTokens.AddToken("with")
-	expectedTokens.AddToken("different")
-	expectedTokens.AddToken("whitespace")
+	expectedTokens.Add([]byte("marty"))
+	expectedTokens.Add([]byte("steve"))
+	expectedTokens.Add([]byte("dustin"))
+	expectedTokens.Add([]byte("siri"))
+	expectedTokens.Add([]byte("multiple"))
+	expectedTokens.Add([]byte("words"))
+	expectedTokens.Add([]byte("with"))
+	expectedTokens.Add([]byte("different"))
+	expectedTokens.Add([]byte("whitespace"))
 
 	if !reflect.DeepEqual(tokenMap, expectedTokens) {
 		t.Errorf("expected %#v, got %#v", expectedTokens, tokenMap)

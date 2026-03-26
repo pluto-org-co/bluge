@@ -15,101 +15,125 @@
 package token
 
 import (
+	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/blugelabs/bluge/analysis"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDictionaryCompoundFilter(t *testing.T) {
-	inputTokenStream := analysis.TokenStream{
-		&analysis.Token{
-			Term:         []byte("i"),
-			Start:        0,
-			End:          1,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("like"),
-			Start:        2,
-			End:          6,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("to"),
-			Start:        7,
-			End:          9,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("play"),
-			Start:        10,
-			End:          14,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("softball"),
-			Start:        15,
-			End:          23,
-			PositionIncr: 1,
+	type Test struct {
+		Name        string
+		Input       []string
+		InputStream analysis.TokenStream
+		Expect      analysis.TokenStream
+	}
+	tests := []Test{
+		{
+			Name:  "Original",
+			Input: []string{"factor", "soft", "ball", "team"},
+			InputStream: analysis.TokenStream{
+				&analysis.Token{
+					Term:         []byte("i"),
+					Start:        0,
+					End:          1,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("like"),
+					Start:        2,
+					End:          6,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("to"),
+					Start:        7,
+					End:          9,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("play"),
+					Start:        10,
+					End:          14,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("softball"),
+					Start:        15,
+					End:          23,
+					PositionIncr: 1,
+				},
+			},
+			Expect: analysis.TokenStream{
+				&analysis.Token{
+					Term:         []byte("i"),
+					Start:        0,
+					End:          1,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("like"),
+					Start:        2,
+					End:          6,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("to"),
+					Start:        7,
+					End:          9,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("play"),
+					Start:        10,
+					End:          14,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("softball"),
+					Start:        15,
+					End:          23,
+					PositionIncr: 1,
+				},
+				&analysis.Token{
+					Term:         []byte("soft"),
+					Start:        15,
+					End:          19,
+					PositionIncr: 0,
+				},
+				&analysis.Token{
+					Term:         []byte("ball"),
+					Start:        19,
+					End:          23,
+					PositionIncr: 0,
+				},
+			},
 		},
 	}
 
-	expectedTokenStream := analysis.TokenStream{
-		&analysis.Token{
-			Term:         []byte("i"),
-			Start:        0,
-			End:          1,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("like"),
-			Start:        2,
-			End:          6,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("to"),
-			Start:        7,
-			End:          9,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("play"),
-			Start:        10,
-			End:          14,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("softball"),
-			Start:        15,
-			End:          23,
-			PositionIncr: 1,
-		},
-		&analysis.Token{
-			Term:         []byte("soft"),
-			Start:        15,
-			End:          19,
-			PositionIncr: 0,
-		},
-		&analysis.Token{
-			Term:         []byte("ball"),
-			Start:        19,
-			End:          23,
-			PositionIncr: 0,
-		},
-	}
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			assertions := assert.New(t)
 
-	tokenMap := analysis.NewTokenMap()
-	words := []string{"factor", "soft", "ball", "team"}
-	for _, word := range words {
-		tokenMap.AddToken(word)
-	}
-	dictFilter := NewDictionaryCompoundFilter(tokenMap, 5, 2, 15, false)
+			tokenMap := analysis.NewTokenMap()
+			for _, word := range test.Input {
+				tokenMap.AddString(word)
+			}
+			dictFilter := NewDictionaryCompoundFilter(tokenMap, 5, 2, 15, false)
 
-	outputTokenStream := dictFilter.Filter(inputTokenStream)
-	if !reflect.DeepEqual(outputTokenStream, expectedTokenStream) {
-		t.Errorf("expected %#v got %#v", expectedTokenStream, outputTokenStream)
+			out := dictFilter.Filter(test.InputStream)
+			if !assertions.Equal(out, test.Expect) {
+				cc, _ := json.MarshalIndent(out, "", "\t")
+				fmt.Println("Out:", string(cc))
+
+				xx, _ := json.MarshalIndent(test.Expect, "", "\t")
+				fmt.Println("Expect:", string(xx))
+				return
+			}
+		})
 	}
 }
 
@@ -147,7 +171,7 @@ func TestStopWordsFilterLongestMatch(t *testing.T) {
 	tokenMap := analysis.NewTokenMap()
 	words := []string{"soft", "softest", "ball"}
 	for _, word := range words {
-		tokenMap.AddToken(word)
+		tokenMap.AddString(word)
 	}
 	dictFilter := NewDictionaryCompoundFilter(tokenMap, 5, 2, 15, true)
 
