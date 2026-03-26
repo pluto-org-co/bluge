@@ -54,7 +54,7 @@ func (f *DictionaryCompoundFilter) Filter(input analysis.TokenStream) analysis.T
 		}
 	}
 
-	return rv
+	return rv.Defragment()
 }
 
 func (f *DictionaryCompoundFilter) decompose(token *analysis.Token) []*analysis.Token {

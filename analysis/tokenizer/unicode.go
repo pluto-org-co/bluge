@@ -101,10 +101,10 @@ func (rt *UnicodeTokenizer) Tokenize(input []byte) analysis.TokenStream {
 		for _, r := range rvx {
 			rall = append(rall, r...)
 		}
-		return append(rall, rv...)
+		rv = append(rall, rv...)
 	}
 
-	return rv
+	return rv.Defragment()
 }
 
 func convertType(segmentWordType int) analysis.TokenType {

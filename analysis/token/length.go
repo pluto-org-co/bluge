@@ -53,5 +53,5 @@ func (f *LengthFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
 		rv = append(rv, token)
 	}
 
-	return rv
+	return rv.Defragment()
 }

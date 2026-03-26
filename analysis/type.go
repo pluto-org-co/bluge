@@ -58,6 +58,27 @@ func (t *Token) String() string {
 
 type TokenStream []*Token
 
+// Defragments the memory
+func (s TokenStream) Defragment() (out TokenStream) {
+	tokens := make([]Token, len(s))
+	var bufferSize int
+	for _, token := range s {
+		bufferSize += len(token.Term)
+	}
+	buffer := make([]byte, 0, bufferSize)
+
+	out = make(TokenStream, len(tokens))
+	for index, token := range s {
+		buffer = append(buffer, token.Term...)
+
+		tokens[index] = *token
+		tokens[index].Term = buffer[len(buffer)-len(token.Term):]
+		out[index] = &tokens[index]
+	}
+
+	return out
+}
+
 // A Tokenizer splits an input string into tokens, the usual behavior being to
 // map words to tokens.
 type Tokenizer interface {
