@@ -115,6 +115,7 @@ func convertType(segmentWordType int) analysis.TokenType {
 		return analysis.Ideographic
 	case segment.Number:
 		return analysis.Numeric
+	default:
+		return analysis.AlphaNumeric
 	}
-	return analysis.AlphaNumeric
 }
