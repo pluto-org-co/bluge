@@ -57,7 +57,7 @@ func BuildTermFromRunesOptimistic(runes []rune) (out []byte) {
 	}
 
 	bak := out
-	out = make([]byte, len(out))
+	out = make([]byte, len(bak))
 	copy(out, bak)
 	return out
 }
