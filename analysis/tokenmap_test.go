@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package analysis
+package analysis_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/blugelabs/bluge/analysis"
 )
 
 func TestTokenMapLoadFile(t *testing.T) {
-	tokenMap := NewTokenMap()
+	tokenMap := analysis.NewTokenMap()
 	err := tokenMap.LoadFile("test_words.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expectedTokens := NewTokenMap()
+	expectedTokens := analysis.NewTokenMap()
 	expectedTokens.Add([]byte("marty"))
 	expectedTokens.Add([]byte("steve"))
 	expectedTokens.Add([]byte("dustin"))

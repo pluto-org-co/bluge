@@ -12,34 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package analysis
+package analysis_test
 
 import (
 	"reflect"
 	"testing"
 
+	"github.com/blugelabs/bluge/analysis"
 	"github.com/zeebo/xxh3"
 )
 
 func TestTokenFrequency(t *testing.T) {
-	tokens := TokenStream{
-		&Token{
+	tokens := analysis.TokenStream{
+		&analysis.Token{
 			Term:         []byte("water"),
 			PositionIncr: 1,
 			Start:        0,
 			End:          5,
 		},
-		&Token{
+		&analysis.Token{
 			Term:         []byte("water"),
 			PositionIncr: 1,
 			Start:        6,
 			End:          11,
 		},
 	}
-	expectedResult := TokenFrequencies{
-		xxh3.HashString("water"): &TokenFreq{
+	expectedResult := analysis.TokenFrequencies{
+		xxh3.HashString("water"): &analysis.TokenFreq{
 			TermVal: []byte("water"),
-			Locations: []*TokenLocation{
+			Locations: []*analysis.TokenLocation{
 				{
 					PositionVal: 1,
 					StartVal:    0,
@@ -51,20 +52,20 @@ func TestTokenFrequency(t *testing.T) {
 					EndVal:      11,
 				},
 			},
-			frequency: 2,
+			Freq: 2,
 		},
 	}
-	result, _ := TokenFrequency(tokens, true, 0)
+	result, _ := analysis.TokenFrequency(tokens, true, 0)
 	if !reflect.DeepEqual(result, expectedResult) {
 		t.Errorf("expected %#v, got %#v", expectedResult, result)
 	}
 }
 
 func TestTokenFrequenciesMergeAll(t *testing.T) {
-	tf1 := TokenFrequencies{
-		xxh3.HashString("water"): &TokenFreq{
+	tf1 := analysis.TokenFrequencies{
+		xxh3.HashString("water"): &analysis.TokenFreq{
 			TermVal: []byte("water"),
-			Locations: []*TokenLocation{
+			Locations: []*analysis.TokenLocation{
 				{
 					PositionVal: 1,
 					StartVal:    0,
@@ -78,10 +79,10 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 			},
 		},
 	}
-	tf2 := TokenFrequencies{
-		xxh3.HashString("water"): &TokenFreq{
+	tf2 := analysis.TokenFrequencies{
+		xxh3.HashString("water"): &analysis.TokenFreq{
 			TermVal: []byte("water"),
-			Locations: []*TokenLocation{
+			Locations: []*analysis.TokenLocation{
 				{
 					PositionVal: 1,
 					StartVal:    0,
@@ -95,10 +96,10 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 			},
 		},
 	}
-	expectedResult := TokenFrequencies{
-		xxh3.HashString("water"): &TokenFreq{
+	expectedResult := analysis.TokenFrequencies{
+		xxh3.HashString("water"): &analysis.TokenFreq{
 			TermVal: []byte("water"),
-			Locations: []*TokenLocation{
+			Locations: []*analysis.TokenLocation{
 				{
 					PositionVal: 1,
 					StartVal:    0,
@@ -131,11 +132,11 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 }
 
 func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
-	tf1 := TokenFrequencies{}
-	tf2 := TokenFrequencies{
-		xxh3.HashString("water"): &TokenFreq{
+	tf1 := analysis.TokenFrequencies{}
+	tf2 := analysis.TokenFrequencies{
+		xxh3.HashString("water"): &analysis.TokenFreq{
 			TermVal: []byte("water"),
-			Locations: []*TokenLocation{
+			Locations: []*analysis.TokenLocation{
 				{
 					PositionVal: 1,
 					StartVal:    0,
@@ -149,10 +150,10 @@ func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
 			},
 		},
 	}
-	expectedResult := TokenFrequencies{
-		xxh3.HashString("water"): &TokenFreq{
+	expectedResult := analysis.TokenFrequencies{
+		xxh3.HashString("water"): &analysis.TokenFreq{
 			TermVal: []byte("water"),
-			Locations: []*TokenLocation{
+			Locations: []*analysis.TokenLocation{
 				{
 					FieldVal:    "tf2",
 					PositionVal: 1,

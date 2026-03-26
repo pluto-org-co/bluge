@@ -60,7 +60,7 @@ func (tl *TokenLocation) Size() int {
 type TokenFreq struct {
 	TermVal   []byte
 	Locations []*TokenLocation
-	frequency int
+	Freq      int
 }
 
 func (tf *TokenFreq) Size() int {
@@ -77,7 +77,7 @@ func (tf *TokenFreq) Term() []byte {
 }
 
 func (tf *TokenFreq) Frequency() int {
-	return tf.frequency
+	return tf.Freq
 }
 
 func (tf *TokenFreq) EachLocation(location segment.VisitLocation) {
@@ -115,11 +115,11 @@ func (tfs TokenFrequencies) mergeOne(remoteField string, tfk uint64, tf *TokenFr
 	existingTf, exists := tfs[tfk]
 	if exists {
 		existingTf.Locations = append(existingTf.Locations, tf.Locations...)
-		existingTf.frequency += tf.frequency
+		existingTf.Freq += tf.Freq
 	} else {
 		tfs[tfk] = &TokenFreq{
 			TermVal:   tf.TermVal,
-			frequency: tf.frequency,
+			Freq:      tf.Freq,
 			Locations: make([]*TokenLocation, len(tf.Locations)),
 		}
 		copy(tfs[tfk].Locations, tf.Locations)
@@ -134,11 +134,11 @@ func (tfs TokenFrequencies) MergeOneBytes(remoteField string, tfk []byte, tf *To
 	existingTf, exists := tfs[xxh3.Hash(tfk)]
 	if exists {
 		existingTf.Locations = append(existingTf.Locations, tf.Locations...)
-		existingTf.frequency += tf.frequency
+		existingTf.Freq += tf.Freq
 	} else {
 		tfs[xxh3.Hash(tfk)] = &TokenFreq{
 			TermVal:   tf.TermVal,
-			frequency: tf.frequency,
+			Freq:      tf.Freq,
 			Locations: make([]*TokenLocation, len(tf.Locations)),
 		}
 		copy(tfs[xxh3.Hash(tfk)].Locations, tf.Locations)
@@ -165,12 +165,12 @@ func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int
 			curr, ok := tokenFreqs[xxh3.Hash(token.Term)]
 			if ok {
 				curr.Locations = append(curr.Locations, &tls[tlNext])
-				curr.frequency++
+				curr.Freq++
 			} else {
 				tokenFreqs[xxh3.Hash(token.Term)] = &TokenFreq{
 					TermVal:   token.Term,
 					Locations: []*TokenLocation{&tls[tlNext]},
-					frequency: 1,
+					Freq:      1,
 				}
 			}
 
@@ -180,11 +180,11 @@ func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int
 		for _, token := range tokens {
 			curr, exists := tokenFreqs[xxh3.Hash(token.Term)]
 			if exists {
-				curr.frequency++
+				curr.Freq++
 			} else {
 				tokenFreqs[xxh3.Hash(token.Term)] = &TokenFreq{
-					TermVal:   token.Term,
-					frequency: 1,
+					TermVal: token.Term,
+					Freq:    1,
 				}
 			}
 		}
