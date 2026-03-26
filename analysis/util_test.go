@@ -121,7 +121,7 @@ func TestBuildTermFromRunesOptimistic(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		out := analysis.BuildTermFromRunesOptimistic(test.buf, test.in)
+		out := analysis.BuildTermFromRunesOptimistic(test.in)
 		back := []rune(string(out))
 		if !reflect.DeepEqual(back, test.in) {
 			t.Errorf("expected %v to convert back to %v", out, test.in)
