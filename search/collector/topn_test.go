@@ -47,8 +47,8 @@ func TestTop10Scores(t *testing.T) {
 	}
 
 	aggs := make(search.Aggregations)
-	aggs.Add("count", aggregations.CountMatches())
-	aggs.Add("max_score", aggregations.Max(search.DocumentScore()))
+	aggs.Add(search.CountHash, aggregations.CountMatches())
+	aggs.Add(search.MaxScoreHash, aggregations.Max(search.DocumentScore()))
 
 	collector := NewTopNCollector(10, 0, search.SortOrder{search.SortBy(search.DocumentScore()).Desc()})
 	dmi, err := collector.Collect(context.Background(), aggs, searcher)
@@ -104,8 +104,8 @@ func TestTop10Scores(t *testing.T) {
 }
 
 func getTotalHitsMaxScore(bucket *search.Bucket) (total int, topScore float64) {
-	total = int(bucket.Aggregations()["count"].(search.MetricCalculator).Value())
-	topScore = bucket.Aggregations()["max_score"].(search.MetricCalculator).Value()
+	total = int(bucket.Aggregations()[search.CountHash].(search.MetricCalculator).Value())
+	topScore = bucket.Aggregations()[search.MaxScoreHash].(search.MetricCalculator).Value()
 	if math.IsInf(topScore, -1) {
 		topScore = 0
 	}
@@ -126,8 +126,8 @@ func TestTop10ScoresSkip10(t *testing.T) {
 	}
 
 	aggs := make(search.Aggregations)
-	aggs.Add("count", aggregations.CountMatches())
-	aggs.Add("max_score", aggregations.Max(search.DocumentScore()))
+	aggs.Add(search.CountHash, aggregations.CountMatches())
+	aggs.Add(search.MaxScoreHash, aggregations.Max(search.DocumentScore()))
 
 	collector := NewTopNCollector(10, 10, search.SortOrder{search.SortBy(search.DocumentScore()).Desc()})
 	dmi, err := collector.Collect(context.Background(), aggs, searcher)
@@ -176,8 +176,8 @@ func TestTop10ScoresSkip10Only9Hits(t *testing.T) {
 	}
 
 	aggs := make(search.Aggregations)
-	aggs.Add("count", aggregations.CountMatches())
-	aggs.Add("max_score", aggregations.Max(search.DocumentScore()))
+	aggs.Add(search.CountHash, aggregations.CountMatches())
+	aggs.Add(search.MaxScoreHash, aggregations.Max(search.DocumentScore()))
 
 	collector := NewTopNCollector(10, 10, search.SortOrder{search.SortBy(search.DocumentScore()).Desc()})
 	dmi, err := collector.Collect(context.Background(), aggs, searcher)
@@ -215,8 +215,8 @@ func TestPaginationSameScores(t *testing.T) {
 	}
 
 	aggs := make(search.Aggregations)
-	aggs.Add("count", aggregations.CountMatches())
-	aggs.Add("max_score", aggregations.Max(search.DocumentScore()))
+	aggs.Add(search.CountHash, aggregations.CountMatches())
+	aggs.Add(search.MaxScoreHash, aggregations.Max(search.DocumentScore()))
 
 	// first get first 5 hits
 	collector := NewTopNCollector(5, 0, search.SortOrder{search.SortBy(search.DocumentScore()).Desc()})

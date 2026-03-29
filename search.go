@@ -23,7 +23,7 @@ import (
 type SearchRequest interface {
 	Collector() search.Collector
 	Searcher(i search.Reader, config Config) (search.Searcher, error)
-	AddAggregation(name string, aggregation search.Aggregation)
+	AddAggregation(hash uint64, aggregation search.Aggregation)
 	Aggregations() search.Aggregations
 }
 
@@ -82,9 +82,9 @@ func NewTopNSearch(n int, q Query) *TopNSearch {
 }
 
 var standardAggs = search.Aggregations{
-	"count":     aggregations.CountMatches(),
-	"max_score": aggregations.MaxStartingAt(search.DocumentScore(), 0),
-	"duration":  aggregations.Duration(),
+	search.CountHash:    aggregations.CountMatches(),
+	search.MaxScoreHash: aggregations.MaxStartingAt(search.DocumentScore(), 0),
+	search.DurationHash: aggregations.Duration(),
 }
 
 // WithStandardAggregations adds the standard aggregations in the search query
@@ -93,8 +93,8 @@ var standardAggs = search.Aggregations{
 //   - max_score (the highest score of all the matched documents)
 //   - duration (time taken performing the search)
 func (s *TopNSearch) WithStandardAggregations() *TopNSearch {
-	for name, agg := range standardAggs {
-		s.AddAggregation(name, agg)
+	for hash, agg := range standardAggs {
+		s.AddAggregation(hash, agg)
 	}
 	return s
 }
@@ -196,8 +196,8 @@ func searchOptionsFromConfig(config Config, options SearchOptions) search.Search
 	}
 }
 
-func (s *TopNSearch) AddAggregation(name string, aggregation search.Aggregation) {
-	s.aggregations.Add(name, aggregation)
+func (s *TopNSearch) AddAggregation(hash uint64, aggregation search.Aggregation) {
+	s.aggregations.Add(hash, aggregation)
 }
 
 type AllMatches struct {
@@ -214,14 +214,14 @@ func NewAllMatches(q Query) *AllMatches {
 }
 
 func (s *AllMatches) WithStandardAggregations() *AllMatches {
-	for name, agg := range standardAggs {
-		s.AddAggregation(name, agg)
+	for hash, agg := range standardAggs {
+		s.AddAggregation(hash, agg)
 	}
 	return s
 }
 
-func (s *AllMatches) AddAggregation(name string, aggregation search.Aggregation) {
-	s.aggregations.Add(name, aggregation)
+func (s *AllMatches) AddAggregation(hash uint64, aggregation search.Aggregation) {
+	s.aggregations.Add(hash, aggregation)
 }
 
 func (s *AllMatches) ExplainScores() *AllMatches {

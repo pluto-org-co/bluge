@@ -70,8 +70,8 @@ func (p Locations) Dedupe() Locations { // destructive!
 
 type TermLocationMap map[uint64]Locations
 
-func (t TermLocationMap) AddLocation(term string, location *Location) {
-	t[xxh3.HashString(term)] = append(t[xxh3.HashString(term)], location)
+func (t TermLocationMap) AddLocation(hash uint64, location *Location) {
+	t[hash] = append(t[hash], location)
 }
 
 type FieldTermLocationMap map[string]TermLocationMap
@@ -209,7 +209,8 @@ func (dm *DocumentMatch) Complete(prealloc []Location) []Location {
 			loc := &prealloc[i]
 			*loc = ftl.Location
 
-			locs := tlm[xxh3.HashString(ftl.Term)]
+			termHash := xxh3.HashString(ftl.Term)
+			locs := tlm[termHash]
 
 			// if the loc is before or at the last location, then there
 			// might be duplicates that need to be deduplicated
@@ -220,7 +221,7 @@ func (dm *DocumentMatch) Complete(prealloc []Location) []Location {
 				}
 			}
 
-			tlm[xxh3.HashString(ftl.Term)] = append(locs, loc)
+			tlm[termHash] = append(locs, loc)
 
 			dm.FieldTermLocations[i] = FieldTermLocation{ // recycle
 				Location: Location{},

@@ -253,7 +253,8 @@ type phrasePath []phrasePart
 
 func (p phrasePath) MergeInto(in search.TermLocationMap) {
 	for _, pp := range p {
-		in[xxh3.HashString(pp.term)] = append(in[xxh3.HashString(pp.term)], pp.loc)
+		ppHash := xxh3.HashString(pp.term)
+		in[ppHash] = append(in[ppHash], pp.loc)
 	}
 }
 

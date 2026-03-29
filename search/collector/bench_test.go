@@ -30,7 +30,7 @@ var extResults []*search.DocumentMatch
 
 func benchHelper(numOfMatches int, cc createCollector, b *testing.B) {
 	matches := make([]*search.DocumentMatch, 0, numOfMatches)
-	for i := 0; i < numOfMatches; i++ {
+	for i := range numOfMatches {
 		matches = append(matches, &search.DocumentMatch{
 			Number: uint64(i),
 			Score:  rand.Float64(),
@@ -39,14 +39,14 @@ func benchHelper(numOfMatches int, cc createCollector, b *testing.B) {
 
 	b.ResetTimer()
 
-	for run := 0; run < b.N; run++ {
+	for b.Loop() {
 		searcher := &stubSearcher{
 			matches: matches,
 		}
 		collector := cc()
 		aggs := make(search.Aggregations)
-		aggs.Add("count", aggregations.CountMatches())
-		aggs.Add("max_score", aggregations.Max(search.DocumentScore()))
+		aggs.Add(search.CountHash, aggregations.CountMatches())
+		aggs.Add(search.MaxScoreHash, aggregations.Max(search.DocumentScore()))
 		dmi, err := collector.Collect(context.Background(), aggs, searcher)
 		if err != nil {
 			b.Fatal(err)

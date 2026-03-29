@@ -32,7 +32,7 @@ func (a *AllCollector) Collect(ctx context.Context, aggs search.Aggregations,
 	return &AllIterator{
 		ctx:           ctx,
 		neededFields:  aggs.Fields(),
-		bucket:        search.NewBucket("", aggs),
+		bucket:        search.NewBucket(0, aggs),
 		searcher:      searcher,
 		searchContext: search.NewSearchContext(searcher.DocumentMatchPoolSize(), 0),
 	}, nil

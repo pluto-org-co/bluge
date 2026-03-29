@@ -131,17 +131,20 @@ func (tfs TokenFrequencies) MergeOneBytes(remoteField string, tfk []byte, tf *To
 	for _, l := range tf.Locations {
 		l.FieldVal = remoteField
 	}
-	existingTf, exists := tfs[xxh3.Hash(tfk)]
+
+	tfkHash := xxh3.Hash(tfk)
+
+	existingTf, exists := tfs[tfkHash]
 	if exists {
 		existingTf.Locations = append(existingTf.Locations, tf.Locations...)
 		existingTf.Freq += tf.Freq
 	} else {
-		tfs[xxh3.Hash(tfk)] = &TokenFreq{
+		tfs[tfkHash] = &TokenFreq{
 			TermVal:   tf.TermVal,
 			Freq:      tf.Freq,
 			Locations: make([]*TokenLocation, len(tf.Locations)),
 		}
-		copy(tfs[xxh3.Hash(tfk)].Locations, tf.Locations)
+		copy(tfs[tfkHash].Locations, tf.Locations)
 	}
 }
 
@@ -161,12 +164,13 @@ func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int
 				PositionVal: position,
 			}
 
-			curr, ok := tokenFreqs[xxh3.Hash(token.Term)]
+			termHash := xxh3.Hash(token.Term)
+			curr, ok := tokenFreqs[termHash]
 			if ok {
 				curr.Locations = append(curr.Locations, &tls[tlNext])
 				curr.Freq++
 			} else {
-				tokenFreqs[xxh3.Hash(token.Term)] = &TokenFreq{
+				tokenFreqs[termHash] = &TokenFreq{
 					TermVal:   token.Term,
 					Locations: []*TokenLocation{&tls[tlNext]},
 					Freq:      1,
@@ -177,11 +181,12 @@ func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int
 		}
 	} else {
 		for _, token := range tokens {
-			curr, exists := tokenFreqs[xxh3.Hash(token.Term)]
+			termHash := xxh3.Hash(token.Term)
+			curr, exists := tokenFreqs[termHash]
 			if exists {
 				curr.Freq++
 			} else {
-				tokenFreqs[xxh3.Hash(token.Term)] = &TokenFreq{
+				tokenFreqs[termHash] = &TokenFreq{
 					TermVal: token.Term,
 					Freq:    1,
 				}

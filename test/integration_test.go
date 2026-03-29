@@ -62,8 +62,8 @@ func collectHits(dmi search.DocumentMatchIterator) (rv []*match, err error) {
 }
 
 func getTotalHitsMaxScore(bucket *search.Bucket) (total int, topScore float64) {
-	total = int(bucket.Aggregations()["count"].(search.MetricCalculator).Value())
-	topScore = bucket.Aggregations()["max_score"].(search.MetricCalculator).Value()
+	total = int(bucket.Aggregations()[search.CountHash].(search.MetricCalculator).Value())
+	topScore = bucket.Aggregations()[search.MaxScoreHash].(search.MetricCalculator).Value()
 	if math.IsInf(topScore, -1) {
 		topScore = 0
 	}
@@ -71,8 +71,8 @@ func getTotalHitsMaxScore(bucket *search.Bucket) (total int, topScore float64) {
 }
 
 var standardAggs = search.Aggregations{
-	"count":     aggregations.CountMatches(),
-	"max_score": aggregations.Max(search.DocumentScore()),
+	search.CountHash:    aggregations.CountMatches(),
+	search.MaxScoreHash: aggregations.Max(search.DocumentScore()),
 }
 
 func TestIntegration(t *testing.T) {

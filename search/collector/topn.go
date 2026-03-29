@@ -139,7 +139,7 @@ func (hc *TopNCollector) Collect(ctx context.Context, aggs search.Aggregations,
 
 	// add fields needed by aggregations
 	hc.neededFields = append(hc.neededFields, aggs.Fields()...)
-	bucket := search.NewBucket("", aggs)
+	bucket := search.NewBucket(0, aggs)
 
 	var hitNumber int
 	select {

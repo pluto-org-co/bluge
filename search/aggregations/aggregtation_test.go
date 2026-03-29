@@ -16,9 +16,11 @@ package aggregations
 
 import (
 	"math"
+	"strconv"
 	"testing"
 
 	segment "github.com/blugelabs/bluge_segment_api"
+	"github.com/zeebo/xxh3"
 
 	"github.com/blugelabs/bluge/numeric"
 	"github.com/blugelabs/bluge/search"
@@ -29,7 +31,7 @@ func TestAggregations(t *testing.T) {
 	fieldsNeeded := global.Fields()
 	assertFieldsSeen(t, []string{"age", "name", "type"}, fieldsNeeded)
 
-	bucket := search.NewBucket("global", global)
+	bucket := search.NewBucket(xxh3.HashString("global"), global)
 	testDocs := buildTestDocs()
 	for _, doc := range testDocs {
 		err := doc.LoadDocumentValues(search.NewSearchContext(0, 0), global.Fields())
@@ -52,7 +54,7 @@ func TestAggregationMerge(t *testing.T) {
 	testDocs := buildTestDocs()
 
 	// process the first 5 docs in shard1
-	shard1 := search.NewBucket("shard1", global)
+	shard1 := search.NewBucket(xxh3.HashString("shard1"), global)
 	for _, doc := range testDocs[0:5] {
 		err := doc.LoadDocumentValues(search.NewSearchContext(0, 0), global.Fields())
 		if err != nil {
@@ -63,7 +65,7 @@ func TestAggregationMerge(t *testing.T) {
 	shard1.Finish()
 
 	// process the next 5 docs in shard2
-	shard2 := search.NewBucket("shard2", global)
+	shard2 := search.NewBucket(xxh3.HashString("shard2"), global)
 	for _, doc := range testDocs[5:] {
 		err := doc.LoadDocumentValues(search.NewSearchContext(0, 0), global.Fields())
 		if err != nil {
@@ -195,46 +197,46 @@ func assertFieldsSeen(t *testing.T, expectedFields, actualFields []string) {
 }
 
 type bucketExpectation struct {
-	metrics  map[string]float64
-	children map[string]map[string]*bucketExpectation
+	metrics  map[uint64]float64
+	children map[uint64]map[uint64]*bucketExpectation
 }
 
 func (b bucketExpectation) Assert(t *testing.T, bucket *search.Bucket, path string) {
-	for name, agg := range bucket.Aggregations() {
+	for hash, agg := range bucket.Aggregations() {
 		switch c := agg.(type) {
 		case search.MetricCalculator:
-			if expectMetricValue, ok := b.metrics[name]; ok {
+			if expectMetricValue, ok := b.metrics[hash]; ok {
 				if c.Value() != expectMetricValue {
-					t.Errorf("expected value %f got %f for '%s'", expectMetricValue, c.Value(), path+"."+name)
+					t.Errorf("expected value %f got %f for '%s'", expectMetricValue, c.Value(), path+"."+strconv.FormatUint(hash, 10))
 				}
 			} else {
-				t.Errorf("unexpected metric %s in path '%s'", name, path)
+				t.Errorf("unexpected metric %d in path '%s'", hash, path)
 			}
-			delete(b.metrics, name)
+			delete(b.metrics, hash)
 		case search.BucketCalculator:
-			if expectedBuckets, ok := b.children[name]; ok {
+			if expectedBuckets, ok := b.children[hash]; ok {
 				buckets := c.Buckets()
 				if len(expectedBuckets) != len(buckets) {
-					t.Errorf("expected %d buckets, got %d, at '%s'", len(expectedBuckets), len(buckets), path+"."+name)
+					t.Errorf("expected %d buckets, got %d, at '%s'", len(expectedBuckets), len(buckets), path+"."+strconv.FormatUint(hash, 10))
 				}
 				for _, bucket := range buckets {
-					if expectedBucket, ok := expectedBuckets[bucket.Name()]; ok {
-						expectedBucket.Assert(t, bucket, path+name+"."+bucket.Name())
+					if expectedBucket, ok := expectedBuckets[bucket.Hash()]; ok {
+						expectedBucket.Assert(t, bucket, path+strconv.FormatUint(hash, 10)+"."+strconv.FormatUint(bucket.Hash(), 10))
 					} else {
-						t.Errorf("unexpected bucket %s in path '%s'", bucket.Name(), path+"."+name)
+						t.Errorf("unexpected bucket %d in path '%s'", bucket.Hash(), path+"."+strconv.FormatUint(hash, 10))
 					}
 				}
 			} else {
-				t.Errorf("unexpected bucket aggregation %s in path '%s'", name, path)
+				t.Errorf("unexpected bucket aggregation %d in path '%s'", hash, path)
 			}
-			delete(b.children, name)
+			delete(b.children, hash)
 		}
 	}
 	for metricName := range b.metrics {
-		t.Errorf("expected a metric named %s at path '%s', was missing", metricName, path)
+		t.Errorf("expected a metric named %d at path '%s', was missing", metricName, path)
 	}
 	for aggName := range b.children {
-		t.Errorf("expected an aggregation named: %s at path '%s', was missing", aggName, path)
+		t.Errorf("expected an aggregation named: %d at path '%s', was missing", aggName, path)
 	}
 }
 
@@ -247,75 +249,75 @@ func buildTestAggregations() search.Aggregations {
 	byAge := Ranges(search.Field("age")).
 		AddRange(child).
 		AddRange(adult).
-		AddAggregation("min_age", Min(search.Field("age"))).
-		AddAggregation("max_age", Max(search.Field("age")))
+		AddAggregation(xxh3.HashString("min_age"), Min(search.Field("age"))).
+		AddAggregation(xxh3.HashString("max_age"), Max(search.Field("age")))
 
-	global.Add("byAge", byAge)
+	global.AddString("byAge", byAge)
 
-	global.Add("max_score", Max(search.DocumentScore()))
-	global.Add("doc_count", CountMatches())
-	global.Add("min_age", Min(search.Field("age")))
-	global.Add("max_age", Max(search.Field("age")))
-	global.Add("avg_age", Avg(search.Field("age")))
+	global.AddString("max_score", Max(search.DocumentScore()))
+	global.AddString("doc_count", CountMatches())
+	global.AddString("min_age", Min(search.Field("age")))
+	global.AddString("max_age", Max(search.Field("age")))
+	global.AddString("avg_age", Avg(search.Field("age")))
 
-	global.Add("quantiles", Quantiles(search.Field("age")))
+	global.AddString("quantiles", Quantiles(search.Field("age")))
 
 	termsAgg := NewTermsAggregation(search.Field("name"), 2)
-	global.Add("byName", termsAgg)
+	global.AddString("byName", termsAgg)
 
 	typesAgg := NewTermsAggregation(search.Field("type"), 2)
-	global.Add("byType", typesAgg)
+	global.AddString("byType", typesAgg)
 
 	return global
 }
 
 func buildTestBucketExpectations() *bucketExpectation {
 	return &bucketExpectation{
-		metrics: map[string]float64{
-			"doc_count": 10.0,
-			"max_score": 1.6,
-			"min_age":   1.0,
-			"max_age":   95,
-			"avg_age":   33.4,
+		metrics: map[uint64]float64{
+			xxh3.HashString("doc_count"): 10.0,
+			xxh3.HashString("max_score"): 1.6,
+			xxh3.HashString("min_age"):   1.0,
+			xxh3.HashString("max_age"):   95,
+			xxh3.HashString("avg_age"):   33.4,
 		},
-		children: map[string]map[string]*bucketExpectation{
-			"byType": {
-				"employee": &bucketExpectation{
-					metrics: map[string]float64{
-						"count": 8.0,
+		children: map[uint64]map[uint64]*bucketExpectation{
+			xxh3.HashString("byType"): {
+				xxh3.HashString("employee"): &bucketExpectation{
+					metrics: map[uint64]float64{
+						xxh3.HashString("count"): 8.0,
 					},
 				},
-				"contractor": &bucketExpectation{
-					metrics: map[string]float64{
-						"count": 2.0,
-					},
-				},
-			},
-			"byName": {
-				"john": &bucketExpectation{
-					metrics: map[string]float64{
-						"count": 3.0,
-					},
-				},
-				"barbara": &bucketExpectation{
-					metrics: map[string]float64{
-						"count": 2.0,
+				xxh3.HashString("contractor"): &bucketExpectation{
+					metrics: map[uint64]float64{
+						xxh3.HashString("count"): 2.0,
 					},
 				},
 			},
-			"byAge": {
-				"children": &bucketExpectation{
-					metrics: map[string]float64{
-						"count":   4.0,
-						"min_age": 1.0,
-						"max_age": 16.0,
+			xxh3.HashString("byName"): {
+				xxh3.HashString("john"): &bucketExpectation{
+					metrics: map[uint64]float64{
+						xxh3.HashString("count"): 3.0,
 					},
 				},
-				"adults": &bucketExpectation{
-					metrics: map[string]float64{
-						"count":   6.0,
-						"min_age": 25.0,
-						"max_age": 95.0,
+				xxh3.HashString("barbara"): &bucketExpectation{
+					metrics: map[uint64]float64{
+						xxh3.HashString("count"): 2.0,
+					},
+				},
+			},
+			xxh3.HashString("byAge"): {
+				xxh3.HashString("children"): &bucketExpectation{
+					metrics: map[uint64]float64{
+						xxh3.HashString("count"):   4.0,
+						xxh3.HashString("min_age"): 1.0,
+						xxh3.HashString("max_age"): 16.0,
+					},
+				},
+				xxh3.HashString("adults"): &bucketExpectation{
+					metrics: map[uint64]float64{
+						xxh3.HashString("count"):   6.0,
+						xxh3.HashString("min_age"): 25.0,
+						xxh3.HashString("max_age"): 95.0,
 					},
 				},
 			},
