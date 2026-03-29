@@ -142,7 +142,7 @@ func TestPrefixCodedValid(t *testing.T) {
 }
 
 func BenchmarkTestPrefixCoded(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for _, test := range tests {
 			actual, err := NewPrefixCodedInt64(test.input, test.shift)
 			if err != nil {

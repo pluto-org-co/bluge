@@ -278,7 +278,7 @@ func benchmarkComputeGeoRange(b *testing.B,
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		onBoundaryRes, offBoundaryRes, err :=
 			ComputeGeoRange(0, GeoBitsShift1Minus1, minLon, minLat, maxLon, maxLat, checkBoundaries,
 				nil, "", testGeoPrecisionStep)
@@ -297,7 +297,7 @@ func benchmarkOrigComputeGeoRange(b *testing.B,
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		onBoundaryRes, offBoundaryRes :=
 			origComputeGeoRange(0, GeoBitsShift1Minus1, minLon, minLat, maxLon, maxLat, checkBoundaries)
 		if len(onBoundaryRes) != onBoundary || len(offBoundaryRes) != offBoundary {
@@ -327,7 +327,7 @@ func benchmarkOrigComputeGeoRange2(b *testing.B,
 
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		onBoundaryRes, offBoundaryRes :=
 			origComputeGeoRange2(0, GeoBitsShift1Minus1, minLon, minLat, maxLon, maxLat, checkBoundaries, nil, nil, makePrefixCoded)
 		if len(onBoundaryRes) != onBoundary || len(offBoundaryRes) != offBoundary {

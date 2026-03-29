@@ -96,7 +96,7 @@ func BenchmarkStopWordsFilter(b *testing.B) {
 	stopFilter := NewStopTokensFilter(tokenMap)
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		stopFilter.Filter(inputTokenStream)
 	}
 }
