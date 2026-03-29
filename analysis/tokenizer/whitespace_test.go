@@ -86,10 +86,11 @@ func TestWhitespaceTokenizer(t *testing.T) {
 }
 
 func BenchmarkWhitespaceTokenizeEnglishText(b *testing.B) {
-	tokenizer := NewCharacterTokenizer(notSpace)
+	tokenizer := NewWhitespaceTokenizer()
+
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tokenizer.Tokenize(sampleLargeInput)
 	}
 }
