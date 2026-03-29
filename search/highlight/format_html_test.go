@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/blugelabs/bluge/search"
+	"github.com/zeebo/xxh3"
 )
 
 func TestHTMLFragmentFormatter(t *testing.T) {
@@ -37,7 +38,7 @@ func TestHTMLFragmentFormatter(t *testing.T) {
 				End:   19,
 			},
 			tlm: search.TermLocationMap{
-				"quick": []*search.Location{
+				xxh3.HashString("quick"): []*search.Location{
 					{
 						Pos:   2,
 						Start: 4,
@@ -57,7 +58,7 @@ func TestHTMLFragmentFormatter(t *testing.T) {
 				End:   19,
 			},
 			tlm: search.TermLocationMap{
-				"quick": []*search.Location{
+				xxh3.HashString("quick"): []*search.Location{
 					{
 						Pos:   2,
 						Start: 4,
@@ -77,7 +78,7 @@ func TestHTMLFragmentFormatter(t *testing.T) {
 				End:   23,
 			},
 			tlm: search.TermLocationMap{
-				"quick": []*search.Location{
+				xxh3.HashString("quick"): []*search.Location{
 					{
 						Pos:   2,
 						Start: 6,
@@ -97,7 +98,7 @@ func TestHTMLFragmentFormatter(t *testing.T) {
 				End:   24,
 			},
 			tlm: search.TermLocationMap{
-				"qu&ick": []*search.Location{
+				xxh3.HashString("qu&ick"): []*search.Location{
 					{
 						Pos:   2,
 						Start: 6,

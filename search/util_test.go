@@ -17,12 +17,14 @@ package search
 import (
 	"reflect"
 	"testing"
+
+	"github.com/zeebo/xxh3"
 )
 
 func TestMergeLocations(t *testing.T) {
 	flm1 := FieldTermLocationMap{
 		"marty": TermLocationMap{
-			"name": {
+			xxh3.HashString("name"): {
 				&Location{
 					Pos:   1,
 					Start: 0,
@@ -34,7 +36,7 @@ func TestMergeLocations(t *testing.T) {
 
 	flm2 := FieldTermLocationMap{
 		"marty": TermLocationMap{
-			"description": {
+			xxh3.HashString("description"): {
 				&Location{
 					Pos:   5,
 					Start: 20,
@@ -46,7 +48,7 @@ func TestMergeLocations(t *testing.T) {
 
 	flm3 := FieldTermLocationMap{
 		"josh": TermLocationMap{
-			"description": {
+			xxh3.HashString("description"): {
 				&Location{
 					Pos:   5,
 					Start: 20,
@@ -58,14 +60,14 @@ func TestMergeLocations(t *testing.T) {
 
 	expectedMerge := FieldTermLocationMap{
 		"marty": TermLocationMap{
-			"description": {
+			xxh3.HashString("description"): {
 				&Location{
 					Pos:   5,
 					Start: 20,
 					End:   25,
 				},
 			},
-			"name": {
+			xxh3.HashString("name"): {
 				&Location{
 					Pos:   1,
 					Start: 0,
@@ -74,7 +76,7 @@ func TestMergeLocations(t *testing.T) {
 			},
 		},
 		"josh": TermLocationMap{
-			"description": {
+			xxh3.HashString("description"): {
 				&Location{
 					Pos:   5,
 					Start: 20,

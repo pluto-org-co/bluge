@@ -21,7 +21,6 @@ import (
 )
 
 type TermLocation struct {
-	Term  string
 	Pos   int
 	Start int
 	End   int
@@ -61,10 +60,10 @@ func (t TermLocations) MergeOverlapping() {
 
 func OrderTermLocations(tlm search.TermLocationMap) TermLocations {
 	rv := make(TermLocations, 0)
-	for term, locations := range tlm {
+	for _, locations := range tlm {
 		for _, location := range locations {
 			tl := TermLocation{
-				Term:  term,
+				// Term:  term,
 				Pos:   location.Pos,
 				Start: location.Start,
 				End:   location.End,

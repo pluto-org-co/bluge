@@ -23,6 +23,7 @@ import (
 
 	"github.com/blugelabs/bluge/search/aggregations"
 	"github.com/blugelabs/bluge/search/highlight"
+	"github.com/zeebo/xxh3"
 
 	"github.com/blugelabs/bluge/analysis/char"
 
@@ -831,8 +832,8 @@ func TestDuplicateLocationsIssue1168(t *testing.T) {
 	if next == nil {
 		t.Fatalf("expected at least one hit")
 	}
-	if len(next.Locations["name"]["marty"]) != 1 {
-		t.Fatalf("expected 1, there are %d marty", len(next.Locations["name1"]["marty"]))
+	if len(next.Locations["name"][xxh3.HashString("marty")]) != 1 {
+		t.Fatalf("expected 1, there are %d marty", len(next.Locations["name1"][xxh3.HashString("marty")]))
 	}
 
 	err = indexReader.Close()

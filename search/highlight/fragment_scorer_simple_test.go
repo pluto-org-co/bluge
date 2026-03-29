@@ -18,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/blugelabs/bluge/search"
+	"github.com/zeebo/xxh3"
 )
 
 func TestSimpleFragmentScorer(t *testing.T) {
@@ -33,7 +34,7 @@ func TestSimpleFragmentScorer(t *testing.T) {
 				End:   14,
 			},
 			tlm: search.TermLocationMap{
-				"cat": []*search.Location{
+				xxh3.HashString("cat"): []*search.Location{
 					{
 						Pos:   0,
 						Start: 0,
@@ -50,14 +51,14 @@ func TestSimpleFragmentScorer(t *testing.T) {
 				End:   14,
 			},
 			tlm: search.TermLocationMap{
-				"cat": []*search.Location{
+				xxh3.HashString("cat"): []*search.Location{
 					{
 						Pos:   1,
 						Start: 0,
 						End:   3,
 					},
 				},
-				"hat": []*search.Location{
+				xxh3.HashString("hat"): []*search.Location{
 					{
 						Pos:   4,
 						Start: 11,
