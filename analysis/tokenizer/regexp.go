@@ -49,7 +49,7 @@ func (rt *RegexpTokenizer) Tokenize(input []byte) analysis.TokenStream {
 			rv = append(rv, &token)
 		}
 	}
-	return rv.Defragment()
+	return rv
 }
 
 func detectTokenType(termBytes []byte) analysis.TokenType {

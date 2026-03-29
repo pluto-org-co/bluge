@@ -71,5 +71,5 @@ func (c *CharacterTokenizer) Tokenize(input []byte) analysis.TokenStream {
 	}
 
 	// Shrink rv, since it arrives fragment
-	return rv.Defragment()
+	return rv
 }

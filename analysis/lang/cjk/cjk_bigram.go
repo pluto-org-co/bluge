@@ -110,7 +110,7 @@ func (s *BigramFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
 			rv = append(rv, unigram)
 		}
 	}
-	return rv.Defragment()
+	return rv
 }
 
 func (s *BigramFilter) flush(r *ring.Ring, itemsInRing *int) *analysis.Token {

@@ -63,5 +63,5 @@ func (s *NgramFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
 		}
 	}
 
-	return rv.Defragment()
+	return rv
 }

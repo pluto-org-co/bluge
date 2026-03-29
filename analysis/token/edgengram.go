@@ -92,5 +92,5 @@ func (s *EdgeNgramFilter) Filter(input analysis.TokenStream) analysis.TokenStrea
 		}
 	}
 
-	return rv.Defragment()
+	return rv
 }

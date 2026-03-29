@@ -75,7 +75,7 @@ func (s *ShingleFilter) Filter(input analysis.TokenStream) analysis.TokenStream 
 		aRing = aRing.Next()
 	}
 
-	return rv.Defragment()
+	return rv
 }
 
 func (s *ShingleFilter) shingleCurrentRingState(aRing *ring.Ring, itemsInRing int) analysis.TokenStream {
@@ -120,5 +120,5 @@ func (s *ShingleFilter) shingleCurrentRingState(aRing *ring.Ring, itemsInRing in
 		}
 		rv = append(rv, &token)
 	}
-	return rv.Defragment()
+	return rv
 }

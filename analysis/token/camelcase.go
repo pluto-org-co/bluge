@@ -61,5 +61,5 @@ func (f *CamelCaseFilter) Filter(input analysis.TokenStream) analysis.TokenStrea
 		}
 		rv = append(rv, p.FlushTokens()...)
 	}
-	return rv.Defragment()
+	return rv
 }

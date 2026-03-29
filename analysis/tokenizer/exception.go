@@ -86,5 +86,5 @@ func (t *ExceptionsTokenizer) Tokenize(input []byte) analysis.TokenStream {
 		}
 	}
 
-	return rv.Defragment()
+	return rv
 }
