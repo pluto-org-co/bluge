@@ -16,24 +16,27 @@ package collector
 
 import (
 	"context"
-	"math/rand"
+	"math/rand/v2"
 	"testing"
 
 	"github.com/blugelabs/bluge/search/aggregations"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/blugelabs/bluge/search"
 )
 
 type createCollector func() search.Collector
 
-var extResults []*search.DocumentMatch
-
 func benchHelper(numOfMatches int, cc createCollector, b *testing.B) {
+	assertions := assert.New(b)
+
+	var random = rand.New(rand.NewChaCha8([32]byte{2, 0, 2, 6, 'A', 'n', 't', 'o', 'n', 'i', 'o'}))
+
 	matches := make([]*search.DocumentMatch, 0, numOfMatches)
 	for i := range numOfMatches {
 		matches = append(matches, &search.DocumentMatch{
 			Number: uint64(i),
-			Score:  rand.Float64(),
+			Score:  random.Float64(),
 		})
 	}
 
@@ -44,26 +47,19 @@ func benchHelper(numOfMatches int, cc createCollector, b *testing.B) {
 			matches: matches,
 		}
 		collector := cc()
-		aggs := make(search.Aggregations)
-		aggs.Add(search.CountHash, aggregations.CountMatches())
-		aggs.Add(search.MaxScoreHash, aggregations.Max(search.DocumentScore()))
+		aggs := search.Aggregations{
+			search.CountHash:    aggregations.CountMatches(),
+			search.MaxScoreHash: aggregations.Max(search.DocumentScore()),
+		}
 		dmi, err := collector.Collect(context.Background(), aggs, searcher)
-		if err != nil {
-			b.Fatal(err)
+		if !assertions.Nil(err, "failed to collect from searcher") {
+			return
 		}
 
-		var results search.DocumentMatchCollection
-		result, err := dmi.Next()
-		for result != nil && err == nil {
-			results = append(results, &search.DocumentMatch{
-				Number: result.Number,
-				Score:  result.Score,
-			})
-			result, err = dmi.Next()
+		for result, err := dmi.Next(); result != nil && err == nil; result, err = dmi.Next() {
 		}
-		extResults = results
-		if err != nil {
-			b.Fatalf("error advancing document match iterator: %v", err)
+		if !assertions.Nil(err, "failed to iterate results") {
+			return
 		}
 	}
 }
