@@ -21,7 +21,6 @@ import (
 
 func TestMultiSearch(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter1, err := OpenWriter(config)
@@ -43,7 +42,6 @@ func TestMultiSearch(t *testing.T) {
 	}
 
 	tmpIndexPath2 := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath2)
 
 	config2 := DefaultConfig(tmpIndexPath2)
 	indexWriter2, err := OpenWriter(config2)

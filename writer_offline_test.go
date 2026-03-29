@@ -24,7 +24,6 @@ import (
 
 func TestOfflineWriter(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	writer, err := OpenOfflineWriter(config, 2, 2)

@@ -39,7 +39,6 @@ import (
 // https://github.com/blevesearch/bleve/issues/954
 func TestNestedBooleanSearchers(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -140,7 +139,6 @@ func TestNestedBooleanSearchers(t *testing.T) {
 
 func TestNestedBooleanMustNotSearcher(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -272,7 +270,6 @@ func TestNestedBooleanMustNotSearcher(t *testing.T) {
 
 func TestSearchOverEmptyKeyword(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -326,7 +323,6 @@ func TestSearchOverEmptyKeyword(t *testing.T) {
 
 func TestMultipleNestedBooleanMustNotSearchers(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -443,7 +439,6 @@ func TestMultipleNestedBooleanMustNotSearchers(t *testing.T) {
 
 func TestBooleanMustNotSearcher(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -601,7 +596,6 @@ func TestBooleanMustNotSearcher(t *testing.T) {
 
 func TestDisjunctionQueryIncorrectMin(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -669,7 +663,6 @@ func TestDisjunctionQueryIncorrectMin(t *testing.T) {
 
 func TestBooleanShouldMinPropagation(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -735,7 +728,6 @@ func TestBooleanShouldMinPropagation(t *testing.T) {
 
 func TestDisjunctionMinPropagation(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -802,7 +794,6 @@ func TestDisjunctionMinPropagation(t *testing.T) {
 
 func TestDuplicateLocationsIssue1168(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -856,7 +847,6 @@ func TestDuplicateLocationsIssue1168(t *testing.T) {
 
 func TestBooleanMustSingleMatchNone(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -920,7 +910,6 @@ func TestBooleanMustSingleMatchNone(t *testing.T) {
 
 func TestBooleanMustNotSingleMatchNone(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -986,7 +975,6 @@ func TestBooleanMustNotSingleMatchNone(t *testing.T) {
 
 func TestBooleanSearchBug1185(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1133,7 +1121,6 @@ func countHits(dmi search.DocumentMatchIterator) (n int, err error) {
 
 func TestGeoDistanceIssue1301(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1194,7 +1181,6 @@ func TestSearchHighlightingWithRegexpReplacement(t *testing.T) {
 	}
 
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1274,7 +1260,6 @@ func TestAllMatchesWithAggregationIssue31(t *testing.T) {
 
 func TestNumericRangeSearchBoost(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1328,7 +1313,6 @@ func TestNumericRangeSearchBoost(t *testing.T) {
 
 func TestBooleanSearchBoost(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
