@@ -15,6 +15,7 @@
 package searcher
 
 import (
+	"slices"
 	"sort"
 
 	"github.com/blugelabs/bluge/search"
@@ -29,14 +30,10 @@ type ConjunctionSearcher struct {
 	scorer      search.CompositeScorer
 }
 
-func NewConjunctionSearcher(indexReader search.Reader,
-	qsearchers []search.Searcher, scorer search.CompositeScorer, options search.SearcherOptions) (
+func NewConjunctionSearcher(indexReader search.Reader, qsearchers OrderedSearcherList, scorer search.CompositeScorer, options search.SearcherOptions) (
 	search.Searcher, error) {
 	// build the sorted downstream searchers
-	searchers := make(OrderedSearcherList, len(qsearchers))
-	for i, searcher := range qsearchers {
-		searchers[i] = searcher
-	}
+	searchers := slices.Clone(qsearchers)
 	sort.Sort(searchers)
 
 	// attempt the "unadorned" conjunction optimization only when we
