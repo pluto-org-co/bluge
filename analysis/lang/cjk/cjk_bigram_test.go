@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cjk
+package cjk_test
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/blugelabs/bluge/analysis"
+	"github.com/blugelabs/bluge/analysis/lang/cjk"
 )
 
 func TestCJKBigramFilter(t *testing.T) {
@@ -465,7 +466,7 @@ func TestCJKBigramFilter(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		cjkBigramFilter := NewBigramFilter(test.outputUnigram)
+		cjkBigramFilter := cjk.NewBigramFilter(test.outputUnigram)
 		actual := cjkBigramFilter.Filter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)
