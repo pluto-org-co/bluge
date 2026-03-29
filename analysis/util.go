@@ -45,25 +45,17 @@ func InsertRune(in []rune, pos int, r rune) []rune {
 // allocated and that is used instead
 // this should be used in cases where frequently the new term is the same
 // length or shorter than the original term (in number of bytes)
-func BuildTermFromRunesOptimistic(runes []rune) (out []byte) {
-	maxSize := len(runes) * utf8.UTFMax
-	out = make([]byte, 0, maxSize)
+func BuildTermFromRunesOptimistic(buf []byte, runes []rune) (out []byte) {
+	out = buf[:0]
 	for _, r := range runes {
 		out = utf8.AppendRune(out, r)
 	}
 
-	if len(out) == maxSize {
-		return out
-	}
-
-	bak := out
-	out = make([]byte, len(bak))
-	copy(out, bak)
 	return out
 }
 
 func BuildTermFromRunes(runes []rune) []byte {
-	return BuildTermFromRunesOptimistic(runes)
+	return BuildTermFromRunesOptimistic(make([]byte, utf8.UTFMax*len(runes)), runes)
 }
 
 func TruncateRunes(input []byte, num int) []byte {

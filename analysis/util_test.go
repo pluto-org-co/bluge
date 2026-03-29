@@ -121,7 +121,7 @@ func TestBuildTermFromRunesOptimistic(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		out := analysis.BuildTermFromRunesOptimistic(test.in)
+		out := analysis.BuildTermFromRunesOptimistic(test.buf, test.in)
 		back := []rune(string(out))
 		if !reflect.DeepEqual(back, test.in) {
 			t.Errorf("expected %v to convert back to %v", out, test.in)
@@ -134,7 +134,7 @@ func BenchmarkBuildTermFromRunes(b *testing.B) {
 		{'a', 'b', 'c'},
 		{'こ', 'ん', 'に', 'ち', 'は', '世', '界'},
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for _, i := range input {
 			analysis.BuildTermFromRunes(i)
 		}
