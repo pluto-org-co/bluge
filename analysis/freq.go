@@ -145,8 +145,7 @@ func (tfs TokenFrequencies) MergeOneBytes(remoteField string, tfk []byte, tf *To
 	}
 }
 
-func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int) (
-	tokenFreqs TokenFrequencies, position int) {
+func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int) (tokenFreqs TokenFrequencies, position int) {
 	tokenFreqs = make(map[uint64]*TokenFreq, len(tokens))
 
 	if includeTermVectors {
