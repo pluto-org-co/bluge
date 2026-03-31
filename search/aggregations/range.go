@@ -15,7 +15,7 @@
 package aggregations
 
 import (
-	"fmt"
+	"strconv"
 
 	"github.com/blugelabs/bluge/search"
 )
@@ -58,7 +58,7 @@ func (a *RangeAggregation) Calculator() search.Calculator {
 	for _, rang := range a.ranges {
 		bucketName := rang.name
 		if bucketName == "" {
-			bucketName = fmt.Sprintf("[%f,%f)", rang.low, rang.high)
+			bucketName = "[" + strconv.FormatFloat(rang.low, 'f', 4, 64) + "," + strconv.FormatFloat(rang.high, 'f', 4, 64) + ")"
 		}
 		newBucket := search.NewBucket(bucketName, a.aggregations)
 		rv.bucketCalculators = append(rv.bucketCalculators, newBucket)

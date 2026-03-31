@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/blugelabs/bluge/search/aggregations"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/blugelabs/bluge/search"
 
@@ -234,34 +235,37 @@ func aggregationsTests() []*RequestVerify {
 			ExpectTotal:   10,
 			ExpectMatches: []*match{},
 			VerifyAggregations: func(t *testing.T, bucket *search.Bucket) {
+				assertions := assert.New(t)
+
 				typesAgg := bucket.Aggregations()["types"].(*aggregations.TermsCalculator)
-				if typesAgg.Other() != 0 {
-					t.Errorf("expected other types 0, got %d", typesAgg.Other())
+				if !assertions.Zero(typesAgg.Other(), "expecting zero") {
+					return
 				}
+
 				typesBuckets := typesAgg.Buckets()
-				if len(typesBuckets) != 3 {
-					t.Errorf("expected 3 buckets in types, got %d", len(typesBuckets))
-				} else {
-					for _, b := range typesAgg.Buckets() {
-						switch b.Name() {
-						case "book":
-							bookCount := bucketCount(b)
-							if bookCount != 5 {
-								t.Errorf("expected 5 books, got %d", bookCount)
-							}
-						case "movie":
-							movieCount := bucketCount(b)
-							if movieCount != 4 {
-								t.Errorf("expected 4 movies, got %d", movieCount)
-							}
-						case "game":
-							gameCount := bucketCount(b)
-							if gameCount != 1 {
-								t.Errorf("expected 1 game, got %d", gameCount)
-							}
-						default:
-							t.Errorf("unexpected bucket %s", b.Name())
+				if !assertions.Len(typesBuckets, 3, "expecting 3 elements") {
+					return
+				}
+
+				for _, b := range typesAgg.Buckets() {
+					switch b.Name() {
+					case "book":
+						bookCount := bucketCount(b)
+						if bookCount != 5 {
+							t.Errorf("expected 5 books, got %d", bookCount)
 						}
+					case "movie":
+						movieCount := bucketCount(b)
+						if movieCount != 4 {
+							t.Errorf("expected 4 movies, got %d", movieCount)
+						}
+					case "game":
+						gameCount := bucketCount(b)
+						if gameCount != 1 {
+							t.Errorf("expected 1 game, got %d", gameCount)
+						}
+					default:
+						t.Errorf("unexpected bucket %s", b.Name())
 					}
 				}
 			},

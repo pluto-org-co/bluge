@@ -18,16 +18,19 @@ import (
 	"testing"
 
 	"github.com/blugelabs/bluge/analysis"
+	"github.com/stretchr/testify/assert"
 )
 
 func BenchmarkStandardAnalyzer(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	assertions := assert.New(b)
+
+	for b.Loop() {
 		analyzer := NewStandardAnalyzer()
 
 		ts := analyzer.Analyze(wikiArticle)
 		freqs, _ := analysis.TokenFrequency(ts, true, 0)
-		if len(freqs) != 511 {
-			b.Errorf("expected %d freqs, got %d", 511, len(freqs))
+		if !assertions.Equal(len(freqs), 578, "expecting different freqs") {
+			return
 		}
 	}
 }

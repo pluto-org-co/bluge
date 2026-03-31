@@ -166,7 +166,7 @@ func BenchmarkUnicodeTokenizeEnglishText(b *testing.B) {
 	tokenizer := NewUnicodeTokenizer()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		tokenizer.Tokenize(sampleLargeInput)
 	}
 }

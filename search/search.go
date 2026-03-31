@@ -19,6 +19,7 @@ import (
 	"sort"
 
 	segment "github.com/blugelabs/bluge_segment_api"
+	"github.com/zeebo/xxh3"
 
 	"github.com/blugelabs/bluge/analysis"
 )
@@ -67,10 +68,10 @@ func (p Locations) Dedupe() Locations { // destructive!
 	return p[:slow+1]
 }
 
-type TermLocationMap map[string]Locations
+type TermLocationMap map[uint64]Locations
 
-func (t TermLocationMap) AddLocation(term string, location *Location) {
-	t[term] = append(t[term], location)
+func (t TermLocationMap) AddLocation(hash uint64, location *Location) {
+	t[hash] = append(t[hash], location)
 }
 
 type FieldTermLocationMap map[string]TermLocationMap
@@ -158,8 +159,8 @@ func (dm *DocumentMatch) Size() int {
 
 	for k, v := range dm.Locations {
 		sizeInBytes += sizeOfString + len(k)
-		for k1, v1 := range v {
-			sizeInBytes += sizeOfString + len(k1) +
+		for _, v1 := range v {
+			sizeInBytes += sizeOfString + 8 +
 				sizeOfSlice
 			for _, entry := range v1 {
 				sizeInBytes += entry.Size()
@@ -208,7 +209,8 @@ func (dm *DocumentMatch) Complete(prealloc []Location) []Location {
 			loc := &prealloc[i]
 			*loc = ftl.Location
 
-			locs := tlm[ftl.Term]
+			termHash := xxh3.HashString(ftl.Term)
+			locs := tlm[termHash]
 
 			// if the loc is before or at the last location, then there
 			// might be duplicates that need to be deduplicated
@@ -219,7 +221,7 @@ func (dm *DocumentMatch) Complete(prealloc []Location) []Location {
 				}
 			}
 
-			tlm[ftl.Term] = append(locs, loc)
+			tlm[termHash] = append(locs, loc)
 
 			dm.FieldTermLocations[i] = FieldTermLocation{ // recycle
 				Location: Location{},

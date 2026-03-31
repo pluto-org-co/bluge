@@ -18,28 +18,32 @@ import (
 	"context"
 	"fmt"
 	"testing"
+
+	"github.com/blugelabs/bluge/index"
 )
 
 func TestOfflineWriter(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
-	b, err := OpenOfflineWriter(config, 2, 2)
+	writer, err := OpenOfflineWriter(config, 2, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for i := 0; i < 10; i++ {
-		doc := NewDocument(fmt.Sprintf("%d", i)).
+	batch := index.NewBatch()
+	for index := range 10 {
+		doc := NewDocument(fmt.Sprintf("%d", index)).
 			AddField(NewKeywordField("name", "hello"))
-		err = b.Insert(doc)
-		if err != nil {
-			t.Fatal(err)
-		}
+		batch.Insert(doc)
 	}
 
-	err = b.Close()
+	err = writer.Batch(batch)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = writer.Close()
 	if err != nil {
 		t.Fatal(err)
 	}

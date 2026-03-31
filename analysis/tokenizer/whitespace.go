@@ -16,12 +16,56 @@ package tokenizer
 
 import (
 	"unicode"
+	"unicode/utf8"
+
+	"github.com/blugelabs/bluge/analysis"
 )
 
-func NewWhitespaceTokenizer() *CharacterTokenizer {
-	return NewCharacterTokenizer(notSpace)
+type WhitespaceTokenizer struct {
 }
 
-func notSpace(r rune) bool {
-	return !unicode.IsSpace(r)
+func (t *WhitespaceTokenizer) Tokenize(input []byte) analysis.TokenStream {
+	rv := make(analysis.TokenStream, 0, 1024)
+
+	offset := 0
+	start := 0
+	end := 0
+	for currRune, size := utf8.DecodeRune(input[offset:]); currRune != utf8.RuneError; currRune, size = utf8.DecodeRune(input[offset:]) {
+		isToken := !unicode.IsSpace(currRune)
+		if isToken {
+			end = offset + size
+		} else {
+			if end-start > 0 {
+				// build token
+				rv = append(rv, &analysis.Token{
+					Term:         input[start:end],
+					Start:        start,
+					End:          end,
+					PositionIncr: 1,
+					Type:         analysis.AlphaNumeric,
+				})
+			}
+			start = offset + size
+			end = start
+		}
+		offset += size
+	}
+	// if we ended in the middle of a token, finish it
+	if end-start > 0 {
+		// build token
+		rv = append(rv, &analysis.Token{
+			Term:         input[start:end],
+			Start:        start,
+			End:          end,
+			PositionIncr: 1,
+			Type:         analysis.AlphaNumeric,
+		})
+	}
+
+	// Shrink rv, since it arrives fragment
+	return rv
+}
+
+func NewWhitespaceTokenizer() *WhitespaceTokenizer {
+	return &WhitespaceTokenizer{}
 }

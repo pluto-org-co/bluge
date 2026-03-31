@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package analysis
+package analysis_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/blugelabs/bluge/analysis"
 )
 
 func TestDeleteRune(t *testing.T) {
@@ -33,7 +35,7 @@ func TestDeleteRune(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actual := DeleteRune(test.in, test.delPos)
+		actual := analysis.DeleteRune(test.in, test.delPos)
 		if !reflect.DeepEqual(actual, test.out) {
 			t.Errorf("expected %#v, got %#v", test.out, actual)
 		}
@@ -68,7 +70,7 @@ func TestInsertRune(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		actual := InsertRune(test.in, test.insPos, test.insRune)
+		actual := analysis.InsertRune(test.in, test.insPos, test.insRune)
 		if !reflect.DeepEqual(actual, test.out) {
 			t.Errorf("expected %#v, got %#v", test.out, actual)
 		}
@@ -87,7 +89,7 @@ func TestBuildTermFromRunes(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		out := BuildTermFromRunes(test.in)
+		out := analysis.BuildTermFromRunes(test.in)
 		back := []rune(string(out))
 		if !reflect.DeepEqual(back, test.in) {
 			t.Errorf("expected %v to convert back to %v", out, test.in)
@@ -119,7 +121,7 @@ func TestBuildTermFromRunesOptimistic(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		out := BuildTermFromRunesOptimistic(test.buf, test.in)
+		out := analysis.BuildTermFromRunesOptimistic(test.buf, test.in)
 		back := []rune(string(out))
 		if !reflect.DeepEqual(back, test.in) {
 			t.Errorf("expected %v to convert back to %v", out, test.in)
@@ -132,9 +134,9 @@ func BenchmarkBuildTermFromRunes(b *testing.B) {
 		{'a', 'b', 'c'},
 		{'こ', 'ん', 'に', 'ち', 'は', '世', '界'},
 	}
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		for _, i := range input {
-			BuildTermFromRunes(i)
+			analysis.BuildTermFromRunes(i)
 		}
 	}
 }

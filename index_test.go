@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"math/rand"
 	"os"
@@ -30,6 +29,7 @@ import (
 	"time"
 
 	"github.com/blugelabs/bluge/search"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/blugelabs/bluge/index"
 
@@ -40,24 +40,24 @@ type Fatalfable interface {
 	Fatalf(format string, args ...interface{})
 }
 
-func createTmpIndexPath(f Fatalfable) string {
-	tmpIndexPath, err := ioutil.TempDir("", "bluge-testidx")
-	if err != nil {
-		f.Fatalf("error creating temp dir: %v", err)
-	}
-	return tmpIndexPath
-}
+func createTmpIndexPath(t testing.TB) (dir string) {
+	assertions := assert.New(t)
 
-func cleanupTmpIndexPath(f Fatalfable, path string) {
-	err := os.RemoveAll(path)
-	if err != nil {
-		f.Fatalf("error removing temp dir: %v", err)
+	dir, err := os.MkdirTemp(t.TempDir(), "bluge-testidx")
+	if !assertions.Nil(err, "failed to create temporary directory") {
+		return ""
 	}
+	t.Cleanup(func() {
+		err := os.RemoveAll(dir)
+		if err != nil {
+			t.Logf("Failed to remove directory: %s", err)
+		}
+	})
+	return dir
 }
 
 func TestCrud(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -202,7 +202,6 @@ func docNumberForTerm(r *Reader, t segment.Term) (uint64, error) {
 
 func TestMultipleClose(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -234,7 +233,6 @@ func (s *slowQuery) Searcher(i search.Reader,
 
 func TestStoredFieldPreserved(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -319,7 +317,6 @@ func TestStoredFieldPreserved(t *testing.T) {
 
 func TestDict(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -455,7 +452,6 @@ func TestDict(t *testing.T) {
 
 func TestIndexMetadataRaceBug198(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -509,7 +505,6 @@ func TestIndexMetadataRaceBug198(t *testing.T) {
 
 func TestSortMatchSearch(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -578,7 +573,6 @@ func TestSortMatchSearch(t *testing.T) {
 
 func TestIndexCountMatchSearch(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -647,7 +641,6 @@ func TestIndexCountMatchSearch(t *testing.T) {
 
 func TestSearchTimeout(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -710,7 +703,6 @@ func TestSearchTimeout(t *testing.T) {
 
 func TestBatchRaceBug260(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -738,7 +730,6 @@ func TestBatchRaceBug260(t *testing.T) {
 
 func BenchmarkBatchOverhead(b *testing.B) {
 	tmpIndexPath := createTmpIndexPath(b)
-	defer cleanupTmpIndexPath(b, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -763,7 +754,6 @@ func BenchmarkBatchOverhead(b *testing.B) {
 
 func TestOpenMultipleReaders(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -811,7 +801,6 @@ func TestOpenMultipleReaders(t *testing.T) {
 // set may be reasonable size
 func TestBug408(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -896,7 +885,6 @@ func TestBug408(t *testing.T) {
 
 func TestIndexAdvancedCountMatchSearch(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -967,7 +955,6 @@ func TestIndexAdvancedCountMatchSearch(t *testing.T) {
 
 func BenchmarkScorchSearchOverhead(b *testing.B) {
 	tmpIndexPath := createTmpIndexPath(b)
-	defer cleanupTmpIndexPath(b, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1023,7 +1010,6 @@ func BenchmarkScorchSearchOverhead(b *testing.B) {
 
 func TestSearchQueryCallback(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	expErr := fmt.Errorf("MEM_LIMIT_EXCEEDED")
 	f := func(size uint64) error {
@@ -1064,7 +1050,6 @@ func TestSearchQueryCallback(t *testing.T) {
 
 func TestBug1096(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1150,7 +1135,6 @@ func TestBug1096(t *testing.T) {
 
 func TestDataRaceBug1092(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1175,7 +1159,6 @@ func TestDataRaceBug1092(t *testing.T) {
 
 func TestBatchRaceBug1149(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1202,7 +1185,6 @@ func TestBatchRaceBug1149(t *testing.T) {
 
 func TestBackup(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1230,7 +1212,6 @@ func TestBackup(t *testing.T) {
 	}
 
 	tmpBackupPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpBackupPath)
 
 	err = snapshotReader.Backup(tmpBackupPath, nil)
 	if err != nil {
@@ -1267,7 +1248,6 @@ func TestBackup(t *testing.T) {
 
 func TestOptimisedConjunctionSearchHits(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath).DisableOptimizeDisjunctionUnadorned()
 	indexWriter, err := OpenWriter(config)
@@ -1482,7 +1462,6 @@ func randStr() string {
 
 func TestBug54(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	// first index 2 documents
 	config := DefaultConfig(tmpIndexPath)
@@ -1540,7 +1519,6 @@ func TestBug54(t *testing.T) {
 
 func TestSearchSizeZeroWithAggregations(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)
@@ -1605,7 +1583,6 @@ func TestSearchSizeZeroWithAggregations(t *testing.T) {
 
 func TestCrudWithNoMMap(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfigWithDirectory(func() index.Directory {
 		dir := index.NewFileSystemDirectory(tmpIndexPath)
@@ -1749,7 +1726,6 @@ func TestCrudWithNoMMap(t *testing.T) {
 // undesired behavior.
 func TestBug87(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter, err := OpenWriter(config)

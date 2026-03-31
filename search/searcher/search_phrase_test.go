@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/blugelabs/bluge/search/similarity"
+	"github.com/zeebo/xxh3"
 
 	"github.com/blugelabs/bluge/search"
 )
@@ -80,7 +81,7 @@ func TestPhraseSearch(t *testing.T) {
 					t.Logf("scoring explanation: %s\n", next.Explanation)
 				}
 				for _, ft := range test.fieldterms {
-					locs := next.Locations[ft[0]][ft[1]]
+					locs := next.Locations[ft[0]][xxh3.HashString(ft[1])]
 					explocs := test.locations[ft[0]][ft[1]]
 					if len(explocs) != len(locs) {
 						t.Fatalf("expected result %d to have %d Locations (%#v) but got %d (%#v) for test %d with field %q and term %q\n", i, len(explocs), explocs, len(locs), locs, testIndex, ft[0], ft[1])
@@ -251,12 +252,12 @@ func TestFindPhrasePaths(t *testing.T) {
 		{
 			phrase: [][]string{{"cat"}, {"dog"}},
 			tlm: search.TermLocationMap{
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{
 						Pos: 1,
 					},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{
 						Pos: 2,
 					},
@@ -273,7 +274,7 @@ func TestFindPhrasePaths(t *testing.T) {
 		{
 			phrase: [][]string{{"cat"}, {"dog"}},
 			tlm: search.TermLocationMap{
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{
 						Pos: 1,
 					},
@@ -285,12 +286,12 @@ func TestFindPhrasePaths(t *testing.T) {
 		{
 			phrase: [][]string{{"cat"}, {"dog"}},
 			tlm: search.TermLocationMap{
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{
 						Pos: 1,
 					},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{
 						Pos: 3,
 					},
@@ -302,7 +303,7 @@ func TestFindPhrasePaths(t *testing.T) {
 		{
 			phrase: [][]string{{"cat"}, {"dog"}},
 			tlm: search.TermLocationMap{
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{
 						Pos: 1,
 					},
@@ -310,7 +311,7 @@ func TestFindPhrasePaths(t *testing.T) {
 						Pos: 8,
 					},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{
 						Pos: 2,
 					},
@@ -334,12 +335,12 @@ func TestFindPhrasePaths(t *testing.T) {
 		{
 			phrase: [][]string{{"cat"}, {""}, {"dog"}},
 			tlm: search.TermLocationMap{
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{
 						Pos: 1,
 					},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{
 						Pos: 3,
 					},
@@ -356,12 +357,12 @@ func TestFindPhrasePaths(t *testing.T) {
 		{
 			phrase: [][]string{{""}, {"cat"}, {"dog"}},
 			tlm: search.TermLocationMap{
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{
 						Pos: 2,
 					},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{
 						Pos: 3,
 					},
@@ -378,12 +379,12 @@ func TestFindPhrasePaths(t *testing.T) {
 		{
 			phrase: [][]string{{"cat"}, {"dog"}, {""}},
 			tlm: search.TermLocationMap{
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{
 						Pos: 2,
 					},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{
 						Pos: 3,
 					},
@@ -408,27 +409,27 @@ func TestFindPhrasePaths(t *testing.T) {
 
 func TestFindPhrasePathsSloppy(t *testing.T) {
 	tlm := search.TermLocationMap{
-		"one": search.Locations{
+		xxh3.HashString("one"): search.Locations{
 			&search.Location{
 				Pos: 1,
 			},
 		},
-		"two": search.Locations{
+		xxh3.HashString("two"): search.Locations{
 			&search.Location{
 				Pos: 2,
 			},
 		},
-		"three": search.Locations{
+		xxh3.HashString("three"): search.Locations{
 			&search.Location{
 				Pos: 3,
 			},
 		},
-		"four": search.Locations{
+		xxh3.HashString("four"): search.Locations{
 			&search.Location{
 				Pos: 4,
 			},
 		},
-		"five": search.Locations{
+		xxh3.HashString("five"): search.Locations{
 			&search.Location{
 				Pos: 5,
 			},
@@ -558,16 +559,16 @@ func TestFindPhrasePathsSloppy(t *testing.T) {
 				},
 			},
 			tlm: search.TermLocationMap{ // ark bat cat dog dog
-				"ark": search.Locations{
+				xxh3.HashString("ark"): search.Locations{
 					&search.Location{Pos: 1},
 				},
-				"bat": search.Locations{
+				xxh3.HashString("bat"): search.Locations{
 					&search.Location{Pos: 2},
 				},
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{Pos: 3},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{Pos: 4},
 					&search.Location{Pos: 5},
 				},
@@ -587,10 +588,10 @@ func TestFindPhrasePathsSloppy(t *testing.T) {
 				},
 			},
 			tlm: search.TermLocationMap{ // cat dog dog
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{Pos: 1},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{Pos: 2},
 					&search.Location{Pos: 3},
 				},
@@ -621,11 +622,11 @@ func TestFindPhrasePathsSloppy(t *testing.T) {
 				},
 			},
 			tlm: search.TermLocationMap{ // cat dog cat dog
-				"cat": search.Locations{
+				xxh3.HashString("cat"): search.Locations{
 					&search.Location{Pos: 1},
 					&search.Location{Pos: 3},
 				},
-				"dog": search.Locations{
+				xxh3.HashString("dog"): search.Locations{
 					&search.Location{Pos: 2},
 					&search.Location{Pos: 4},
 				},
@@ -647,7 +648,7 @@ func TestFindPhrasePathsSloppy(t *testing.T) {
 
 func TestFindPhrasePathsSloppyPalyndrome(t *testing.T) {
 	tlm := search.TermLocationMap{
-		"one": search.Locations{
+		xxh3.HashString("one"): search.Locations{
 			&search.Location{
 				Pos: 1,
 			},
@@ -655,7 +656,7 @@ func TestFindPhrasePathsSloppyPalyndrome(t *testing.T) {
 				Pos: 5,
 			},
 		},
-		"two": search.Locations{
+		xxh3.HashString("two"): search.Locations{
 			&search.Location{
 				Pos: 2,
 			},
@@ -663,7 +664,7 @@ func TestFindPhrasePathsSloppyPalyndrome(t *testing.T) {
 				Pos: 4,
 			},
 		},
-		"three": search.Locations{
+		xxh3.HashString("three"): search.Locations{
 			&search.Location{
 				Pos: 3,
 			},
@@ -728,17 +729,17 @@ func TestFindPhrasePathsSloppyPalyndrome(t *testing.T) {
 
 func TestFindMultiPhrasePaths(t *testing.T) {
 	tlm := search.TermLocationMap{
-		"cat": search.Locations{
+		xxh3.HashString("cat"): search.Locations{
 			&search.Location{
 				Pos: 1,
 			},
 		},
-		"dog": search.Locations{
+		xxh3.HashString("dog"): search.Locations{
 			&search.Location{
 				Pos: 2,
 			},
 		},
-		"frog": search.Locations{
+		xxh3.HashString("frog"): search.Locations{
 			&search.Location{
 				Pos: 3,
 			},

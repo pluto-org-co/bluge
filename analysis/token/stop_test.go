@@ -59,7 +59,7 @@ func TestStopWordsFilter(t *testing.T) {
 	tokenMap := analysis.NewTokenMap()
 	words := []string{"a", "in", "the"}
 	for _, word := range words {
-		tokenMap.AddToken(word)
+		tokenMap.AddString(word)
 	}
 	stopFilter := NewStopTokensFilter(tokenMap)
 
@@ -91,12 +91,12 @@ func BenchmarkStopWordsFilter(b *testing.B) {
 	tokenMap := analysis.NewTokenMap()
 	words := []string{"a", "in", "the"}
 	for _, word := range words {
-		tokenMap.AddToken(word)
+		tokenMap.AddString(word)
 	}
 	stopFilter := NewStopTokensFilter(tokenMap)
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		stopFilter.Filter(inputTokenStream)
 	}
 }

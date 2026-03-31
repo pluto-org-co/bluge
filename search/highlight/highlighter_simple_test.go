@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/blugelabs/bluge/search"
+	"github.com/zeebo/xxh3"
 )
 
 const (
@@ -36,14 +37,14 @@ func TestSimpleHighlighter(t *testing.T) {
 		Score:  1.0,
 		Locations: search.FieldTermLocationMap{
 			"desc": search.TermLocationMap{
-				"quick": []*search.Location{
+				xxh3.HashString("quick"): []*search.Location{
 					{
 						Pos:   2,
 						Start: 4,
 						End:   9,
 					},
 				},
-				"fox": []*search.Location{
+				xxh3.HashString("fox"): []*search.Location{
 					{
 						Pos:   4,
 						Start: 16,
@@ -78,7 +79,7 @@ Etiam vel augue vel nisl commodo suscipit et ac nisl. Quisque eros diam, porttit
 		Score:  1.0,
 		Locations: search.FieldTermLocationMap{
 			"full": search.TermLocationMap{
-				"metus": []*search.Location{
+				xxh3.HashString("metus"): []*search.Location{
 					{
 						Pos:   0,
 						Start: 883,
@@ -105,7 +106,7 @@ Etiam vel augue vel nisl commodo suscipit et ac nisl. Quisque eros diam, porttit
 						End:   3422,
 					},
 				},
-				"interdum": []*search.Location{
+				xxh3.HashString("interdum"): []*search.Location{
 					{
 						Pos:   0,
 						Start: 1891,
@@ -117,7 +118,7 @@ Etiam vel augue vel nisl commodo suscipit et ac nisl. Quisque eros diam, porttit
 						End:   2821,
 					},
 				},
-				"venenatis": []*search.Location{
+				xxh3.HashString("venenatis"): []*search.Location{
 					{
 						Pos:   0,
 						Start: 954,

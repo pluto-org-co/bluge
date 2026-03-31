@@ -16,6 +16,7 @@ package token
 
 import (
 	"github.com/blugelabs/bluge/analysis"
+	"github.com/zeebo/xxh3"
 )
 
 const initialMapFactor = 4
@@ -29,17 +30,17 @@ func NewUniqueTermFilter() *UniqueTermFilter {
 }
 
 func (f *UniqueTermFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	encounteredTerms := make(map[string]struct{}, len(input)/initialMapFactor)
+	encounteredTerms := make(map[uint64]struct{}, len(input)/initialMapFactor)
 	var j, skipped int
 	for _, token := range input {
-		term := string(token.Term)
-		if _, ok := encounteredTerms[term]; ok {
+		hash := xxh3.Hash(token.Term)
+		if _, ok := encounteredTerms[hash]; ok {
 			skipped += token.PositionIncr
 			continue
 		}
 		token.PositionIncr += skipped
 		skipped = 0
-		encounteredTerms[term] = struct{}{}
+		encounteredTerms[hash] = struct{}{}
 		input[j] = token
 		j++
 	}

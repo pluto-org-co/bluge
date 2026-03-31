@@ -41,8 +41,7 @@ func (s *ElisionFilter) Filter(input analysis.TokenStream) analysis.TokenStream 
 			if r == Apostrophe || r == RightSingleQuotationMark {
 				// see if the prefix matches one of the articles
 				prefix := term[0:i]
-				_, articleMatch := s.articles[string(prefix)]
-				if articleMatch {
+				if s.articles.Has(prefix) {
 					token.Term = term[i+size:]
 					break
 				}

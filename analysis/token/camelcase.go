@@ -23,16 +23,16 @@ import (
 
 // CamelCaseFilter splits a given token into a set of tokens where each resulting token
 // falls into one the following classes:
-// 1) Upper case followed by lower case letters.
-//		Terminated by a number, an upper case letter, and a non alpha-numeric symbol.
-// 2) Upper case followed by upper case letters.
-//		Terminated by a number, an upper case followed by a lower case letter, and a non alpha-numeric symbol.
-// 3) Lower case followed by lower case letters.
-//		Terminated by a number, an upper case letter, and a non alpha-numeric symbol.
-// 4) Number followed by numbers.
-//		Terminated by a letter, and a non alpha-numeric symbol.
-// 5) Non alpha-numeric symbol followed by non alpha-numeric symbols.
-//		Terminated by a number, and a letter.
+//  1. Upper case followed by lower case letters.
+//     Terminated by a number, an upper case letter, and a non alpha-numeric symbol.
+//  2. Upper case followed by upper case letters.
+//     Terminated by a number, an upper case followed by a lower case letter, and a non alpha-numeric symbol.
+//  3. Lower case followed by lower case letters.
+//     Terminated by a number, an upper case letter, and a non alpha-numeric symbol.
+//  4. Number followed by numbers.
+//     Terminated by a letter, and a non alpha-numeric symbol.
+//  5. Non alpha-numeric symbol followed by non alpha-numeric symbols.
+//     Terminated by a number, and a letter.
 //
 // It does a one-time sequential pass over an input token, from left to right.
 // The scan is greedy and generates the longest substring that fits into one of the classes.
@@ -52,7 +52,7 @@ func (f *CamelCaseFilter) Filter(input analysis.TokenStream) analysis.TokenStrea
 		runes := bytes.Runes(token.Term)
 
 		p := NewParser(runeCount, token.Start)
-		for i := 0; i < runeCount; i++ {
+		for i := range runeCount {
 			if i+1 >= runeCount {
 				p.Push(runes[i], nil)
 			} else {

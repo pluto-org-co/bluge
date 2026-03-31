@@ -15,21 +15,26 @@
 package tokenizer
 
 import (
-	"reflect"
 	"testing"
 	"unicode"
 
 	"github.com/blugelabs/bluge/analysis"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCharacterTokenizer(t *testing.T) {
-	tests := []struct {
-		input  []byte
-		output analysis.TokenStream
-	}{
+	type Test struct {
+		Name      string
+		Input     []byte
+		Tokenizer analysis.Tokenizer
+		Expect    analysis.TokenStream
+	}
+	tests := []Test{
 		{
-			[]byte("Hello World."),
-			analysis.TokenStream{
+			Name:      "Hello World",
+			Input:     []byte("Hello World."),
+			Tokenizer: NewCharacterTokenizer(unicode.IsLetter),
+			Expect: analysis.TokenStream{
 				{
 					Start:        0,
 					End:          5,
@@ -47,8 +52,10 @@ func TestCharacterTokenizer(t *testing.T) {
 			},
 		},
 		{
-			[]byte("dominique@mcdiabetes.com"),
-			analysis.TokenStream{
+			Name:      "Mail",
+			Input:     []byte("dominique@mcdiabetes.com"),
+			Tokenizer: NewCharacterTokenizer(unicode.IsLetter),
+			Expect: analysis.TokenStream{
 				{
 					Start:        0,
 					End:          9,
@@ -74,11 +81,14 @@ func TestCharacterTokenizer(t *testing.T) {
 		},
 	}
 
-	tokenizer := NewCharacterTokenizer(unicode.IsLetter)
 	for _, test := range tests {
-		actual := tokenizer.Tokenize(test.input)
-		if !reflect.DeepEqual(actual, test.output) {
-			t.Errorf("Expected %v, got %v for %s", test.output, actual, string(test.input))
-		}
+		t.Run(test.Name, func(t *testing.T) {
+			assertions := assert.New(t)
+
+			actual := test.Tokenizer.Tokenize(test.Input)
+			if !assertions.Equal(test.Expect, actual, "expecting different value") {
+				return
+			}
+		})
 	}
 }

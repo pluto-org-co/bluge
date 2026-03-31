@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cjk
+package cjk_test
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/blugelabs/bluge/analysis"
+	"github.com/blugelabs/bluge/analysis/lang/cjk"
 )
 
 func TestCJKWidthFilter(t *testing.T) {
@@ -83,7 +84,7 @@ func TestCJKWidthFilter(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		cjkWidthFilter := NewWidthFilter()
+		cjkWidthFilter := cjk.NewWidthFilter()
 		actual := cjkWidthFilter.Filter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)

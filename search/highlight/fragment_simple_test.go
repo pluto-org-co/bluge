@@ -37,7 +37,6 @@ func TestSimpleFragmenter(t *testing.T) {
 			},
 			ot: TermLocations{
 				&TermLocation{
-					Term:  "test",
 					Pos:   4,
 					Start: 10,
 					End:   14,
@@ -56,7 +55,6 @@ func TestSimpleFragmenter(t *testing.T) {
 			},
 			ot: TermLocations{
 				&TermLocation{
-					Term:  "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
 					Pos:   1,
 					Start: 0,
 					End:   100,
@@ -120,61 +118,51 @@ func TestSimpleFragmenter(t *testing.T) {
 			},
 			ot: TermLocations{
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   1,
 					Start: 0,
 					End:   10,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   2,
 					Start: 10,
 					End:   20,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   3,
 					Start: 20,
 					End:   30,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   4,
 					Start: 30,
 					End:   40,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   5,
 					Start: 40,
 					End:   50,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   6,
 					Start: 50,
 					End:   60,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   7,
 					Start: 60,
 					End:   70,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   8,
 					Start: 70,
 					End:   80,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   9,
 					Start: 80,
 					End:   90,
 				},
 				&TermLocation{
-					Term:  "0123456789",
 					Pos:   10,
 					Start: 90,
 					End:   100,
@@ -193,7 +181,6 @@ func TestSimpleFragmenter(t *testing.T) {
 			},
 			ot: TermLocations{
 				&TermLocation{
-					Term:  "पानी",
 					Pos:   1,
 					Start: 2,
 					End:   14,
@@ -217,13 +204,11 @@ func TestSimpleFragmenter(t *testing.T) {
 			},
 			ot: TermLocations{
 				&TermLocation{
-					Term:  "交换",
 					Pos:   1,
 					Start: 0,
 					End:   6,
 				},
 				&TermLocation{
-					Term:  "换机",
 					Pos:   2,
 					Start: 3,
 					End:   9,
@@ -268,13 +253,11 @@ func TestSimpleFragmenterWithSize(t *testing.T) {
 			},
 			ot: TermLocations{
 				&TermLocation{
-					Term:  "this",
 					Pos:   1,
 					Start: 0,
 					End:   5,
 				},
 				&TermLocation{
-					Term:  "test",
 					Pos:   4,
 					Start: 10,
 					End:   14,

@@ -15,6 +15,7 @@
 package searcher
 
 import (
+	"slices"
 	"sort"
 
 	segment "github.com/blugelabs/bluge_segment_api"
@@ -34,17 +35,14 @@ type DisjunctionSliceSearcher struct {
 	options      search.SearcherOptions
 }
 
-func newDisjunctionSliceSearcher(qsearchers []search.Searcher, min int, scorer search.CompositeScorer, options search.SearcherOptions,
+func newDisjunctionSliceSearcher(qsearchers OrderedSearcherList, min int, scorer search.CompositeScorer, options search.SearcherOptions,
 	limit bool) (
 	*DisjunctionSliceSearcher, error) {
 	if limit && tooManyClauses(len(qsearchers)) {
 		return nil, tooManyClausesErr("", len(qsearchers))
 	}
 	// build the downstream searchers
-	searchers := make(OrderedSearcherList, len(qsearchers))
-	for i, searcher := range qsearchers {
-		searchers[i] = searcher
-	}
+	searchers := slices.Clone(qsearchers)
 	// sort the searchers
 	sort.Sort(sort.Reverse(searchers))
 	// build our searcher

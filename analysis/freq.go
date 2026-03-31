@@ -15,20 +15,14 @@
 package analysis
 
 import (
-	"reflect"
+	"unsafe"
 
 	segment "github.com/blugelabs/bluge_segment_api"
+	"github.com/zeebo/xxh3"
 )
 
-var reflectStaticSizeTokenLocation int
-var reflectStaticSizeTokenFreq int
-
-func init() {
-	var tl TokenLocation
-	reflectStaticSizeTokenLocation = int(reflect.TypeOf(tl).Size())
-	var tf TokenFreq
-	reflectStaticSizeTokenFreq = int(reflect.TypeOf(tf).Size())
-}
+const reflectStaticSizeTokenLocation = unsafe.Sizeof(TokenLocation{})
+const reflectStaticSizeTokenFreq = unsafe.Sizeof(TokenFreq{})
 
 // TokenLocation represents one occurrence of a term at a particular location in
 // a field. Start, End and Position have the same meaning as in analysis.Token.
@@ -58,7 +52,7 @@ func (tl *TokenLocation) End() int {
 }
 
 func (tl *TokenLocation) Size() int {
-	return reflectStaticSizeTokenLocation
+	return int(reflectStaticSizeTokenLocation)
 }
 
 // TokenFreq represents all the occurrences of a term in all fields of a
@@ -66,11 +60,11 @@ func (tl *TokenLocation) Size() int {
 type TokenFreq struct {
 	TermVal   []byte
 	Locations []*TokenLocation
-	frequency int
+	Freq      int
 }
 
 func (tf *TokenFreq) Size() int {
-	rv := reflectStaticSizeTokenFreq
+	rv := int(reflectStaticSizeTokenFreq)
 	rv += len(tf.TermVal)
 	for _, loc := range tf.Locations {
 		rv += loc.Size()
@@ -83,7 +77,7 @@ func (tf *TokenFreq) Term() []byte {
 }
 
 func (tf *TokenFreq) Frequency() int {
-	return tf.frequency
+	return tf.Freq
 }
 
 func (tf *TokenFreq) EachLocation(location segment.VisitLocation) {
@@ -94,13 +88,13 @@ func (tf *TokenFreq) EachLocation(location segment.VisitLocation) {
 
 // TokenFrequencies maps document terms to their combined frequencies from all
 // fields.
-type TokenFrequencies map[string]*TokenFreq
+type TokenFrequencies map[uint64]*TokenFreq
 
 func (tfs TokenFrequencies) Size() int {
-	rv := sizeOfMap
-	rv += len(tfs) * (sizeOfString + sizeOfPtr)
-	for k, v := range tfs {
-		rv += len(k)
+	rv := int(sizeOfMap)
+	rv += len(tfs) * int(sizeOfString+sizeOfPtr)
+	for _, v := range tfs {
+		// rv += len(k)
 		rv += v.Size()
 	}
 	return rv
@@ -113,7 +107,7 @@ func (tfs TokenFrequencies) MergeAll(remoteField string, other TokenFrequencies)
 	}
 }
 
-func (tfs TokenFrequencies) mergeOne(remoteField, tfk string, tf *TokenFreq) {
+func (tfs TokenFrequencies) mergeOne(remoteField string, tfk uint64, tf *TokenFreq) {
 	// set the remoteField value in incoming token freqs
 	for _, l := range tf.Locations {
 		l.FieldVal = remoteField
@@ -121,11 +115,11 @@ func (tfs TokenFrequencies) mergeOne(remoteField, tfk string, tf *TokenFreq) {
 	existingTf, exists := tfs[tfk]
 	if exists {
 		existingTf.Locations = append(existingTf.Locations, tf.Locations...)
-		existingTf.frequency += tf.frequency
+		existingTf.Freq += tf.Freq
 	} else {
 		tfs[tfk] = &TokenFreq{
 			TermVal:   tf.TermVal,
-			frequency: tf.frequency,
+			Freq:      tf.Freq,
 			Locations: make([]*TokenLocation, len(tf.Locations)),
 		}
 		copy(tfs[tfk].Locations, tf.Locations)
@@ -137,23 +131,25 @@ func (tfs TokenFrequencies) MergeOneBytes(remoteField string, tfk []byte, tf *To
 	for _, l := range tf.Locations {
 		l.FieldVal = remoteField
 	}
-	existingTf, exists := tfs[string(tfk)]
+
+	tfkHash := xxh3.Hash(tfk)
+
+	existingTf, exists := tfs[tfkHash]
 	if exists {
 		existingTf.Locations = append(existingTf.Locations, tf.Locations...)
-		existingTf.frequency += tf.frequency
+		existingTf.Freq += tf.Freq
 	} else {
-		tfs[string(tfk)] = &TokenFreq{
+		tfs[tfkHash] = &TokenFreq{
 			TermVal:   tf.TermVal,
-			frequency: tf.frequency,
+			Freq:      tf.Freq,
 			Locations: make([]*TokenLocation, len(tf.Locations)),
 		}
-		copy(tfs[string(tfk)].Locations, tf.Locations)
+		copy(tfs[tfkHash].Locations, tf.Locations)
 	}
 }
 
-func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int) (
-	tokenFreqs TokenFrequencies, position int) {
-	tokenFreqs = make(map[string]*TokenFreq, len(tokens))
+func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int) (tokenFreqs TokenFrequencies, position int) {
+	tokenFreqs = make(map[uint64]*TokenFreq, len(tokens))
 
 	if includeTermVectors {
 		tls := make([]TokenLocation, len(tokens))
@@ -168,15 +164,16 @@ func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int
 				PositionVal: position,
 			}
 
-			curr, ok := tokenFreqs[string(token.Term)]
+			termHash := xxh3.Hash(token.Term)
+			curr, ok := tokenFreqs[termHash]
 			if ok {
 				curr.Locations = append(curr.Locations, &tls[tlNext])
-				curr.frequency++
+				curr.Freq++
 			} else {
-				tokenFreqs[string(token.Term)] = &TokenFreq{
+				tokenFreqs[termHash] = &TokenFreq{
 					TermVal:   token.Term,
 					Locations: []*TokenLocation{&tls[tlNext]},
-					frequency: 1,
+					Freq:      1,
 				}
 			}
 
@@ -184,13 +181,14 @@ func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int
 		}
 	} else {
 		for _, token := range tokens {
-			curr, exists := tokenFreqs[string(token.Term)]
+			termHash := xxh3.Hash(token.Term)
+			curr, exists := tokenFreqs[termHash]
 			if exists {
-				curr.frequency++
+				curr.Freq++
 			} else {
-				tokenFreqs[string(token.Term)] = &TokenFreq{
-					TermVal:   token.Term,
-					frequency: 1,
+				tokenFreqs[termHash] = &TokenFreq{
+					TermVal: token.Term,
+					Freq:    1,
 				}
 			}
 		}

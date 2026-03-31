@@ -18,14 +18,15 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"math"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
 
 	"github.com/blugelabs/bluge/search"
 	"github.com/blugelabs/bluge/search/aggregations"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/blugelabs/bluge"
 )
@@ -110,78 +111,94 @@ func TestIntegration(t *testing.T) {
 	}
 
 	for _, intTest := range integrationTests {
-		path, err := ioutil.TempDir("", "bluge-integration-test-"+intTest.Name)
-		if err != nil {
-			t.Fatal(err)
-		}
-		t.Logf("testdir: %s", path)
-		cfg := bluge.DefaultConfig(path)
-		if *segType != "" {
-			cfg = cfg.WithSegmentType(*segType)
-			t.Logf("forcing segment type: %s", *segType)
-		}
-		if *segVer != 0 {
-			cfg = cfg.WithSegmentVersion(uint32(*segVer))
-			t.Logf("forcing segment version: %d", *segVer)
-		}
-		idx, err := bluge.OpenWriter(cfg)
-		if err != nil {
-			t.Fatal(err)
-		}
-		err = intTest.DataLoad(idx)
-		if err != nil {
-			t.Fatalf("error loading data for %s: %v", intTest.Name, err)
-		}
-		reader, err := idx.Reader()
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, test := range intTest.Tests() {
-			test := test
-			t.Run(fmt.Sprintf("%s-%s", intTest.Name, test.Comment), func(t *testing.T) {
-				for aggName, agg := range test.Aggregations {
-					test.Request.AddAggregation(aggName, agg)
-				}
-				dmi, err := reader.Search(context.Background(), test.Request)
-				if err != nil {
-					t.Fatalf("error executing search: %v", err)
-				}
-				if test.ExpectMatches != nil {
-					matches, err := collectHits(dmi)
-					if err != nil {
-						t.Errorf("error collecting hits: %v", err)
-					}
-					if len(test.ExpectMatches) != len(matches) {
-						t.Errorf("expected %d matches, got %d", len(test.ExpectMatches), len(matches))
-					}
-					for i, match := range matches {
-						if i < len(test.ExpectMatches) {
-							for field, vals := range test.ExpectMatches[i].Fields {
-								compareFieldVals(t, i, field, vals, match.Fields[field], match.Number, match.Score, match.SortValue)
-							}
+		t.Run(intTest.Name, func(t *testing.T) {
+			assertions := assert.New(t)
 
-							if len(test.ExpectMatches[i].ExpectHighlights) > 0 {
-								for _, expectHighlight := range test.ExpectMatches[i].ExpectHighlights {
-									got := expectHighlight.Highlighter.BestFragment(
-										match.Locations[expectHighlight.Field], match.Fields[expectHighlight.Field][0])
-									if got != expectHighlight.Result {
-										t.Errorf("expected '%s', got '%s'", expectHighlight.Result, got)
+			path, err := os.MkdirTemp(t.TempDir(), "*")
+			if !assertions.Nil(err, "failed to create temporary directory") {
+				return
+			}
+			t.Cleanup(func() { os.RemoveAll(path) })
+
+			t.Logf("testdir: %s", path)
+			cfg := bluge.DefaultConfig(path)
+			if *segType != "" {
+				cfg = cfg.WithSegmentType(*segType)
+				t.Logf("forcing segment type: %s", *segType)
+			}
+			if *segVer != 0 {
+				cfg = cfg.WithSegmentVersion(uint32(*segVer))
+				t.Logf("forcing segment version: %d", *segVer)
+			}
+			idx, err := bluge.OpenWriter(cfg)
+			if !assertions.Nil(err, "failed to open writer") {
+				return
+			}
+
+			err = intTest.DataLoad(idx)
+			if !assertions.Nil(err, "failed to load data") {
+				return
+			}
+
+			reader, err := idx.Reader()
+			if !assertions.Nil(err, "failed to obtain reader") {
+				return
+			}
+
+			for _, test := range intTest.Tests() {
+				test := test
+				t.Run(test.Comment, func(t *testing.T) {
+					assertions := assert.New(t)
+
+					for aggName, agg := range test.Aggregations {
+						test.Request.AddAggregation(aggName, agg)
+					}
+					dmi, err := reader.Search(context.Background(), test.Request)
+					if !assertions.Nil(err, "failed to search") {
+						return
+					}
+
+					if test.ExpectMatches != nil {
+						matches, err := collectHits(dmi)
+						if !assertions.Nil(err, "failed to collect hits") {
+							return
+						}
+
+						if !assertions.Equal(len(test.ExpectMatches), len(matches), "Expecting results to contain same number of entries") {
+							return
+						}
+
+						for i, match := range matches {
+							if i < len(test.ExpectMatches) {
+								for field, vals := range test.ExpectMatches[i].Fields {
+									compareFieldVals(t, i, field, vals, match.Fields[field], match.Number, match.Score, match.SortValue)
+								}
+
+								if len(test.ExpectMatches[i].ExpectHighlights) > 0 {
+									for _, expectHighlight := range test.ExpectMatches[i].ExpectHighlights {
+										got := expectHighlight.Highlighter.BestFragment(
+											match.Locations[expectHighlight.Field], match.Fields[expectHighlight.Field][0])
+
+										if !assertions.Equal(expectHighlight.Result, got, "results doesn't match") {
+											return
+										}
 									}
 								}
 							}
 						}
 					}
-				}
 
-				total, _ := getTotalHitsMaxScore(dmi.Aggregations())
-				if total != test.ExpectTotal {
-					t.Errorf("expected %d total hits, got %d", test.ExpectTotal, total)
-				}
-				if test.VerifyAggregations != nil {
-					test.VerifyAggregations(t, dmi.Aggregations())
-				}
-			})
-		}
+					total, _ := getTotalHitsMaxScore(dmi.Aggregations())
+					if !assertions.Equal(test.ExpectTotal, total, "expecting same total") {
+						return
+					}
+
+					if test.VerifyAggregations != nil {
+						test.VerifyAggregations(t, dmi.Aggregations())
+					}
+				})
+			}
+		})
 	}
 }
 

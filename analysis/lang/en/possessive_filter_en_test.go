@@ -125,7 +125,7 @@ func BenchmarkEnglishPossessiveFilter(b *testing.B) {
 	posFilter := NewPossessiveFilter()
 	b.ResetTimer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		posFilter.Filter(input)
 	}
 }

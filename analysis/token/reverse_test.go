@@ -200,7 +200,7 @@ func BenchmarkReverseFilter(b *testing.B) {
 	filter := NewReverseFilter()
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		filter.Filter(input)
 	}
 }

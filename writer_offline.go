@@ -17,29 +17,17 @@ package bluge
 import (
 	"fmt"
 
-	segment "github.com/blugelabs/bluge_segment_api"
-
 	"github.com/blugelabs/bluge/index"
 )
 
 type OfflineWriter struct {
-	writer *index.WriterOffline
-
-	batchSize          int
-	maxSegmentsToMerge int
-	batch              *index.Batch
-	batchCount         int
+	idxWriter *index.WriterOffline
 }
 
-func OpenOfflineWriter(config Config, batchSize, maxSegmentsToMerge int) (*OfflineWriter, error) {
-	rv := &OfflineWriter{
-		batchSize:          batchSize,
-		maxSegmentsToMerge: maxSegmentsToMerge,
-		batch:              index.NewBatch(),
-	}
+func OpenOfflineWriter(config Config, batchSize, maxSegmentsToMerge int) (writer *OfflineWriter, err error) {
+	rv := &OfflineWriter{}
 
-	var err error
-	rv.writer, err = index.OpenOfflineWriter(config.indexConfig)
+	rv.idxWriter, err = index.OpenOfflineWriter(config.indexConfig)
 	if err != nil {
 		return nil, fmt.Errorf("error opening index: %w", err)
 	}
@@ -47,26 +35,10 @@ func OpenOfflineWriter(config Config, batchSize, maxSegmentsToMerge int) (*Offli
 	return rv, nil
 }
 
-func (w *OfflineWriter) Insert(doc segment.Document) error {
-	w.batch.Insert(doc)
-	w.batchCount++
-	if w.batchCount > w.batchSize {
-		err := w.writer.Batch(w.batch)
-		if err != nil {
-			return err
-		}
-		w.batch.Reset()
-		w.batchCount = 0
-	}
-	return nil
+func (w *OfflineWriter) Batch(batch *index.Batch) (err error) {
+	return w.idxWriter.Batch(batch)
 }
 
-func (w *OfflineWriter) Close() error {
-	if w.batchCount > 0 {
-		err := w.writer.Batch(w.batch)
-		if err != nil {
-			return err
-		}
-	}
-	return w.writer.Close()
+func (w *OfflineWriter) Close() (err error) {
+	return w.idxWriter.Close()
 }

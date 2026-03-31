@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cjk
+package cjk_test
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/blugelabs/bluge/analysis"
+	"github.com/blugelabs/bluge/analysis/lang/cjk"
 )
 
 func TestCJKAnalyzer(t *testing.T) {
@@ -611,7 +612,7 @@ func TestCJKAnalyzer(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		analyzer := Analyzer()
+		analyzer := cjk.Analyzer()
 		actual := analyzer.Analyze(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %v, got %v", test.output, actual)
@@ -620,9 +621,9 @@ func TestCJKAnalyzer(t *testing.T) {
 }
 
 func BenchmarkCJKAnalyzer(b *testing.B) {
-	analyzer := Analyzer()
+	analyzer := cjk.Analyzer()
 
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		analyzer.Analyze(wikiArticleJapanese)
 	}
 }

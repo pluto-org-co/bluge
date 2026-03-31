@@ -173,7 +173,7 @@ func BenchmarkLowerCaseFilter(b *testing.B) {
 	filter := NewLowerCaseFilter()
 
 	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		filter.Filter(input)
 	}
 }

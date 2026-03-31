@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/blugelabs/bluge/search"
+	"github.com/zeebo/xxh3"
 )
 
 func TestTermLocationOverlaps(t *testing.T) {
@@ -197,7 +198,7 @@ func TestTermLocationsOrder(t *testing.T) {
 		},
 		{
 			input: search.TermLocationMap{
-				"term": []*search.Location{
+				xxh3.HashString("term"): []*search.Location{
 					{
 						Start: 0,
 					},
@@ -208,18 +209,16 @@ func TestTermLocationsOrder(t *testing.T) {
 			},
 			output: TermLocations{
 				&TermLocation{
-					Term:  "term",
 					Start: 0,
 				},
 				&TermLocation{
-					Term:  "term",
 					Start: 5,
 				},
 			},
 		},
 		{
 			input: search.TermLocationMap{
-				"term": []*search.Location{
+				xxh3.HashString("term"): []*search.Location{
 					{
 						Start: 5,
 					},
@@ -230,11 +229,9 @@ func TestTermLocationsOrder(t *testing.T) {
 			},
 			output: TermLocations{
 				&TermLocation{
-					Term:  "term",
 					Start: 0,
 				},
 				&TermLocation{
-					Term:  "term",
 					Start: 5,
 				},
 			},

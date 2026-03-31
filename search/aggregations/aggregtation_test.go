@@ -250,21 +250,21 @@ func buildTestAggregations() search.Aggregations {
 		AddAggregation("min_age", Min(search.Field("age"))).
 		AddAggregation("max_age", Max(search.Field("age")))
 
-	global.Add("byAge", byAge)
+	global.AddString("byAge", byAge)
 
-	global.Add("max_score", Max(search.DocumentScore()))
-	global.Add("doc_count", CountMatches())
-	global.Add("min_age", Min(search.Field("age")))
-	global.Add("max_age", Max(search.Field("age")))
-	global.Add("avg_age", Avg(search.Field("age")))
+	global.AddString("max_score", Max(search.DocumentScore()))
+	global.AddString("doc_count", CountMatches())
+	global.AddString("min_age", Min(search.Field("age")))
+	global.AddString("max_age", Max(search.Field("age")))
+	global.AddString("avg_age", Avg(search.Field("age")))
 
-	global.Add("quantiles", Quantiles(search.Field("age")))
+	global.AddString("quantiles", Quantiles(search.Field("age")))
 
 	termsAgg := NewTermsAggregation(search.Field("name"), 2)
-	global.Add("byName", termsAgg)
+	global.AddString("byName", termsAgg)
 
 	typesAgg := NewTermsAggregation(search.Field("type"), 2)
-	global.Add("byType", typesAgg)
+	global.AddString("byType", typesAgg)
 
 	return global
 }

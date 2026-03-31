@@ -89,14 +89,14 @@ type TermsCalculator struct {
 func (a *TermsCalculator) Consume(d *search.DocumentMatch) {
 	a.total++
 	for _, term := range a.src.Values(d) {
-		termStr := string(term)
-		bucket, ok := a.bucketsMap[termStr]
+
+		bucket, ok := a.bucketsMap[string(term)]
 		if ok {
 			bucket.Consume(d)
 		} else {
-			newBucket := search.NewBucket(termStr, a.aggregations)
+			newBucket := search.NewBucket(string(term), a.aggregations)
 			newBucket.Consume(d)
-			a.bucketsMap[termStr] = newBucket
+			a.bucketsMap[string(term)] = newBucket
 			a.bucketsList = append(a.bucketsList, newBucket)
 		}
 	}
@@ -134,10 +134,7 @@ func (a *TermsCalculator) Finish() {
 		a.sortFunc(a)
 	}
 
-	trimTopN := a.size
-	if trimTopN > len(a.bucketsList) {
-		trimTopN = len(a.bucketsList)
-	}
+	trimTopN := min(a.size, len(a.bucketsList))
 	a.bucketsList = a.bucketsList[:trimTopN]
 
 	var notOther int

@@ -29,6 +29,10 @@ func (a Aggregations) Add(name string, aggregation Aggregation) {
 	a[name] = aggregation
 }
 
+func (a Aggregations) AddString(name string, aggregation Aggregation) {
+	a[name] = aggregation
+}
+
 func (a Aggregations) Fields() []string {
 	var rv []string
 	for _, aggregation := range a {

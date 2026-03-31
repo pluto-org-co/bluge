@@ -40,10 +40,7 @@ func (rt *UnicodeTokenizer) Tokenize(input []byte) analysis.TokenStream {
 	start := 0
 
 	guessRemaining := func(end int) int {
-		avgSegmentLen := end / (len(rv) + 1)
-		if avgSegmentLen < 1 {
-			avgSegmentLen = 1
-		}
+		avgSegmentLen := max(1, end/(len(rv)+1))
 
 		remainingLen := len(input) - end
 
@@ -55,13 +52,7 @@ func (rt *UnicodeTokenizer) Tokenize(input []byte) analysis.TokenStream {
 		end := start + len(segmentBytes)
 		if segmenter.Type() != segment.None {
 			if taNext >= len(ta) {
-				remainingSegments := guessRemaining(end)
-				if remainingSegments > maxEstimatedRemainingSegments {
-					remainingSegments = maxEstimatedRemainingSegments
-				}
-				if remainingSegments < 1 {
-					remainingSegments = 1
-				}
+				remainingSegments := max(1, min(maxEstimatedRemainingSegments, guessRemaining(end)))
 
 				ta = make([]analysis.Token, remainingSegments)
 				taNext = 0
@@ -79,10 +70,7 @@ func (rt *UnicodeTokenizer) Tokenize(input []byte) analysis.TokenStream {
 			if len(rv) >= cap(rv) { // When rv is full, save it into rvx.
 				rvx = append(rvx, rv)
 
-				rvCap := cap(rv) * 2
-				if rvCap > maxRvCapacity {
-					rvCap = maxRvCapacity
-				}
+				rvCap := min(maxRvCapacity, cap(rv)*2)
 
 				rv = make(analysis.TokenStream, 0, rvCap) // Next rv cap is bigger.
 			}
@@ -101,7 +89,7 @@ func (rt *UnicodeTokenizer) Tokenize(input []byte) analysis.TokenStream {
 		for _, r := range rvx {
 			rall = append(rall, r...)
 		}
-		return append(rall, rv...)
+		rv = append(rall, rv...)
 	}
 
 	return rv
@@ -115,6 +103,7 @@ func convertType(segmentWordType int) analysis.TokenType {
 		return analysis.Ideographic
 	case segment.Number:
 		return analysis.Numeric
+	default:
+		return analysis.AlphaNumeric
 	}
-	return analysis.AlphaNumeric
 }

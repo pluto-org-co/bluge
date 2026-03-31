@@ -12,30 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package analysis
+package analysis_test
 
 import (
 	"reflect"
 	"testing"
+
+	"github.com/blugelabs/bluge/analysis"
 )
 
 func TestTokenMapLoadFile(t *testing.T) {
-	tokenMap := NewTokenMap()
+	tokenMap := analysis.NewTokenMap()
 	err := tokenMap.LoadFile("test_words.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expectedTokens := NewTokenMap()
-	expectedTokens.AddToken("marty")
-	expectedTokens.AddToken("steve")
-	expectedTokens.AddToken("dustin")
-	expectedTokens.AddToken("siri")
-	expectedTokens.AddToken("multiple")
-	expectedTokens.AddToken("words")
-	expectedTokens.AddToken("with")
-	expectedTokens.AddToken("different")
-	expectedTokens.AddToken("whitespace")
+	expectedTokens := analysis.NewTokenMap()
+	expectedTokens.Add([]byte("marty"))
+	expectedTokens.Add([]byte("steve"))
+	expectedTokens.Add([]byte("dustin"))
+	expectedTokens.Add([]byte("siri"))
+	expectedTokens.Add([]byte("multiple"))
+	expectedTokens.Add([]byte("words"))
+	expectedTokens.Add([]byte("with"))
+	expectedTokens.Add([]byte("different"))
+	expectedTokens.Add([]byte("whitespace"))
 
 	if !reflect.DeepEqual(tokenMap, expectedTokens) {
 		t.Errorf("expected %#v, got %#v", expectedTokens, tokenMap)
