@@ -19,20 +19,19 @@ import (
 	"time"
 
 	"github.com/blugelabs/bluge/search"
-	"github.com/zeebo/xxh3"
 )
 
 type DateRangeAggregation struct {
 	src          search.DateValuesSource
 	ranges       []*DateRange
-	aggregations map[uint64]search.Aggregation
+	aggregations map[string]search.Aggregation
 }
 
 func DateRanges(src search.DateValuesSource) *DateRangeAggregation {
 	return &DateRangeAggregation{
 		src: src,
-		aggregations: map[uint64]search.Aggregation{
-			search.CountHash: CountMatches(),
+		aggregations: map[string]search.Aggregation{
+			"count": CountMatches(),
 		},
 	}
 }
@@ -46,8 +45,8 @@ func (a *DateRangeAggregation) AddRange(rang *DateRange) *DateRangeAggregation {
 	return a
 }
 
-func (a *DateRangeAggregation) AddAggregation(hash uint64, agg search.Aggregation) *DateRangeAggregation {
-	a.aggregations[hash] = agg
+func (a *DateRangeAggregation) AddAggregation(name string, agg search.Aggregation) *DateRangeAggregation {
+	a.aggregations[name] = agg
 	return a
 }
 
@@ -62,7 +61,7 @@ func (a *DateRangeAggregation) Calculator() search.Calculator {
 		if bucketName == "" {
 			bucketName = fmt.Sprintf("[%s,%s)", rang.start.Format(time.RFC3339), rang.end.Format(time.RFC3339))
 		}
-		newBucket := search.NewBucket(xxh3.HashString(bucketName), a.aggregations)
+		newBucket := search.NewBucket(bucketName, a.aggregations)
 		rv.bucketCalculators = append(rv.bucketCalculators, newBucket)
 	}
 

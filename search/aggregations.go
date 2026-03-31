@@ -16,17 +16,6 @@ package search
 
 import (
 	"time"
-
-	"github.com/zeebo/xxh3"
-)
-
-var (
-	CountHash    = xxh3.HashString("count")
-	MaxScoreHash = xxh3.HashString("max_score")
-	UpdatedHash  = xxh3.HashString("updated")
-	DurationHash = xxh3.HashString("duration")
-	RatingsHash  = xxh3.HashString("ratings")
-	TypesHash    = xxh3.HashString("types")
 )
 
 type Aggregation interface {
@@ -34,14 +23,14 @@ type Aggregation interface {
 	Calculator() Calculator
 }
 
-type Aggregations map[uint64]Aggregation
+type Aggregations map[string]Aggregation
 
-func (a Aggregations) Add(hash uint64, aggregation Aggregation) {
-	a[hash] = aggregation
+func (a Aggregations) Add(name string, aggregation Aggregation) {
+	a[name] = aggregation
 }
 
 func (a Aggregations) AddString(name string, aggregation Aggregation) {
-	a[xxh3.HashString(name)] = aggregation
+	a[name] = aggregation
 }
 
 func (a Aggregations) Fields() []string {
@@ -74,17 +63,17 @@ type BucketCalculator interface {
 }
 
 type Bucket struct {
-	hash         uint64
-	aggregations map[uint64]Calculator
+	name         string
+	aggregations map[string]Calculator
 }
 
-func NewBucket(hash uint64, aggregations map[uint64]Aggregation) *Bucket {
+func NewBucket(name string, aggregations map[string]Aggregation) *Bucket {
 	rv := &Bucket{
-		hash:         hash,
-		aggregations: make(map[uint64]Calculator),
+		name:         name,
+		aggregations: make(map[string]Calculator),
 	}
-	for hash, agg := range aggregations {
-		rv.aggregations[hash] = agg.Calculator()
+	for name, agg := range aggregations {
+		rv.aggregations[name] = agg.Calculator()
 	}
 	return rv
 }
@@ -99,8 +88,8 @@ func (b *Bucket) Merge(other *Bucket) {
 	}
 }
 
-func (b *Bucket) Hash() uint64 {
-	return b.hash
+func (b *Bucket) Name() string {
+	return b.name
 }
 
 func (b *Bucket) Consume(d *DocumentMatch) {
@@ -115,12 +104,12 @@ func (b *Bucket) Finish() {
 	}
 }
 
-func (b *Bucket) Aggregations() map[uint64]Calculator {
+func (b *Bucket) Aggregations() map[string]Calculator {
 	return b.aggregations
 }
 
 func (b *Bucket) Count() uint64 {
-	if countAgg, ok := b.aggregations[CountHash]; ok {
+	if countAgg, ok := b.aggregations["count"]; ok {
 		if countCalc, ok := countAgg.(MetricCalculator); ok {
 			return uint64(countCalc.Value())
 		}
@@ -129,7 +118,7 @@ func (b *Bucket) Count() uint64 {
 }
 
 func (b *Bucket) Duration() time.Duration {
-	if durationAgg, ok := b.aggregations[DurationHash]; ok {
+	if durationAgg, ok := b.aggregations["duration"]; ok {
 		if durationCalc, ok := durationAgg.(DurationCalculator); ok {
 			return durationCalc.Duration()
 		}
@@ -137,8 +126,8 @@ func (b *Bucket) Duration() time.Duration {
 	return 0
 }
 
-func (b *Bucket) Metric(hash uint64) float64 {
-	if agg, ok := b.aggregations[hash]; ok {
+func (b *Bucket) Metric(name string) float64 {
+	if agg, ok := b.aggregations[name]; ok {
 		if calc, ok := agg.(MetricCalculator); ok {
 			return calc.Value()
 		}
@@ -146,8 +135,8 @@ func (b *Bucket) Metric(hash uint64) float64 {
 	return 0
 }
 
-func (b *Bucket) Buckets(hash uint64) []*Bucket {
-	if agg, ok := b.aggregations[hash]; ok {
+func (b *Bucket) Buckets(name string) []*Bucket {
+	if agg, ok := b.aggregations[name]; ok {
 		if calc, ok := agg.(BucketCalculator); ok {
 			return calc.Buckets()
 		}
@@ -155,6 +144,6 @@ func (b *Bucket) Buckets(hash uint64) []*Bucket {
 	return nil
 }
 
-func (b *Bucket) Aggregation(hash uint64) Calculator {
-	return b.aggregations[hash]
+func (b *Bucket) Aggregation(name string) Calculator {
+	return b.aggregations[name]
 }

@@ -1256,7 +1256,7 @@ func TestAllMatchesWithAggregationIssue31(t *testing.T) {
 
 	// This line would panic because aggregations map was not initialized internally
 	// should not panic with the fix
-	request.AddAggregation(xxh3.HashString("score"), aggregations.MaxStartingAt(search.DocumentScore(), 0))
+	request.AddAggregation("score", aggregations.MaxStartingAt(search.DocumentScore(), 0))
 }
 
 func TestNumericRangeSearchBoost(t *testing.T) {

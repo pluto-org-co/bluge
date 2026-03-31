@@ -29,7 +29,7 @@ func TestAllCollector(t *testing.T) {
 	}
 
 	aggs := make(search.Aggregations)
-	aggs.Add(search.CountHash, aggregations.CountMatches())
+	aggs.Add("count", aggregations.CountMatches())
 
 	collector := NewAllCollector()
 	dmi, err := collector.Collect(context.Background(), aggs, searcher)

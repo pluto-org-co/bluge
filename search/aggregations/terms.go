@@ -18,14 +18,13 @@ import (
 	"sort"
 
 	"github.com/blugelabs/bluge/search"
-	"github.com/zeebo/xxh3"
 )
 
 type TermsAggregation struct {
 	src  search.TextValuesSource
 	size int
 
-	aggregations map[uint64]search.Aggregation
+	aggregations map[string]search.Aggregation
 
 	lessFunc func(a, b *search.Bucket) bool
 	desc     bool
@@ -38,12 +37,12 @@ func NewTermsAggregation(src search.TextValuesSource, size int) *TermsAggregatio
 		size: size,
 		desc: true,
 		lessFunc: func(a, b *search.Bucket) bool {
-			return a.Aggregations()[search.CountHash].(search.MetricCalculator).Value() < b.Aggregations()[search.CountHash].(search.MetricCalculator).Value()
+			return a.Aggregations()["count"].(search.MetricCalculator).Value() < b.Aggregations()["count"].(search.MetricCalculator).Value()
 		},
-		aggregations: make(map[uint64]search.Aggregation),
+		aggregations: make(map[string]search.Aggregation),
 		sortFunc:     sort.Sort,
 	}
-	rv.aggregations[search.CountHash] = CountMatches()
+	rv.aggregations["count"] = CountMatches()
 	return rv
 }
 
@@ -55,8 +54,8 @@ func (t *TermsAggregation) Fields() []string {
 	return rv
 }
 
-func (t *TermsAggregation) AddAggregation(hash uint64, aggregation search.Aggregation) {
-	t.aggregations[hash] = aggregation
+func (t *TermsAggregation) AddAggregation(name string, aggregation search.Aggregation) {
+	t.aggregations[name] = aggregation
 }
 
 func (t *TermsAggregation) Calculator() search.Calculator {
@@ -67,7 +66,7 @@ func (t *TermsAggregation) Calculator() search.Calculator {
 		desc:         t.desc,
 		lessFunc:     t.lessFunc,
 		sortFunc:     t.sortFunc,
-		bucketsMap:   make(map[uint64]*search.Bucket),
+		bucketsMap:   make(map[string]*search.Bucket),
 	}
 }
 
@@ -75,10 +74,10 @@ type TermsCalculator struct {
 	src  search.TextValuesSource
 	size int
 
-	aggregations map[uint64]search.Aggregation
+	aggregations map[string]search.Aggregation
 
 	bucketsList []*search.Bucket
-	bucketsMap  map[uint64]*search.Bucket
+	bucketsMap  map[string]*search.Bucket
 	total       int
 	other       int
 
@@ -90,15 +89,14 @@ type TermsCalculator struct {
 func (a *TermsCalculator) Consume(d *search.DocumentMatch) {
 	a.total++
 	for _, term := range a.src.Values(d) {
-		hashKey := xxh3.Hash(term)
 
-		bucket, ok := a.bucketsMap[hashKey]
+		bucket, ok := a.bucketsMap[string(term)]
 		if ok {
 			bucket.Consume(d)
 		} else {
-			newBucket := search.NewBucket(hashKey, a.aggregations)
+			newBucket := search.NewBucket(string(term), a.aggregations)
 			newBucket.Consume(d)
-			a.bucketsMap[hashKey] = newBucket
+			a.bucketsMap[string(term)] = newBucket
 			a.bucketsList = append(a.bucketsList, newBucket)
 		}
 	}
@@ -113,7 +111,7 @@ func (a *TermsCalculator) Merge(other search.Calculator) {
 		for i := range other.bucketsList {
 			var foundLocal bool
 			for j := range a.bucketsList {
-				if other.bucketsList[i].Hash() == a.bucketsList[j].Hash() {
+				if other.bucketsList[i].Name() == a.bucketsList[j].Name() {
 					a.bucketsList[j].Merge(other.bucketsList[i])
 					foundLocal = true
 				}
@@ -141,7 +139,7 @@ func (a *TermsCalculator) Finish() {
 
 	var notOther int
 	for _, bucket := range a.bucketsList {
-		notOther += int(bucket.Aggregations()[search.CountHash].(search.MetricCalculator).Value())
+		notOther += int(bucket.Aggregations()["count"].(search.MetricCalculator).Value())
 	}
 	a.other = a.total - notOther
 }

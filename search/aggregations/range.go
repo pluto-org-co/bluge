@@ -18,20 +18,19 @@ import (
 	"strconv"
 
 	"github.com/blugelabs/bluge/search"
-	"github.com/zeebo/xxh3"
 )
 
 type RangeAggregation struct {
 	src          search.NumericValuesSource
 	ranges       []*NumericRange
-	aggregations map[uint64]search.Aggregation
+	aggregations map[string]search.Aggregation
 }
 
 func Ranges(src search.NumericValuesSource) *RangeAggregation {
 	return &RangeAggregation{
 		src: src,
-		aggregations: map[uint64]search.Aggregation{
-			search.CountHash: CountMatches(),
+		aggregations: map[string]search.Aggregation{
+			"count": CountMatches(),
 		},
 	}
 }
@@ -45,8 +44,8 @@ func (a *RangeAggregation) AddRange(rang *NumericRange) *RangeAggregation {
 	return a
 }
 
-func (a *RangeAggregation) AddAggregation(hash uint64, agg search.Aggregation) *RangeAggregation {
-	a.aggregations[hash] = agg
+func (a *RangeAggregation) AddAggregation(name string, agg search.Aggregation) *RangeAggregation {
+	a.aggregations[name] = agg
 	return a
 }
 
@@ -61,7 +60,7 @@ func (a *RangeAggregation) Calculator() search.Calculator {
 		if bucketName == "" {
 			bucketName = "[" + strconv.FormatFloat(rang.low, 'f', 4, 64) + "," + strconv.FormatFloat(rang.high, 'f', 4, 64) + ")"
 		}
-		newBucket := search.NewBucket(xxh3.HashString(bucketName), a.aggregations)
+		newBucket := search.NewBucket(bucketName, a.aggregations)
 		rv.bucketCalculators = append(rv.bucketCalculators, newBucket)
 	}
 

@@ -48,8 +48,8 @@ func benchHelper(numOfMatches int, cc createCollector, b *testing.B) {
 		}
 		collector := cc()
 		aggs := search.Aggregations{
-			search.CountHash:    aggregations.CountMatches(),
-			search.MaxScoreHash: aggregations.Max(search.DocumentScore()),
+			"count":     aggregations.CountMatches(),
+			"max_score": aggregations.Max(search.DocumentScore()),
 		}
 		dmi, err := collector.Collect(context.Background(), aggs, searcher)
 		if !assertions.Nil(err, "failed to collect from searcher") {

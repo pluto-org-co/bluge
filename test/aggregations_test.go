@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/blugelabs/bluge/search/aggregations"
-	"github.com/zeebo/xxh3"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/blugelabs/bluge/search"
 
@@ -212,7 +212,7 @@ func aggregationsLoad(writer *bluge.Writer) error {
 }
 
 func bucketCount(b *search.Bucket) int {
-	return int(b.Aggregations()[search.CountHash].(search.MetricCalculator).Value())
+	return int(b.Aggregations()["count"].(search.MetricCalculator).Value())
 }
 
 func aggregationsTests() []*RequestVerify {
@@ -228,41 +228,44 @@ func aggregationsTests() []*RequestVerify {
 				bluge.NewTermQuery("inventory").
 					SetField("category")),
 			Aggregations: search.Aggregations{
-				search.CountHash:    aggregations.CountMatches(),
-				search.MaxScoreHash: aggregations.Max(search.DocumentScore()),
-				search.TypesHash:    aggregations.NewTermsAggregation(search.Field("type"), 3),
+				"count":     aggregations.CountMatches(),
+				"max_score": aggregations.Max(search.DocumentScore()),
+				"types":     aggregations.NewTermsAggregation(search.Field("type"), 3),
 			},
 			ExpectTotal:   10,
 			ExpectMatches: []*match{},
 			VerifyAggregations: func(t *testing.T, bucket *search.Bucket) {
-				typesAgg := bucket.Aggregations()[search.TypesHash].(*aggregations.TermsCalculator)
-				if typesAgg.Other() != 0 {
-					t.Errorf("expected other types 0, got %d", typesAgg.Other())
+				assertions := assert.New(t)
+
+				typesAgg := bucket.Aggregations()["types"].(*aggregations.TermsCalculator)
+				if !assertions.Zero(typesAgg.Other(), "expecting zero") {
+					return
 				}
+
 				typesBuckets := typesAgg.Buckets()
-				if len(typesBuckets) != 3 {
-					t.Errorf("expected 3 buckets in types, got %d", len(typesBuckets))
-				} else {
-					for _, b := range typesAgg.Buckets() {
-						switch b.Hash() {
-						case xxh3.HashString("book"):
-							bookCount := bucketCount(b)
-							if bookCount != 5 {
-								t.Errorf("expected 5 books, got %d", bookCount)
-							}
-						case xxh3.HashString("movie"):
-							movieCount := bucketCount(b)
-							if movieCount != 4 {
-								t.Errorf("expected 4 movies, got %d", movieCount)
-							}
-						case xxh3.HashString("game"):
-							gameCount := bucketCount(b)
-							if gameCount != 1 {
-								t.Errorf("expected 1 game, got %d", gameCount)
-							}
-						default:
-							t.Errorf("unexpected bucket %d", b.Hash())
+				if !assertions.Len(typesBuckets, 3, "expecting 3 elements") {
+					return
+				}
+
+				for _, b := range typesAgg.Buckets() {
+					switch b.Name() {
+					case "book":
+						bookCount := bucketCount(b)
+						if bookCount != 5 {
+							t.Errorf("expected 5 books, got %d", bookCount)
 						}
+					case "movie":
+						movieCount := bucketCount(b)
+						if movieCount != 4 {
+							t.Errorf("expected 4 movies, got %d", movieCount)
+						}
+					case "game":
+						gameCount := bucketCount(b)
+						if gameCount != 1 {
+							t.Errorf("expected 1 game, got %d", gameCount)
+						}
+					default:
+						t.Errorf("unexpected bucket %s", b.Name())
 					}
 				}
 			},
@@ -273,34 +276,34 @@ func aggregationsTests() []*RequestVerify {
 				bluge.NewTermQuery("inventory").
 					SetField("category")),
 			Aggregations: search.Aggregations{
-				search.CountHash:    aggregations.CountMatches(),
-				search.MaxScoreHash: aggregations.Max(search.DocumentScore()),
-				search.RatingsHash: aggregations.Ranges(search.Field("rating")).
+				"count":     aggregations.CountMatches(),
+				"max_score": aggregations.Max(search.DocumentScore()),
+				"ratings": aggregations.Ranges(search.Field("rating")).
 					AddRange(aggregations.NamedRange("low", math.Inf(-1), 5)).
 					AddRange(aggregations.NamedRange("high", 5, math.Inf(1))),
 			},
 			ExpectTotal:   10,
 			ExpectMatches: []*match{},
 			VerifyAggregations: func(t *testing.T, bucket *search.Bucket) {
-				typesAgg := bucket.Aggregations()[search.RatingsHash].(search.BucketCalculator)
+				typesAgg := bucket.Aggregations()["ratings"].(search.BucketCalculator)
 				typesBuckets := typesAgg.Buckets()
 				if len(typesBuckets) != 2 {
 					t.Errorf("expected 2 buckets in types, got %d", len(typesBuckets))
 				} else {
 					for _, b := range typesAgg.Buckets() {
-						switch b.Hash() {
-						case xxh3.HashString("low"):
+						switch b.Name() {
+						case "low":
 							bookCount := bucketCount(b)
 							if bookCount != 4 {
 								t.Errorf("expected 4 low, got %d", bookCount)
 							}
-						case xxh3.HashString("high"):
+						case "high":
 							movieCount := bucketCount(b)
 							if movieCount != 6 {
 								t.Errorf("expected 6 high, got %d", movieCount)
 							}
 						default:
-							t.Errorf("unexpected bucket %d", b.Hash())
+							t.Errorf("unexpected bucket %s", b.Name())
 						}
 					}
 				}
@@ -312,34 +315,34 @@ func aggregationsTests() []*RequestVerify {
 				bluge.NewTermQuery("inventory").
 					SetField("category")),
 			Aggregations: search.Aggregations{
-				search.CountHash:    aggregations.CountMatches(),
-				search.MaxScoreHash: aggregations.Max(search.DocumentScore()),
-				search.UpdatedHash: aggregations.DateRanges(search.Field("updated")).
+				"count":     aggregations.CountMatches(),
+				"max_score": aggregations.Max(search.DocumentScore()),
+				"updated": aggregations.DateRanges(search.Field("updated")).
 					AddRange(aggregations.NewNamedDateRange("old", time.Time{}, oldNewDate)).
 					AddRange(aggregations.NewNamedDateRange("new", oldNewDate, time.Time{})),
 			},
 			ExpectTotal:   10,
 			ExpectMatches: []*match{},
 			VerifyAggregations: func(t *testing.T, bucket *search.Bucket) {
-				typesAgg := bucket.Aggregations()[search.UpdatedHash].(search.BucketCalculator)
+				typesAgg := bucket.Aggregations()["updated"].(search.BucketCalculator)
 				typesBuckets := typesAgg.Buckets()
 				if len(typesBuckets) != 2 {
 					t.Errorf("expected 2 buckets in types, got %d", len(typesBuckets))
 				} else {
 					for _, b := range typesAgg.Buckets() {
-						switch b.Hash() {
-						case xxh3.HashString("old"):
+						switch b.Name() {
+						case "old":
 							bookCount := bucketCount(b)
 							if bookCount != 1 {
 								t.Errorf("expected 1 old, got %d", bookCount)
 							}
-						case xxh3.HashString("new"):
+						case "new":
 							movieCount := bucketCount(b)
 							if movieCount != 9 {
 								t.Errorf("expected 9 new, got %d", movieCount)
 							}
 						default:
-							t.Errorf("unexpected bucket %d", b.Hash())
+							t.Errorf("unexpected bucket %s", b.Name())
 						}
 					}
 				}
