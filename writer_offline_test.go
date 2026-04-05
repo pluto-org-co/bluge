@@ -26,7 +26,7 @@ func TestOfflineWriter(t *testing.T) {
 	tmpIndexPath := createTmpIndexPath(t)
 
 	config := DefaultConfig(tmpIndexPath)
-	writer, err := OpenOfflineWriter(config, 2, 2)
+	writer, err := OpenOfflineWriter(config)
 	if err != nil {
 		t.Fatal(err)
 	}

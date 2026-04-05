@@ -24,7 +24,7 @@ type OfflineWriter struct {
 	idxWriter *index.WriterOffline
 }
 
-func OpenOfflineWriter(config Config, batchSize, maxSegmentsToMerge int) (writer *OfflineWriter, err error) {
+func OpenOfflineWriter(config Config) (writer *OfflineWriter, err error) {
 	rv := &OfflineWriter{}
 
 	rv.idxWriter, err = index.OpenOfflineWriter(config.indexConfig)
