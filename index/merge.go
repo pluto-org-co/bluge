@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/RoaringBitmap/roaring"
-	segment "github.com/blugelabs/bluge_segment_api"
 	"github.com/pluto-org-co/bluge/index/mergeplan"
+	segment "github.com/pluto-org-co/bluge_segment_api"
 )
 
 func (s *Writer) mergerLoop(merges chan *segmentMerge, persisterNotifier watcherChan) {

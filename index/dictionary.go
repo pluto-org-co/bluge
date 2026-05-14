@@ -17,7 +17,7 @@ package index
 import (
 	"container/heap"
 
-	segment "github.com/blugelabs/bluge_segment_api"
+	segment "github.com/pluto-org-co/bluge_segment_api"
 )
 
 type segmentDictCursor struct {

@@ -24,8 +24,8 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/mmap-go"
-	segment "github.com/blugelabs/bluge_segment_api"
 	"github.com/pluto-org-co/bluge/index/lock"
+	segment "github.com/pluto-org-co/bluge_segment_api"
 )
 
 const pidFilename = "bluge.pid"
@@ -110,34 +110,34 @@ func (d *FileSystemDirectory) List(kind string) ([]uint64, error) {
 	return rv, nil
 }
 
-func (d *FileSystemDirectory) Persist(kind string, id uint64, w WriterTo, closeCh chan struct{}) error {
+func (d *FileSystemDirectory) Persist(kind string, id uint64, w WriterTo, closeCh chan struct{}) (err error) {
 	path := filepath.Join(d.path, d.fileName(kind, id))
 	f, err := d.openExclusive(path, os.O_CREATE|os.O_RDWR, d.newFilePerm)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to open file with exclusive lock: %w", err)
 	}
+	defer func() {
+		f.Close() // Always close the file
+		if err != nil {
+			os.Remove(path)
+		}
+	}()
 
-	cleanup := func() {
-		_ = f.Close()
-		_ = os.Remove(path)
-	}
+	// buffered := bufio.NewWriterSize(f.File(), 1024*1024*1024) // 1MB
 
 	_, err = w.WriteTo(f.File(), closeCh)
 	if err != nil {
-		cleanup()
-		return err
+		return fmt.Errorf("failed to write contents to buffered handler: %w", err)
 	}
+
+	// err = buffered.Flush()
+	// if err != nil {
+	// 	return fmt.Errorf("failed to flush remaining contents: %w", err)
+	// }
 
 	err = f.File().Sync()
 	if err != nil {
-		cleanup()
-		return err
-	}
-
-	err = f.Close()
-	if err != nil {
-		cleanup()
-		return err
+		return fmt.Errorf("failed to sync file with disk: %w", err)
 	}
 
 	return nil

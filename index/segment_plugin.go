@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/RoaringBitmap/roaring"
-	segment "github.com/blugelabs/bluge_segment_api"
+	segment "github.com/pluto-org-co/bluge_segment_api"
 )
 
 type SegmentPlugin struct {
@@ -51,17 +51,20 @@ func loadSegmentPlugin(
 	forcedSegmentType string,
 	forcedSegmentVersion uint32,
 ) (*SegmentPlugin, error) {
-	if versions, ok := supportedSegmentPlugins[forcedSegmentType]; ok {
-		if segPlugin, ok := versions[forcedSegmentVersion]; ok {
-			return segPlugin, nil
-		}
+	versions, ok := supportedSegmentPlugins[forcedSegmentType]
+	if !ok {
+		return nil, fmt.Errorf("unsupported segment type: %s, supported: %v",
+			forcedSegmentType, supportedSegmentTypes(supportedSegmentPlugins))
+	}
+
+	segPlugin, ok := versions[forcedSegmentVersion]
+	if !ok {
 		return nil, fmt.Errorf(
 			"unsupported version %d for segment type: %s, supported: %v",
 			forcedSegmentVersion, forcedSegmentType,
 			supportedSegmentTypeVersions(supportedSegmentPlugins, forcedSegmentType))
 	}
-	return nil, fmt.Errorf("unsupported segment type: %s, supported: %v",
-		forcedSegmentType, supportedSegmentTypes(supportedSegmentPlugins))
+	return segPlugin, nil
 }
 
 func (s *Writer) newSegment(results []segment.Document) (*segmentWrapper, uint64, error) {

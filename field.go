@@ -17,7 +17,7 @@ package bluge
 import (
 	"time"
 
-	segment "github.com/blugelabs/bluge_segment_api"
+	segment "github.com/pluto-org-co/bluge_segment_api"
 
 	"github.com/pluto-org-co/bluge/analysis/analyzer"
 
