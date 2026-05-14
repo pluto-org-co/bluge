@@ -18,18 +18,6 @@ import (
 	"github.com/pluto-org-co/bluge/search"
 )
 
-type OrderedSearcherList []search.Searcher
-
-// sort.Interface
-
-func (otrl OrderedSearcherList) Len() int {
-	return len(otrl)
-}
-
-func (otrl OrderedSearcherList) Less(i, j int) bool {
-	return otrl[i].Count() < otrl[j].Count()
-}
-
-func (otrl OrderedSearcherList) Swap(i, j int) {
-	otrl[i], otrl[j] = otrl[j], otrl[i]
+func CompareSearcher(a, b search.Searcher) (n int) {
+	return int(a.Count() - b.Count())
 }

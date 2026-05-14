@@ -15,13 +15,13 @@
 package searcher
 
 import (
-	"sort"
+	"slices"
 
 	"github.com/pluto-org-co/bluge/search"
 )
 
 type ConjunctionSearcher struct {
-	searchers   OrderedSearcherList
+	searchers   []search.Searcher
 	currs       []*search.DocumentMatch
 	maxIDIdx    int
 	initialized bool
@@ -33,11 +33,8 @@ func NewConjunctionSearcher(indexReader search.Reader,
 	qsearchers []search.Searcher, scorer search.CompositeScorer, options search.SearcherOptions) (
 	search.Searcher, error) {
 	// build the sorted downstream searchers
-	searchers := make(OrderedSearcherList, len(qsearchers))
-	for i, searcher := range qsearchers {
-		searchers[i] = searcher
-	}
-	sort.Sort(searchers)
+	searchers := slices.Clone(qsearchers)
+	slices.SortFunc(searchers, CompareSearcher)
 
 	// attempt the "unadorned" conjunction optimization only when we
 	// do not need extra information like freq-norm's or term vectors

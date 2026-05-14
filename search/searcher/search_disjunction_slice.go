@@ -15,7 +15,7 @@
 package searcher
 
 import (
-	"sort"
+	"slices"
 
 	"github.com/pluto-org-co/bluge/segment"
 
@@ -23,7 +23,7 @@ import (
 )
 
 type DisjunctionSliceSearcher struct {
-	searchers    OrderedSearcherList
+	searchers    []search.Searcher
 	numSearchers int
 	currs        []*search.DocumentMatch
 	scorer       search.CompositeScorer
@@ -41,12 +41,8 @@ func newDisjunctionSliceSearcher(qsearchers []search.Searcher, min int, scorer s
 		return nil, tooManyClausesErr("", len(qsearchers))
 	}
 	// build the downstream searchers
-	searchers := make(OrderedSearcherList, len(qsearchers))
-	for i, searcher := range qsearchers {
-		searchers[i] = searcher
-	}
-	// sort the searchers
-	sort.Sort(sort.Reverse(searchers))
+	searchers := slices.Clone(qsearchers)
+	slices.SortFunc(searchers, CompareSearcher)
 	// build our searcher
 	rv := DisjunctionSliceSearcher{
 		searchers:    searchers,
