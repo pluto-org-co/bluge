@@ -111,7 +111,7 @@ func (d *chunkedIntDecoder) reset() {
 }
 
 func (d *chunkedIntDecoder) isNil() bool {
-	return d.curChunkBytes == nil || len(d.curChunkBytes) == 0
+	return len(d.curChunkBytes) == 0
 }
 
 func (d *chunkedIntDecoder) readUvarint() (uint64, error) {
