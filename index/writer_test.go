@@ -24,7 +24,7 @@ import (
 	"sync"
 	"testing"
 
-	segment "github.com/pluto-org-co/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/segment"
 )
 
 func CreateConfig(name string) (config Config, cleanup func() error) {

@@ -20,7 +20,7 @@ import (
 
 	"github.com/pluto-org-co/bluge/index"
 
-	segment "github.com/pluto-org-co/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/search"
 )

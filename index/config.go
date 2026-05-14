@@ -17,10 +17,10 @@ package index
 import (
 	"math"
 
-	segment "github.com/pluto-org-co/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/segment"
 
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/index/mergeplan"
-	"github.com/pluto-org-co/ice"
 )
 
 type Config struct {

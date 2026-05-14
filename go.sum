@@ -37,10 +37,6 @@ github.com/leesper/go_rng v0.0.0-20190531154944-a612b043e353 h1:X/79QL0b4YJVO5+O
 github.com/leesper/go_rng v0.0.0-20190531154944-a612b043e353/go.mod h1:N0SVk0uhy+E1PZ3C9ctsPRlvOPAFPkCNlcPBDkt0N3U=
 github.com/mschoch/smat v0.2.0 h1:8imxQsjDm8yFEAVBe7azKmKSgzSkZXDuKkSq9374khM=
 github.com/mschoch/smat v0.2.0/go.mod h1:kc9mz7DoBKqDyiRL7VZN8KvXQMWeTaVnttLRXOlotKw=
-github.com/pluto-org-co/bluge_segment_api v0.0.0-20260514204014-cd2f04472aad h1:E252mSNPuTBX9v3jvdHm6FnE6nFoBCcvoicRa4tm3CY=
-github.com/pluto-org-co/bluge_segment_api v0.0.0-20260514204014-cd2f04472aad/go.mod h1:9DV7cbZHINqMgqNhJ5LpUsfZ0rTS/Q9JzeGVrbWHTD8=
-github.com/pluto-org-co/ice v0.0.0-20260514211356-9e52df8d2ff4 h1:TfkC15eQoPw+ByEbWMcDteC14iyKYLZDBn/50gM9/Oo=
-github.com/pluto-org-co/ice v0.0.0-20260514211356-9e52df8d2ff4/go.mod h1:w7KzAw8+0T5+LWJGPArRPOhOViSbvHyV+ShkwnJ9sTo=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=

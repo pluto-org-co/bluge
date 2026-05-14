@@ -21,7 +21,7 @@ import (
 	"sort"
 	"sync"
 
-	segment "github.com/pluto-org-co/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/segment"
 )
 
 type InMemoryDirectory struct {

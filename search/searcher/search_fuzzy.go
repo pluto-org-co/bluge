@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"unicode/utf8"
 
-	segment "github.com/pluto-org-co/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/blevesearch/vellum"
 	"github.com/blevesearch/vellum/levenshtein"

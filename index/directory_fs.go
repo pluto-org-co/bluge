@@ -25,7 +25,7 @@ import (
 
 	"github.com/blevesearch/mmap-go"
 	"github.com/pluto-org-co/bluge/index/lock"
-	segment "github.com/pluto-org-co/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/segment"
 )
 
 const pidFilename = "bluge.pid"

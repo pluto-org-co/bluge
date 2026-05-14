@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/RoaringBitmap/roaring"
-	segment "github.com/pluto-org-co/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/segment"
 )
 
 func (s *Writer) persisterLoop(merges chan *segmentMerge, persists chan *persistIntroduction,

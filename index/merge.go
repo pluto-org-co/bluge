@@ -21,7 +21,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/pluto-org-co/bluge/index/mergeplan"
-	segment "github.com/pluto-org-co/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/segment"
 )
 
 func (s *Writer) mergerLoop(merges chan *segmentMerge, persisterNotifier watcherChan) {
