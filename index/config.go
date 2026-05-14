@@ -19,16 +19,10 @@ import (
 
 	"github.com/pluto-org-co/bluge/segment"
 
-	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/index/mergeplan"
 )
 
 type Config struct {
-	SegmentType    string
-	SegmentVersion uint32
-
-	supportedSegmentPlugins map[string]map[uint32]*SegmentPlugin
-
 	UnsafeBatch        bool
 	EventCallback      func(Event)
 	AsyncError         func(error)
@@ -76,16 +70,6 @@ type Config struct {
 	virtualFields map[string][]segment.Field
 }
 
-func (config Config) WithSegmentType(typ string) Config {
-	config.SegmentType = typ
-	return config
-}
-
-func (config Config) WithSegmentVersion(ver uint32) Config {
-	config.SegmentVersion = ver
-	return config
-}
-
 func (config Config) WithPersisterNapTimeMSec(napTime int) Config {
 	config.PersisterNapTimeMSec = napTime
 	return config
@@ -98,14 +82,6 @@ func (config Config) WithVirtualField(field segment.Field) Config {
 
 func (config Config) WithNormCalc(calc func(field string, numTerms int) float32) Config {
 	config.NormCalc = calc
-	return config
-}
-
-func (config Config) WithSegmentPlugin(plugin *SegmentPlugin) Config {
-	if _, ok := config.supportedSegmentPlugins[plugin.Type]; !ok {
-		config.supportedSegmentPlugins[plugin.Type] = map[uint32]*SegmentPlugin{}
-	}
-	config.supportedSegmentPlugins[plugin.Type][plugin.Version] = plugin
 	return config
 }
 
@@ -153,8 +129,6 @@ func DefaultConfigWithDirectory(df func() Directory) Config {
 
 func defaultConfig() Config {
 	rv := Config{
-		SegmentType:      ice.Type,
-		SegmentVersion:   ice.Version,
 		MergePlanOptions: mergeplan.DefaultMergePlanOptions,
 		DeletionPolicyFunc: func() DeletionPolicy {
 			return NewKeepNLatestDeletionPolicy(1)
@@ -206,24 +180,6 @@ func defaultConfig() Config {
 		},
 
 		ValidateSnapshotCRC: true,
-
-		supportedSegmentPlugins: map[string]map[uint32]*SegmentPlugin{},
 	}
-
-	// rv.WithSegmentPlugin(&SegmentPlugin{
-	// 	Type:    iceV1.Type,
-	// 	Version: iceV1.Version,
-	// 	New:     iceV1.New,
-	// 	Load:    iceV1.Load,
-	// 	Merge:   iceV1.Merge,
-	// })
-	rv.WithSegmentPlugin(&SegmentPlugin{
-		Type:    ice.Type,
-		Version: ice.Version,
-		New:     ice.New,
-		Load:    ice.Load,
-		Merge:   ice.Merge,
-	})
-
 	return rv
 }

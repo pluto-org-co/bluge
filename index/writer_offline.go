@@ -25,6 +25,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -32,7 +33,6 @@ type WriterOffline struct {
 	m         sync.Mutex
 	config    Config
 	directory Directory
-	segPlugin *SegmentPlugin
 	segCount  atomic.Uint64
 	segIDs    []uint64
 }
@@ -46,17 +46,11 @@ func OpenOfflineWriter(config Config) (writer *WriterOffline, err error) {
 	writer = &WriterOffline{
 		config:    config,
 		directory: config.DirectoryFunc(),
-		segPlugin: nil,
 	}
 
 	err = writer.directory.Setup(false)
 	if err != nil {
 		return nil, fmt.Errorf("error setting up directory: %w", err)
-	}
-
-	writer.segPlugin, err = loadSegmentPlugin(config.supportedSegmentPlugins, config.SegmentType, config.SegmentVersion)
-	if err != nil {
-		return nil, fmt.Errorf("error loading segment plugin: %v", err)
 	}
 
 	return writer, nil
@@ -101,7 +95,7 @@ func (s *WriterOffline) Batch(batch *Batch) (err error) {
 				doc.Analyze()
 			}
 
-			newSegment, _, err := s.segPlugin.New(chunk, s.config.NormCalc)
+			newSegment, _, err := ice.New(chunk, s.config.NormCalc)
 			if err != nil {
 				newIds <- &Option[uint64]{Error: fmt.Errorf("failed to create new segment: %w", err)}
 				return
@@ -216,7 +210,7 @@ func (s *WriterOffline) doMerge() error {
 
 					closers = append(closers, closer)
 
-					seg, err := s.segPlugin.Load(data)
+					seg, err := ice.Load(data)
 					if err != nil {
 						errorsCh <- fmt.Errorf("error loading segment: id: %d: %w", mergeID, err)
 						return
@@ -227,7 +221,7 @@ func (s *WriterOffline) doMerge() error {
 
 				// do the merge
 				drops := make([]*roaring.Bitmap, len(chunk))
-				merger := s.segPlugin.Merge(mergeSegments, drops, s.config.MergeBufferSize)
+				merger := ice.Merge(mergeSegments, drops, s.config.MergeBufferSize)
 
 				newId := s.segCount.Add(1)
 				err := s.directory.Persist(ItemKindSegment, newId, merger, nil)
@@ -289,7 +283,7 @@ func (s *WriterOffline) Close() error {
 	if err != nil {
 		return fmt.Errorf("error loading segment from directory: %w", err)
 	}
-	finalSeg, err := s.segPlugin.Load(data)
+	finalSeg, err := ice.Load(data)
 	if err != nil {
 		if closer != nil {
 			_ = closer.Close()
@@ -307,8 +301,6 @@ func (s *WriterOffline) Close() error {
 					refCounter: nil,
 					persisted:  true,
 				},
-				segmentType:    s.segPlugin.Type,
-				segmentVersion: s.segPlugin.Version,
 			},
 		},
 		epoch: s.segIDs[0],

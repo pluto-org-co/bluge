@@ -15,60 +15,15 @@
 package index
 
 import (
-	"fmt"
 	"io"
 	"sync"
 
-	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
-type SegmentPlugin struct {
-	Type    string
-	Version uint32
-	New     func(results []segment.Document, normCalc func(string, int) float32) (segment.Segment, uint64, error)
-	Load    func(*segment.Data) (segment.Segment, error)
-	Merge   func([]segment.Segment, []*roaring.Bitmap, int) segment.Merger
-}
-
-func supportedSegmentTypes(supportedSegmentPlugins map[string]map[uint32]*SegmentPlugin) (rv []string) {
-	for k := range supportedSegmentPlugins {
-		rv = append(rv, k)
-	}
-	return
-}
-
-func supportedSegmentTypeVersions(supportedSegmentPlugins map[string]map[uint32]*SegmentPlugin, typ string) (
-	rv []uint32) {
-	for k := range supportedSegmentPlugins[typ] {
-		rv = append(rv, k)
-	}
-	return rv
-}
-
-func loadSegmentPlugin(
-	supportedSegmentPlugins map[string]map[uint32]*SegmentPlugin,
-	forcedSegmentType string,
-	forcedSegmentVersion uint32,
-) (*SegmentPlugin, error) {
-	versions, ok := supportedSegmentPlugins[forcedSegmentType]
-	if !ok {
-		return nil, fmt.Errorf("unsupported segment type: %s, supported: %v",
-			forcedSegmentType, supportedSegmentTypes(supportedSegmentPlugins))
-	}
-
-	segPlugin, ok := versions[forcedSegmentVersion]
-	if !ok {
-		return nil, fmt.Errorf(
-			"unsupported version %d for segment type: %s, supported: %v",
-			forcedSegmentVersion, forcedSegmentType,
-			supportedSegmentTypeVersions(supportedSegmentPlugins, forcedSegmentType))
-	}
-	return segPlugin, nil
-}
-
 func (s *Writer) newSegment(results []segment.Document) (*segmentWrapper, uint64, error) {
-	seg, count, err := s.segPlugin.New(results, s.config.NormCalc)
+	seg, count, err := ice.New(results, s.config.NormCalc)
 	return &segmentWrapper{
 		Segment:    seg,
 		refCounter: noOpRefCounter{},

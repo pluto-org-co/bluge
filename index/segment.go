@@ -25,12 +25,10 @@ type SegmentSnapshot interface {
 }
 
 type segmentSnapshot struct {
-	id             uint64
-	segment        *segmentWrapper
-	deleted        *roaring.Bitmap
-	creator        string
-	segmentType    string
-	segmentVersion uint32
+	id      uint64
+	segment *segmentWrapper
+	deleted *roaring.Bitmap
+	creator string
 }
 
 func (s *segmentSnapshot) Segment() segment.Segment {

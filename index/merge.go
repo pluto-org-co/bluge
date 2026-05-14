@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/index/mergeplan"
 	"github.com/pluto-org-co/bluge/segment"
 )
@@ -158,7 +159,7 @@ func (s *Writer) executeMergeTask(merges chan *segmentMerge, task *mergeplan.Mer
 			return fmt.Errorf("merging failed: %v", err)
 		}
 
-		seg, err = s.loadSegment(newSegmentID, s.segPlugin)
+		seg, err = s.loadSegment(newSegmentID)
 		if err != nil {
 			atomic.AddUint64(&s.stats.TotFileMergePlanTasksErr, 1)
 			return err
@@ -313,7 +314,7 @@ func (s *Writer) mergeSegmentBases(merges chan *segmentMerge, snapshot *Snapshot
 		return nil, 0, err
 	}
 
-	seg, err := s.loadSegment(newSegmentID, s.segPlugin)
+	seg, err := s.loadSegment(newSegmentID)
 	if err != nil {
 		atomic.AddUint64(&s.stats.TotMemMergeErr, 1)
 		return nil, 0, err
@@ -363,7 +364,7 @@ func (s *Writer) mergeSegmentBases(merges chan *segmentMerge, snapshot *Snapshot
 
 func (s *Writer) merge(segments []segment.Segment, drops []*roaring.Bitmap, id uint64) (
 	[][]uint64, error) {
-	merger := s.segPlugin.Merge(segments, drops, s.config.MergeBufferSize)
+	merger := ice.Merge(segments, drops, s.config.MergeBufferSize)
 
 	err := s.directory.Persist(ItemKindSegment, id, merger, s.closeCh)
 	if err != nil {
