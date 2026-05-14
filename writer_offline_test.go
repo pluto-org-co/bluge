@@ -31,8 +31,10 @@ func TestOfflineWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	const docCount = 200_000
+
 	batch := index.NewBatch()
-	for index := range 10 {
+	for index := range docCount {
 		doc := NewDocument(fmt.Sprintf("%d", index)).
 			AddField(NewKeywordField("name", "hello"))
 		batch.Insert(doc)
@@ -59,22 +61,22 @@ func TestOfflineWriter(t *testing.T) {
 		}
 	}()
 
-	docCount, err := indexReader.Count()
+	idxDocCount, err := indexReader.Count()
 	if err != nil {
 		t.Errorf("error checking doc count: %v", err)
 	}
-	if docCount != 10 {
-		t.Errorf("expected doc count to be 10, got %d", docCount)
+	if idxDocCount != docCount {
+		t.Errorf("expected doc count to be 10, got %d", idxDocCount)
 	}
 
 	q := NewTermQuery("hello")
 	q.SetField("name")
-	req := NewTopNSearch(10, q).WithStandardAggregations()
+	req := NewTopNSearch(docCount, q).WithStandardAggregations()
 	res, err := indexReader.Search(context.Background(), req)
 	if err != nil {
 		t.Errorf("error searching index: %v", err)
 	}
-	if res.Aggregations().Count() != 10 {
+	if res.Aggregations().Count() != docCount {
 		t.Errorf("expected 10 search hits, got %d", res.Aggregations().Count())
 	}
 }
