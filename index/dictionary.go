@@ -53,11 +53,11 @@ func (i *dictionary) Swap(a, b int) {
 	i.cursors[a], i.cursors[b] = i.cursors[b], i.cursors[a]
 }
 
-func (i *dictionary) Push(x interface{}) {
+func (i *dictionary) Push(x any) {
 	i.cursors = append(i.cursors, x.(*segmentDictCursor))
 }
 
-func (i *dictionary) Pop() interface{} {
+func (i *dictionary) Pop() any {
 	n := len(i.cursors)
 	x := i.cursors[n-1]
 	i.cursors = i.cursors[0 : n-1]

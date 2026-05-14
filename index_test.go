@@ -37,7 +37,7 @@ import (
 )
 
 type Fatalfable interface {
-	Fatalf(format string, args ...interface{})
+	Fatalf(format string, args ...any)
 }
 
 func createTmpIndexPath(f Fatalfable) string {

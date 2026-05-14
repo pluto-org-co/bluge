@@ -18,14 +18,14 @@ import "testing"
 
 func TestExtractGeoPoint(t *testing.T) {
 	tests := []struct {
-		in      interface{}
+		in      any
 		lon     float64
 		lat     float64
 		success bool
 	}{
 		// values are ints
 		{
-			in: map[string]interface{}{
+			in: map[string]any{
 				"lat": 5,
 				"lon": 5,
 			},
@@ -35,7 +35,7 @@ func TestExtractGeoPoint(t *testing.T) {
 		},
 		// values are uints
 		{
-			in: map[string]interface{}{
+			in: map[string]any{
 				"lat": uint(5),
 				"lon": uint(5),
 			},
@@ -45,7 +45,7 @@ func TestExtractGeoPoint(t *testing.T) {
 		},
 		// values float64 as with parsed JSON
 		{
-			in: map[string]interface{}{
+			in: map[string]any{
 				"lat": 5.0,
 				"lon": 5.0,
 			},
@@ -55,7 +55,7 @@ func TestExtractGeoPoint(t *testing.T) {
 		},
 		// values are bool (not supported)
 		{
-			in: map[string]interface{}{
+			in: map[string]any{
 				"lat": true,
 				"lon": false,
 			},
@@ -65,7 +65,7 @@ func TestExtractGeoPoint(t *testing.T) {
 		},
 		// using lng variant of lon
 		{
-			in: map[string]interface{}{
+			in: map[string]any{
 				"lat": 5.0,
 				"lng": 5.0,
 			},
@@ -121,14 +121,14 @@ func TestExtractGeoPoint(t *testing.T) {
 		},
 		// try GeoJSON slice
 		{
-			in:      []interface{}{3.4, 5.9},
+			in:      []any{3.4, 5.9},
 			lon:     3.4,
 			lat:     5.9,
 			success: true,
 		},
 		// try GeoJSON slice too long
 		{
-			in:      []interface{}{3.4, 5.9, 9.4},
+			in:      []any{3.4, 5.9, 9.4},
 			lon:     0,
 			lat:     0,
 			success: false,
@@ -142,7 +142,7 @@ func TestExtractGeoPoint(t *testing.T) {
 		},
 		// values are nil (not supported)
 		{
-			in: map[string]interface{}{
+			in: map[string]any{
 				"lat": nil,
 				"lon": nil,
 			},

@@ -28,7 +28,7 @@ func init() {
 	reflectStaticSizeIndexSnapshotTermFieldReader = int(reflect.TypeOf(pi).Size())
 	var pia postingsIteratorAll
 	reflectStaticSizeIndexSnapshotDocIDReader = int(reflect.TypeOf(pia).Size())
-	var is interface{} = Snapshot{}
+	var is any = Snapshot{}
 	reflectStaticSizeIndexSnapshot = int(reflect.TypeOf(is).Size())
 	var pib unadornedPostingsIteratorBitmap
 	reflectStaticSizeUnadornedPostingsIteratorBitmap = int(reflect.TypeOf(pib).Size())

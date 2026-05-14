@@ -124,14 +124,14 @@ func (fq FragmentQueue) Swap(i, j int) {
 	fq[j].Index = j
 }
 
-func (fq *FragmentQueue) Push(x interface{}) {
+func (fq *FragmentQueue) Push(x any) {
 	n := len(*fq)
 	item := x.(*Fragment)
 	item.Index = n
 	*fq = append(*fq, item)
 }
 
-func (fq *FragmentQueue) Pop() interface{} {
+func (fq *FragmentQueue) Pop() any {
 	old := *fq
 	n := len(old)
 	item := old[n-1]

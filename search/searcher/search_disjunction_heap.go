@@ -281,11 +281,11 @@ func (s *DisjunctionHeapSearcher) Swap(i, j int) {
 	s.heap[i], s.heap[j] = s.heap[j], s.heap[i]
 }
 
-func (s *DisjunctionHeapSearcher) Push(x interface{}) {
+func (s *DisjunctionHeapSearcher) Push(x any) {
 	s.heap = append(s.heap, x.(*searcherCurr))
 }
 
-func (s *DisjunctionHeapSearcher) Pop() interface{} {
+func (s *DisjunctionHeapSearcher) Pop() any {
 	old := s.heap
 	n := len(old)
 	x := old[n-1]

@@ -174,7 +174,7 @@ type visitDocumentCtx struct {
 }
 
 var visitDocumentCtxPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		reuse := &visitDocumentCtx{}
 		return reuse
 	},

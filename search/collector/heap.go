@@ -84,11 +84,11 @@ func (c *collectStoreHeap) Swap(i, j int) {
 	c.heap[i], c.heap[j] = c.heap[j], c.heap[i]
 }
 
-func (c *collectStoreHeap) Push(x interface{}) {
+func (c *collectStoreHeap) Push(x any) {
 	c.heap = append(c.heap, x.(*search.DocumentMatch))
 }
 
-func (c *collectStoreHeap) Pop() interface{} {
+func (c *collectStoreHeap) Pop() any {
 	var rv *search.DocumentMatch
 	rv, c.heap = c.heap[len(c.heap)-1], c.heap[:len(c.heap)-1]
 	return rv

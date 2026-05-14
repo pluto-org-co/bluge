@@ -22,22 +22,31 @@ import (
 
 const lonLatSliceLen = 2
 
-// ExtractGeoPoint takes an arbitrary interface{} and tries it's best to
+// ExtractGeoPoint takes an arbitrary any and tries it's best to
 // interpret it is as geo point.  Supported formats:
 // Container:
 // slice length 2 (GeoJSON)
-//  first element lon, second element lat
+//
+//	first element lon, second element lat
+//
 // string (coordinates separated by comma, or a geohash)
-//  first element lat, second element lon
-// map[string]interface{}
-//  exact keys lat and lon or lng
+//
+//	first element lat, second element lon
+//
+// map[string]any
+//
+//	exact keys lat and lon or lng
+//
 // struct
-//  w/exported fields case-insensitive match on lat and lon or lng
+//
+//	w/exported fields case-insensitive match on lat and lon or lng
+//
 // struct
-//  satisfying Later and Loner or Lnger interfaces
+//
+//	satisfying Later and Loner or Lnger interfaces
 //
 // in all cases values must be some sort of numeric-like thing: int/uint/float
-func ExtractGeoPoint(thing interface{}) (lon, lat float64, success bool) {
+func ExtractGeoPoint(thing any) (lon, lat float64, success bool) {
 	var foundLon, foundLat bool
 
 	thingVal := reflect.ValueOf(thing)
@@ -53,7 +62,7 @@ func ExtractGeoPoint(thing interface{}) (lon, lat float64, success bool) {
 	} else if thingVal.Kind() == reflect.String {
 		// is it a string
 		lon, foundLon, lat, foundLat = extractString(thingVal)
-	} else if l, ok := thing.(map[string]interface{}); ok {
+	} else if l, ok := thing.(map[string]any); ok {
 		// is it a map
 		lon, foundLon, lat, foundLat = extractMap(l)
 	} else if thingVal.Kind() == reflect.Struct {
@@ -106,7 +115,7 @@ func extractStruct(thingVal reflect.Value, thingTyp reflect.Type) (lon float64, 
 	return lon, foundLon, lat, foundLat
 }
 
-func extractMap(l map[string]interface{}) (lon float64, foundLon bool, lat float64, foundLat bool) {
+func extractMap(l map[string]any) (lon float64, foundLon bool, lat float64, foundLat bool) {
 	if lval, ok := l["lon"]; ok {
 		lon, foundLon = extractNumericVal(lval)
 	} else if lval, ok := l["lng"]; ok {
@@ -164,7 +173,7 @@ func extractSlice(thingVal reflect.Value) (lon float64, foundLon bool, lat float
 }
 
 // extract numeric value (if possible) and returns a float64
-func extractNumericVal(v interface{}) (float64, bool) {
+func extractNumericVal(v any) (float64, bool) {
 	val := reflect.ValueOf(v)
 	if !val.IsValid() {
 		return 0, false

@@ -429,7 +429,7 @@ func compareSegmentStoredFields(a, b *Segment, next segment.DictionaryEntry, api
 	docID := next.Term()
 	docNumA := apitrn.Number()
 	docNumB := bpitrn.Number()
-	afields := map[string]interface{}{}
+	afields := map[string]any{}
 	err := a.VisitStoredFields(apitrn.Number(),
 		func(field string, value []byte) bool {
 			afields[field+"-value"] = append([]byte(nil), value...)
@@ -438,7 +438,7 @@ func compareSegmentStoredFields(a, b *Segment, next segment.DictionaryEntry, api
 	if err != nil {
 		rv = append(rv, fmt.Sprintf("a.VisitStoredFields err: %v", err))
 	}
-	bfields := map[string]interface{}{}
+	bfields := map[string]any{}
 	err = b.VisitStoredFields(bpitrn.Number(),
 		func(field string, value []byte) bool {
 			bfields[field+"-value"] = append([]byte(nil), value...)

@@ -109,7 +109,7 @@ func initSegmentBase(mem []byte, footer *footer,
 	return sb, nil
 }
 
-var interimPool = sync.Pool{New: func() interface{} { return &interim{} }}
+var interimPool = sync.Pool{New: func() any { return &interim{} }}
 
 // interim holds temporary working data used while converting from
 // the source operations to an encoded segment

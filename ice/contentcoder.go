@@ -51,11 +51,10 @@ type metaData struct {
 
 // newChunkedContentCoder returns a new chunk content coder which
 // packs data into chunks based on the provided chunkSize
-func newChunkedContentCoder(chunkSize, maxDocNum uint64,
-	w io.Writer, progressiveWrite bool) *chunkedContentCoder {
-	total := maxDocNum/chunkSize + 1
+func newChunkedContentCoder(docsPerChunk, maxDocCount uint64, w io.Writer, progressiveWrite bool) *chunkedContentCoder {
+	total := maxDocCount/docsPerChunk + 1
 	rv := &chunkedContentCoder{
-		chunkSize:        chunkSize,
+		chunkSize:        docsPerChunk,
 		chunkLens:        make([]uint64, total),
 		chunkMeta:        make([]metaData, 0, total),
 		w:                w,
@@ -99,8 +98,8 @@ func (c *chunkedContentCoder) Close() error {
 
 func (c *chunkedContentCoder) flushContents() error {
 	// flush the contents, with meta information at first
-	buf := make([]byte, binary.MaxVarintLen64)
-	n := binary.PutUvarint(buf, uint64(len(c.chunkMeta)))
+	var buf [binary.MaxVarintLen64]byte
+	n := binary.PutUvarint(buf[:], uint64(len(c.chunkMeta)))
 	_, err := c.chunkMetaBuf.Write(buf[:n])
 	if err != nil {
 		return err

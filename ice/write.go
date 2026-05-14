@@ -236,13 +236,14 @@ func persistFooter(footer *footer, writerIn io.Writer) error {
 }
 
 func writeUvarints(w io.Writer, vals ...uint64) (err error) {
-	buf := make([]byte, binary.MaxVarintLen64)
+	buf := make([]byte, 0, len(vals)*binary.MaxVarintLen64)
 	for _, val := range vals {
-		n := binary.PutUvarint(buf, val)
-		_, err = w.Write(buf[:n])
-		if err != nil {
-			return err
-		}
+		buf = binary.AppendUvarint(buf, val)
+	}
+
+	_, err = w.Write(buf)
+	if err != nil {
+		return err
 	}
 	return err
 }
