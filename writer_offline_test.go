@@ -31,7 +31,7 @@ func TestOfflineWriter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	const docCount = 200_000
+	const docCount = 1_000_000
 
 	batch := index.NewBatch()
 	for index := range docCount {

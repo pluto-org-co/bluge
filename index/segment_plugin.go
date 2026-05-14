@@ -46,8 +46,11 @@ func supportedSegmentTypeVersions(supportedSegmentPlugins map[string]map[uint32]
 	return rv
 }
 
-func loadSegmentPlugin(supportedSegmentPlugins map[string]map[uint32]*SegmentPlugin,
-	forcedSegmentType string, forcedSegmentVersion uint32) (*SegmentPlugin, error) {
+func loadSegmentPlugin(
+	supportedSegmentPlugins map[string]map[uint32]*SegmentPlugin,
+	forcedSegmentType string,
+	forcedSegmentVersion uint32,
+) (*SegmentPlugin, error) {
 	if versions, ok := supportedSegmentPlugins[forcedSegmentType]; ok {
 		if segPlugin, ok := versions[forcedSegmentVersion]; ok {
 			return segPlugin, nil

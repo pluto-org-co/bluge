@@ -15,7 +15,7 @@
 package bluge
 
 import (
-	"io/ioutil"
+	"io"
 	"log"
 
 	"github.com/pluto-org-co/bluge/index"
@@ -96,7 +96,7 @@ func DefaultConfigWithDirectory(df func() index.Directory) Config {
 
 func defaultConfig(indexConfig index.Config) Config {
 	rv := Config{
-		Logger:                log.New(ioutil.Discard, "bluge", log.LstdFlags),
+		Logger:                log.New(io.Discard, "bluge", log.LstdFlags),
 		DefaultSearchField:    "_all",
 		DefaultSearchAnalyzer: analyzer.NewStandardAnalyzer(),
 		DefaultSimilarity:     similarity.NewBM25Similarity(),
@@ -104,15 +104,16 @@ func defaultConfig(indexConfig index.Config) Config {
 	}
 
 	allDocsFields := NewKeywordField("", "")
-	_ = allDocsFields.Analyze(0)
-	indexConfig = indexConfig.WithVirtualField(allDocsFields)
-	indexConfig = indexConfig.WithNormCalc(func(field string, length int) float32 {
-		if pfs, ok := rv.PerFieldSimilarity[field]; ok {
-			return pfs.ComputeNorm(length)
-		}
-		return rv.DefaultSimilarity.ComputeNorm(length)
-	})
-	rv.indexConfig = indexConfig
+	allDocsFields.Analyze(0)
+
+	rv.indexConfig = indexConfig.
+		WithVirtualField(allDocsFields).
+		WithNormCalc(func(field string, length int) float32 {
+			if pfs, ok := rv.PerFieldSimilarity[field]; ok {
+				return pfs.ComputeNorm(length)
+			}
+			return rv.DefaultSimilarity.ComputeNorm(length)
+		})
 
 	return rv
 }

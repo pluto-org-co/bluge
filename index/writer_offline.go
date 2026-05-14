@@ -35,16 +35,18 @@ type WriterOffline struct {
 	segPlugin *SegmentPlugin
 	segCount  atomic.Uint64
 	segIDs    []uint64
-
-	mergeMax int
 }
+
+const (
+	DefaultMergeMax  = 300
+	DefaultChunkSize = 50_000
+)
 
 func OpenOfflineWriter(config Config) (writer *WriterOffline, err error) {
 	writer = &WriterOffline{
 		config:    config,
 		directory: config.DirectoryFunc(),
 		segPlugin: nil,
-		mergeMax:  10,
 	}
 
 	err = writer.directory.Setup(false)
@@ -60,53 +62,123 @@ func OpenOfflineWriter(config Config) (writer *WriterOffline, err error) {
 	return writer, nil
 }
 
+type Option[T any] struct {
+	Success T
+	Error   error
+}
+
+var workersPool = sync.Pool{
+	New: func() any {
+		// Do not spawn infinite goroutines even the OS has a limit.
+		// Attempt to use all available CPU but if there are too many
+		// Just use 4, even SSD has a limit
+		var workersCount = max(4, runtime.NumCPU())
+		var workersCh = make(chan struct{}, workersCount)
+		for range workersCount {
+			workersCh <- struct{}{}
+		}
+		return workersCh
+	},
+}
+
 func (s *WriterOffline) Batch(batch *Batch) (err error) {
 	if len(batch.documents) == 0 {
 		return nil
 	}
 
-	for _, doc := range batch.documents {
-		if doc != nil {
-			doc.Analyze()
+	totalChunks := max(1, len(batch.documents)/DefaultChunkSize)
+	var newIds = make(chan *Option[uint64], totalChunks)
+
+	workersCh := workersPool.Get().(chan struct{})
+	defer workersPool.Put(workersCh)
+
+	var wg sync.WaitGroup
+	for chunk := range slices.Chunk(batch.documents, DefaultChunkSize) {
+		<-workersCh
+		wg.Go(func() {
+			defer func() { workersCh <- struct{}{} }()
+			for _, doc := range chunk {
+				doc.Analyze()
+			}
+
+			newSegment, _, err := s.segPlugin.New(chunk, s.config.NormCalc)
+			if err != nil {
+				newIds <- &Option[uint64]{Error: fmt.Errorf("failed to create new segment: %w", err)}
+				return
+			}
+
+			newId := s.segCount.Add(1)
+			// There is zero chance of collision we can safely use the computed id
+			err = s.directory.Persist(ItemKindSegment, newId, newSegment, nil)
+			if err != nil {
+				newIds <- &Option[uint64]{Error: fmt.Errorf("error persisting segment: %v", err)}
+				return
+			}
+
+			newIds <- &Option[uint64]{Success: newId}
+		})
+	}
+
+	go func() {
+		wg.Wait()
+
+		close(newIds)
+	}()
+
+	var allIds = make([]uint64, 0, totalChunks)
+	var allErrors = make([]error, 0, totalChunks)
+	for option := range newIds {
+		if option.Error != nil {
+			allErrors = append(allErrors, option.Error)
+			continue
 		}
+
+		allIds = append(allIds, option.Success)
 	}
 
-	newSegment, _, err := s.segPlugin.New(batch.documents, s.config.NormCalc)
-	if err != nil {
-		return err
+	cleanupFunc := func() (err error) {
+		for _, id := range allIds {
+			err = s.directory.Remove(ItemKindSegment, id)
+			if err != nil {
+				return fmt.Errorf("error removing segment %d after merge: %w", id, err)
+			}
+		}
+		return nil
 	}
-
-	newId := s.segCount.Add(1)
-	// There is zero chance of collision we can safely use the computed id
-	err = s.directory.Persist(ItemKindSegment, newId, newSegment, nil)
-	if err != nil {
-		return fmt.Errorf("error persisting segment: %v", err)
+	switch len(allErrors) {
+	case 0:
+	case 1:
+		err = cleanupFunc()
+		if err != nil {
+			return fmt.Errorf("failed to cleanup during failure: %w", err)
+		}
+		return fmt.Errorf("single error during batch processing: %w", err)
+	default:
+		err = cleanupFunc()
+		if err != nil {
+			return fmt.Errorf("failed to cleanup during failure: %w", err)
+		}
+		return fmt.Errorf("multiple errors during batch processing: %w", errors.Join(allErrors...))
 	}
 
 	s.m.Lock()
-	s.segIDs = append(s.segIDs, newId)
+	s.segIDs = append(s.segIDs, allIds...)
 	s.m.Unlock()
 
 	return nil
 }
 
 func (s *WriterOffline) doMerge() error {
+	workersCh := workersPool.Get().(chan struct{})
+	defer workersPool.Put(workersCh)
+
 	for len(s.segIDs) > 1 {
 		var newIdsMutex sync.Mutex
 		var newIds = make([]uint64, 0, len(s.segIDs))
 
-		// Do not spawn infinite goroutines even the OS has a limit.
-		// Attempt to use all available CPU but if there are too many
-		// Just use 4, even SSD has a limit
-		var workersCount = min(4, runtime.NumCPU())
-		var workersCh = make(chan struct{}, workersCount)
-		for range workersCount {
-			workersCh <- struct{}{}
-		}
-
 		var wg sync.WaitGroup
-		var errorsCh = make(chan error, max(1, len(s.segIDs)/s.mergeMax))
-		for chunk := range slices.Chunk(s.segIDs, s.mergeMax) {
+		var errorsCh = make(chan error, max(1, len(s.segIDs)/DefaultMergeMax))
+		for chunk := range slices.Chunk(s.segIDs, DefaultMergeMax) {
 			<-workersCh
 			wg.Go(func() {
 				defer func() { workersCh <- struct{}{} }()
@@ -183,7 +255,7 @@ func (s *WriterOffline) doMerge() error {
 		go func() { wg.Wait(); close(errorsCh) }()
 
 		// Wait for errors once there are no workers channel will automatically closed
-		var mergingErrs = make([]error, 0, max(1, len(s.segIDs)/s.mergeMax))
+		var mergingErrs = make([]error, 0, max(1, len(s.segIDs)/DefaultMergeMax))
 		for err := range errorsCh {
 			mergingErrs = append(mergingErrs, err)
 		}
