@@ -18,7 +18,7 @@ import (
 	"bytes"
 
 	"github.com/blevesearch/go-porterstemmer"
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 type PorterStemmer struct{}

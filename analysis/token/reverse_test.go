@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 func TestReverseFilter(t *testing.T) {

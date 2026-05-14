@@ -17,7 +17,7 @@ package token
 import (
 	"unicode/utf8"
 
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 type LengthFilter struct {

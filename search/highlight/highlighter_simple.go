@@ -17,7 +17,7 @@ package highlight
 import (
 	"container/heap"
 
-	"github.com/blugelabs/bluge/search"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 const Name = "simple"

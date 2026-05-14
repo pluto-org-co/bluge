@@ -17,7 +17,7 @@ package aggregations
 import (
 	"sort"
 
-	"github.com/blugelabs/bluge/search"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 type TermsAggregation struct {

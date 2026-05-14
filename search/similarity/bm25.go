@@ -20,7 +20,7 @@ import (
 
 	segment "github.com/blugelabs/bluge_segment_api"
 
-	"github.com/blugelabs/bluge/search"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 const defaultB = 0.75

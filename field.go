@@ -19,11 +19,11 @@ import (
 
 	segment "github.com/blugelabs/bluge_segment_api"
 
-	"github.com/blugelabs/bluge/analysis/analyzer"
+	"github.com/pluto-org-co/bluge/analysis/analyzer"
 
-	"github.com/blugelabs/bluge/analysis"
-	"github.com/blugelabs/bluge/numeric"
-	"github.com/blugelabs/bluge/numeric/geo"
+	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/numeric"
+	"github.com/pluto-org-co/bluge/numeric/geo"
 )
 
 type FieldOptions int

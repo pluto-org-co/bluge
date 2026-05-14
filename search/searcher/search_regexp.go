@@ -18,7 +18,7 @@ import (
 	"regexp/syntax"
 
 	"github.com/blevesearch/vellum/regexp"
-	"github.com/blugelabs/bluge/search"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 // NewRegexpStringSearcher is similar to NewRegexpSearcher, but

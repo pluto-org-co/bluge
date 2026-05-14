@@ -1,7 +1,7 @@
 package ca
 
 import (
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 // this content was obtained from:
@@ -98,7 +98,7 @@ havia
 he
 hem
 heu
-hi 
+hi
 ho
 i
 igual
@@ -152,7 +152,7 @@ pels
 per
 però
 perquè
-poc 
+poc
 poca
 pocs
 poques
@@ -161,7 +161,7 @@ propi
 qual
 quals
 quan
-quant 
+quant
 que
 què
 quelcom
@@ -176,7 +176,7 @@ sa
 semblant
 semblants
 ses
-seu 
+seu
 seus
 seva
 seva
@@ -187,9 +187,9 @@ sobretot
 sóc
 solament
 sols
-son 
+son
 són
-sons 
+sons
 sota
 sou
 t'ha

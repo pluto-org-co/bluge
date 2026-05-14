@@ -17,7 +17,7 @@ package fi
 import (
 	"github.com/blevesearch/snowballstem"
 	"github.com/blevesearch/snowballstem/finnish"
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 type FinnishStemmerFilter struct {

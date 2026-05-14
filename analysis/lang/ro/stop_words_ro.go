@@ -1,7 +1,7 @@
 package ro
 
 import (
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 // this content was obtained from:
@@ -131,7 +131,7 @@ ieri
 îl
 îmi
 împotriva
-în 
+în
 înainte
 înaintea
 încât

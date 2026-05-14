@@ -1,4 +1,4 @@
-module github.com/blugelabs/bluge
+module github.com/pluto-org-co/bluge
 
 go 1.26
 

@@ -29,9 +29,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/blugelabs/bluge/search"
+	"github.com/pluto-org-co/bluge/search"
 
-	"github.com/blugelabs/bluge/index"
+	"github.com/pluto-org-co/bluge/index"
 
 	segment "github.com/blugelabs/bluge_segment_api"
 )

@@ -17,7 +17,7 @@ package en
 import (
 	"unicode/utf8"
 
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 const rightSingleQuotationMark = '’'

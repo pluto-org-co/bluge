@@ -17,10 +17,10 @@ package test
 import (
 	"testing"
 
-	"github.com/blugelabs/bluge/search"
-	"github.com/blugelabs/bluge/search/highlight"
+	"github.com/pluto-org-co/bluge/search"
+	"github.com/pluto-org-co/bluge/search/highlight"
 
-	"github.com/blugelabs/bluge"
+	"github.com/pluto-org-co/bluge"
 )
 
 type match struct {

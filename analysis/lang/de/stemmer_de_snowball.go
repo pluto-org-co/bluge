@@ -17,7 +17,7 @@ package de
 import (
 	"github.com/blevesearch/snowballstem"
 	"github.com/blevesearch/snowballstem/german"
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 type GermanStemmerFilter struct {

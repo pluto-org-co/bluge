@@ -15,10 +15,10 @@
 package test
 
 import (
-	"github.com/blugelabs/bluge"
-	"github.com/blugelabs/bluge/analysis/analyzer"
+	"github.com/pluto-org-co/bluge"
+	"github.com/pluto-org-co/bluge/analysis/analyzer"
 
-	"github.com/blugelabs/bluge/analysis/lang/en"
+	"github.com/pluto-org-co/bluge/analysis/lang/en"
 )
 
 func fosdemLoad(writer *bluge.Writer) error {

@@ -24,8 +24,8 @@ import (
 	"strconv"
 
 	"github.com/blevesearch/mmap-go"
-	"github.com/blugelabs/bluge/index/lock"
 	segment "github.com/blugelabs/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/index/lock"
 )
 
 const pidFilename = "bluge.pid"

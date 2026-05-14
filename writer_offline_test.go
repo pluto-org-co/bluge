@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/blugelabs/bluge/index"
+	"github.com/pluto-org-co/bluge/index"
 )
 
 func TestOfflineWriter(t *testing.T) {

@@ -19,9 +19,9 @@ import (
 
 	segment "github.com/blugelabs/bluge_segment_api"
 
-	"github.com/blugelabs/bluge/index/mergeplan"
 	iceV1 "github.com/blugelabs/ice"
 	iceV2 "github.com/blugelabs/ice/v2"
+	"github.com/pluto-org-co/bluge/index/mergeplan"
 )
 
 type Config struct {

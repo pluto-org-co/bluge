@@ -1,7 +1,7 @@
 package ca
 
 import (
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 const ArticlesName = "articles_ca"
