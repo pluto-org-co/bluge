@@ -1,7 +1,7 @@
 package fi
 
 import (
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 // this content was obtained from:
@@ -16,7 +16,7 @@ var StopWordsBytes = []byte(` | From svn.tartarus.org/snowball/trunk/website/alg
  |  - This notice was added.
  |
  | NOTE: To use this file with StopFilterFactory, you must specify format="snowball"
- 
+
 | forms of BE
 
 olla

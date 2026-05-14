@@ -15,8 +15,8 @@
 package searcher
 
 import (
-	"github.com/blugelabs/bluge/search"
 	segment "github.com/blugelabs/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 type TermSearcher struct {

@@ -1,7 +1,7 @@
 package el
 
 import (
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 // this content was obtained from:
@@ -10,7 +10,7 @@ import (
 
 var StopWordsBytes = []byte(`# Lucene Greek Stopwords list
 # Note: by default this file is used after GreekLowerCaseFilter,
-# so when modifying this file use 'σ' instead of 'ς' 
+# so when modifying this file use 'σ' instead of 'ς'
 ο
 η
 το
@@ -21,7 +21,7 @@ var StopWordsBytes = []byte(`# Lucene Greek Stopwords list
 των
 τον
 την
-και 
+και
 κι
 κ
 ειμαι

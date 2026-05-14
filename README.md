@@ -1,8 +1,8 @@
 # ![Bluge](docs/bluge.png) Bluge
 
-[![PkgGoDev](https://pkg.go.dev/badge/github.com/blugelabs/bluge)](https://pkg.go.dev/github.com/blugelabs/bluge)
-[![Tests](https://github.com/blugelabs/bluge/workflows/Tests/badge.svg?branch=master&event=push)](https://github.com/blugelabs/bluge/actions?query=workflow%3ATests+event%3Apush+branch%3Amaster)
-[![Lint](https://github.com/blugelabs/bluge/workflows/Lint/badge.svg?branch=master&event=push)](https://github.com/blugelabs/bluge/actions?query=workflow%3ALint+event%3Apush+branch%3Amaster)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/pluto-org-co/bluge)](https://pkg.go.dev/github.com/pluto-org-co/bluge)
+[![Tests](https://github.com/pluto-org-co/bluge/workflows/Tests/badge.svg?branch=master&event=push)](https://github.com/pluto-org-co/bluge/actions?query=workflow%3ATests+event%3Apush+branch%3Amaster)
+[![Lint](https://github.com/pluto-org-co/bluge/workflows/Lint/badge.svg?branch=master&event=push)](https://github.com/pluto-org-co/bluge/actions?query=workflow%3ALint+event%3Apush+branch%3Amaster)
 
 modern text indexing in go - [blugelabs.com](https://www.blugelabs.com/)
 
@@ -25,7 +25,7 @@ modern text indexing in go - [blugelabs.com](https://www.blugelabs.com/)
         * Min/Max/Count/Sum
         * Avg/Weighted Avg
         * Cardinality Estimation ([HyperLogLog++](https://github.com/axiomhq/hyperloglog))
-        * Quantile Approximation ([T-Digest](https://github.com/caio/go-tdigest)) 
+        * Quantile Approximation ([T-Digest](https://github.com/caio/go-tdigest))
 
 ## Indexing
 

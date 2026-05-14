@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/blugelabs/bluge/search"
-	"github.com/blugelabs/bluge/search/similarity"
+	"github.com/pluto-org-co/bluge/search"
+	"github.com/pluto-org-co/bluge/search/similarity"
 
 	segment "github.com/blugelabs/bluge_segment_api"
 )

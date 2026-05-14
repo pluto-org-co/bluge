@@ -1,6 +1,6 @@
 package ar
 
-import "github.com/blugelabs/bluge/analysis"
+import "github.com/pluto-org-co/bluge/analysis"
 
 // this content was obtained from:
 // lucene-4.7.2/analysis/common/src/resources/org/apache/lucene/analysis
@@ -10,7 +10,7 @@ var StopWordsBytes = []byte(`# This file was created by Jacques Savoy and is dis
 # See http://members.unine.ch/jacques.savoy/clef/index.html.
 # Also see http://www.opensource.org/licenses/bsd-license.html
 # Cleaned on October 11, 2009 (not normalized, so use before normalization)
-# This means that when modifying this list, you might need to add some 
+# This means that when modifying this list, you might need to add some
 # redundant entries, for example containing forms with both أ and ا
 من
 ومن

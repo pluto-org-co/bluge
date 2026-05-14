@@ -14,7 +14,7 @@
 
 package similarity
 
-import "github.com/blugelabs/bluge/search"
+import "github.com/pluto-org-co/bluge/search"
 
 type ConstantScorer float64
 

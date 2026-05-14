@@ -15,11 +15,11 @@
 package searcher
 
 import (
-	"github.com/blugelabs/bluge/numeric"
-	"github.com/blugelabs/bluge/numeric/geo"
-	"github.com/blugelabs/bluge/search"
-	"github.com/blugelabs/bluge/search/similarity"
 	segment "github.com/blugelabs/bluge_segment_api"
+	"github.com/pluto-org-co/bluge/numeric"
+	"github.com/pluto-org-co/bluge/numeric/geo"
+	"github.com/pluto-org-co/bluge/search"
+	"github.com/pluto-org-co/bluge/search/similarity"
 )
 
 type filterFunc func(key []byte) bool

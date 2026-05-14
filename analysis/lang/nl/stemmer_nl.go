@@ -17,7 +17,7 @@ package nl
 import (
 	"github.com/blevesearch/snowballstem"
 	"github.com/blevesearch/snowballstem/dutch"
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 type DutchStemmerFilter struct {

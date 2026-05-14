@@ -17,9 +17,9 @@ package searcher
 import (
 	"testing"
 
-	"github.com/blugelabs/bluge/search/similarity"
+	"github.com/pluto-org-co/bluge/search/similarity"
 
-	"github.com/blugelabs/bluge/search"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 func TestBooleanSearch(t *testing.T) {

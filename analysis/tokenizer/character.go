@@ -17,7 +17,7 @@ package tokenizer
 import (
 	"unicode/utf8"
 
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 type IsTokenRune func(r rune) bool

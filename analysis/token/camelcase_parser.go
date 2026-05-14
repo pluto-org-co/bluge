@@ -15,7 +15,7 @@
 package token
 
 import (
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 func (p *Parser) buildTokenFromTerm(buffer []rune) *analysis.Token {

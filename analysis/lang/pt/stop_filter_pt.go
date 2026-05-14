@@ -15,7 +15,7 @@
 package pt
 
 import (
-	"github.com/blugelabs/bluge/analysis/token"
+	"github.com/pluto-org-co/bluge/analysis/token"
 )
 
 func StopWordsFilter() *token.StopTokensFilter {

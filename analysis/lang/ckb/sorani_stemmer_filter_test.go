@@ -18,9 +18,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/blugelabs/bluge/analysis/tokenizer"
+	"github.com/pluto-org-co/bluge/analysis/tokenizer"
 
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 func TestSoraniStemmerFilter(t *testing.T) {

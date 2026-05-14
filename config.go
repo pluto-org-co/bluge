@@ -18,13 +18,13 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/blugelabs/bluge/index"
+	"github.com/pluto-org-co/bluge/index"
 
-	"github.com/blugelabs/bluge/search"
-	"github.com/blugelabs/bluge/search/similarity"
+	"github.com/pluto-org-co/bluge/search"
+	"github.com/pluto-org-co/bluge/search/similarity"
 
-	"github.com/blugelabs/bluge/analysis"
-	"github.com/blugelabs/bluge/analysis/analyzer"
+	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis/analyzer"
 )
 
 type Config struct {

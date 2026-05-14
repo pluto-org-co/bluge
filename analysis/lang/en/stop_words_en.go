@@ -1,7 +1,7 @@
 package en
 
 import (
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 // StopWordsBytes is the built-in list of stopwords used by the "stop_en" TokenFilter.
@@ -17,7 +17,7 @@ var StopWordsBytes = []byte(` | From svn.tartarus.org/snowball/trunk/website/alg
  |  - This notice was added.
  |
  | NOTE: To use this file with StopFilterFactory, you must specify format="snowball"
- 
+
  | An English stop word list. Comments begin with vertical bar. Each stop
  | word is at the start of a line.
 

@@ -1,7 +1,7 @@
 package hi
 
 import (
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 // this content was obtained from:
@@ -11,10 +11,10 @@ import (
 var StopWordsBytes = []byte(`# Also see http://www.opensource.org/licenses/bsd-license.html
 # See http://members.unine.ch/jacques.savoy/clef/index.html.
 # This file was created by Jacques Savoy and is distributed under the BSD license.
-# Note: by default this file also contains forms normalized by HindiNormalizer 
-# for spelling variation (see section below), such that it can be used whether or 
+# Note: by default this file also contains forms normalized by HindiNormalizer
+# for spelling variation (see section below), such that it can be used whether or
 # not you enable that feature. When adding additional entries to this list,
-# please add the normalized form as well. 
+# please add the normalized form as well.
 अंदर
 अत
 अपना
@@ -24,7 +24,7 @@ var StopWordsBytes = []byte(`# Also see http://www.opensource.org/licenses/bsd-l
 आदि
 आप
 इत्यादि
-इन 
+इन
 इनका
 इन्हीं
 इन्हें
@@ -121,7 +121,7 @@ var StopWordsBytes = []byte(`# Also see http://www.opensource.org/licenses/bsd-l
 नीचे
 ने
 पर
-पर  
+पर
 पहले
 पूरा
 पे
@@ -143,7 +143,7 @@ var StopWordsBytes = []byte(`# Also see http://www.opensource.org/licenses/bsd-l
 यहाँ
 यही
 या
-यिह 
+यिह
 ये
 रखें
 रहा
@@ -155,11 +155,11 @@ var StopWordsBytes = []byte(`# Also see http://www.opensource.org/licenses/bsd-l
 व
 वर्ग
 वह
-वह 
+वह
 वहाँ
 वहीं
 वाले
-वुह 
+वुह
 वे
 वग़ैरह
 संग

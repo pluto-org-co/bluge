@@ -17,7 +17,7 @@ package token
 import (
 	"bytes"
 
-	"github.com/blugelabs/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 const Apostrophes = string(Apostrophe) + string(RightSingleQuotationMark)

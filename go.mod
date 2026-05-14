@@ -1,4 +1,4 @@
-module github.com/blugelabs/bluge
+module github.com/pluto-org-co/bluge
 
 go 1.26
 
@@ -16,8 +16,8 @@ require (
 	github.com/blugelabs/ice/v2 v2.0.1
 	github.com/caio/go-tdigest v3.1.0+incompatible
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/sys v0.42.0
-	golang.org/x/text v0.35.0
+	golang.org/x/sys v0.44.0
+	golang.org/x/text v0.37.0
 )
 
 require (
@@ -25,7 +25,7 @@ require (
 	github.com/golang/snappy v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kamstrup/intmap v0.5.2 // indirect
-	github.com/klauspost/compress v1.18.5 // indirect
+	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/leesper/go_rng v0.0.0-20190531154944-a612b043e353 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect

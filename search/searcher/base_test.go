@@ -17,9 +17,9 @@ package searcher
 import (
 	"math"
 
-	"github.com/blugelabs/bluge/search/similarity"
+	"github.com/pluto-org-co/bluge/search/similarity"
 
-	"github.com/blugelabs/bluge/search"
+	"github.com/pluto-org-co/bluge/search"
 
 	segment "github.com/blugelabs/bluge_segment_api"
 )

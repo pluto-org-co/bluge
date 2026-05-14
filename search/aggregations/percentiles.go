@@ -17,8 +17,8 @@ package aggregations
 import (
 	"fmt"
 
-	"github.com/blugelabs/bluge/search"
 	"github.com/caio/go-tdigest"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 type QuantilesMetric struct {

@@ -17,7 +17,7 @@ package bluge
 import (
 	"reflect"
 
-	"github.com/blugelabs/bluge/search"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 var documentMatchEmptySize int

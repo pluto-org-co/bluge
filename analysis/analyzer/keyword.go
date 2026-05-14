@@ -15,8 +15,8 @@
 package analyzer
 
 import (
-	"github.com/blugelabs/bluge/analysis"
-	"github.com/blugelabs/bluge/analysis/tokenizer"
+	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis/tokenizer"
 )
 
 func NewKeywordAnalyzer() *analysis.Analyzer {

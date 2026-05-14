@@ -22,9 +22,9 @@
 package en
 
 import (
-	"github.com/blugelabs/bluge/analysis"
-	"github.com/blugelabs/bluge/analysis/token"
-	"github.com/blugelabs/bluge/analysis/tokenizer"
+	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis/token"
+	"github.com/pluto-org-co/bluge/analysis/tokenizer"
 )
 
 const AnalyzerName = "en"
