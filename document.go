@@ -51,16 +51,6 @@ func NewDocumentWithFieldsManagedId(info *Information, fields ...*Field) (doc *D
 	return doc
 }
 
-func (d Document) Size() int {
-	sizeInBytes := sizeOfSlice
-
-	for _, entry := range d.Fields {
-		sizeInBytes += entry.Size()
-	}
-
-	return sizeInBytes
-}
-
 // ID is an experimental helper method
 // to simplify common use cases
 func (d Document) ID() segment.Term {

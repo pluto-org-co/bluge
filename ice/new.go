@@ -399,8 +399,7 @@ func (s *interim) prepareDicts() {
 	}
 }
 
-func (s *interim) prepareDictsForDocument(result segment.Document, pidNext, totLocs, totTFs int) (
-	pidNextOut, totLocsOut, totTFsOut int) {
+func (s *interim) prepareDictsForDocument(result segment.Document, pidNext, totLocs, totTFs int) (pidNextOut, totLocsOut, totTFsOut int) {
 	fieldsSeen := map[uint16]struct{}{}
 	result.EachField(func(field segment.Field) {
 		fieldID := uint16(s.getOrDefineField(field.Name()))

@@ -92,29 +92,6 @@ func (b *Field) Name() string {
 	return b.name
 }
 
-func (b *Field) Size() int {
-	switch b.kind {
-	case FieldKindComposite:
-		sizeInBytes := b.Size()
-
-		for k := range b.includedFields {
-			sizeInBytes += sizeOfString + len(k) + sizeOfBool
-		}
-
-		for k := range b.excludedFields {
-			sizeInBytes += sizeOfString + len(k) + sizeOfBool
-		}
-
-		return sizeInBytes
-	case FieldKindTerm:
-		return reflectStaticSizeBaseField + sizeOfPtr +
-			len(b.name) +
-			len(b.value)
-	default:
-		return 0
-	}
-}
-
 func (b *Field) AnalyzedLength() int {
 	return b.analyzedLength
 }
