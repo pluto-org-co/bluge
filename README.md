@@ -6,6 +6,14 @@
 
 modern text indexing in go - [blugelabs.com](https://www.blugelabs.com/)
 
+## This Fork
+
+This is a mono-repo fork of [bluge](https://github.com/blugelabs/bluge) maintained by [us](https://github.com/pluto-org-co), optimized for high-throughput indexing workloads.
+
+**Indexing performance:** ~70% faster than upstream in synthetic benchmarks (4.947s → 2.919s on equivalent workloads).
+
+Upstream bluge is a stable, well-maintained library. This fork exists to consolidate internal patches and performance work in one place — it is not intended as a general-purpose replacement.
+
 ## Features
 
 * Supported field types:
