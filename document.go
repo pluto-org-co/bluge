@@ -29,6 +29,20 @@ func NewDocument(id string) *Document {
 	}
 }
 
+func NewDocumentWithFields(id string, fields ...*Field) (doc *Document) {
+	doc = &Document{
+		Fields: make([]*Field, 0, 1+len(fields)),
+	}
+
+	doc.Fields = append(doc.Fields, NewKeywordField(IdFieldName, id).StoreValue().Sortable())
+	for _, field := range fields {
+		if !doc.hasComposites && field.kind == FieldKindComposite {
+			doc.hasComposites = true
+		}
+	}
+	return doc
+}
+
 func (d Document) Size() int {
 	sizeInBytes := sizeOfSlice
 
