@@ -75,11 +75,7 @@ var workersPool = sync.Pool{
 	},
 }
 
-func (s *WriterOffline) Batch(batch *Batch) (err error) {
-	if len(batch.documents) == 0 {
-		return nil
-	}
-
+func (s *WriterOffline) parallelBatch(batch *Batch) (err error) {
 	totalChunks := max(1, len(batch.documents)/DefaultChunkSize)
 	var newIds = make(chan *Option[uint64], totalChunks)
 
@@ -160,6 +156,47 @@ func (s *WriterOffline) Batch(batch *Batch) (err error) {
 	s.m.Unlock()
 
 	return nil
+}
+
+func (s *WriterOffline) linearBatch(batch *Batch) (err error) {
+	if len(batch.documents) == 0 {
+		return nil
+	}
+
+	for _, doc := range batch.documents {
+		if doc != nil {
+			doc.Analyze()
+		}
+	}
+
+	newSegment, _, err := ice.New(batch.documents, s.config.NormCalc)
+	if err != nil {
+		return err
+	}
+
+	newId := s.segCount.Add(1)
+	// There is zero chance of collision we can safely use the computed id
+	err = s.directory.Persist(ItemKindSegment, newId, newSegment, nil)
+	if err != nil {
+		return fmt.Errorf("error persisting segment: %v", err)
+	}
+
+	s.m.Lock()
+	s.segIDs = append(s.segIDs, newId)
+	s.m.Unlock()
+
+	return nil
+}
+
+func (s *WriterOffline) Batch(batch *Batch) (err error) {
+	switch {
+	case len(batch.documents) == 0:
+		return nil
+	case len(batch.documents) <= DefaultChunkSize:
+		return s.linearBatch(batch)
+	default:
+		return s.parallelBatch(batch)
+	}
 }
 
 func (s *WriterOffline) doMerge() error {
