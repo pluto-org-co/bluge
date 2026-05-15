@@ -17,11 +17,12 @@ package bluge
 import (
 	"context"
 	"testing"
+
+	"github.com/pluto-org-co/bluge/testsuite"
 )
 
 func TestMultiSearch(t *testing.T) {
-	tmpIndexPath := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath)
+	tmpIndexPath := testsuite.TemporaryDirectory(t)
 
 	config := DefaultConfig(tmpIndexPath)
 	indexWriter1, err := OpenWriter(config)
@@ -42,8 +43,7 @@ func TestMultiSearch(t *testing.T) {
 		t.Fatalf("error getting index reader: %v", err)
 	}
 
-	tmpIndexPath2 := createTmpIndexPath(t)
-	defer cleanupTmpIndexPath(t, tmpIndexPath2)
+	tmpIndexPath2 := testsuite.TemporaryDirectory(t)
 
 	config2 := DefaultConfig(tmpIndexPath2)
 	indexWriter2, err := OpenWriter(config2)

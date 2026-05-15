@@ -31,4 +31,4 @@ func (tf *tokenFreq) Frequency() int {
 	return tf.frequency
 }
 
-type tokenFrequencies map[string]*tokenFreq
+type tokenFrequencies map[uint64]*tokenFreq

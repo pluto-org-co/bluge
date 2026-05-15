@@ -25,6 +25,7 @@ import (
 	"github.com/blevesearch/vellum"
 	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/zeebo/xxh3"
 )
 
 var newSegmentBufferNumResultsBump = 100
@@ -57,7 +58,7 @@ func newWithChunkMode(results []segment.Document, normCalc func(string, int) flo
 		br.Grow(estimateAvgBytesPerDoc * estimateNumResults)
 	}
 
-	s.results = results
+	s.documents = results
 	s.chunkMode = chunkMode
 	s.w = newCountHashWriter(&br)
 
@@ -114,7 +115,7 @@ var interimPool = sync.Pool{New: func() any { return &interim{} }}
 // interim holds temporary working data used while converting from
 // the source operations to an encoded segment
 type interim struct {
-	results []segment.Document
+	documents []segment.Document
 
 	chunkMode uint32
 
@@ -138,7 +139,7 @@ type interim struct {
 
 	// Term dictionaries for each field
 	//  field id -> term -> postings list id + 1
-	Dicts []map[string]uint64
+	Dicts []map[uint64]uint64
 
 	// Terms for each field, where terms are sorted ascending
 	//  field id -> []term
@@ -177,7 +178,7 @@ type interim struct {
 }
 
 func (s *interim) reset() (err error) {
-	s.results = nil
+	s.documents = nil
 	s.chunkMode = 0
 	s.w = nil
 	s.FieldsMap = nil
@@ -258,7 +259,7 @@ func (s *interim) convert() (*footer, []uint64, error) {
 	// YES, integration tests fail when removed
 	s.getOrDefineField(_idFieldName) // _id field is fieldID 0
 
-	for _, result := range s.results {
+	for _, result := range s.documents {
 		result.EachField(func(field segment.Field) {
 			s.getOrDefineField(field.Name())
 		})
@@ -292,7 +293,7 @@ func (s *interim) convert() (*footer, []uint64, error) {
 	var fdvIndexOffset uint64
 	var dictOffsets []uint64
 
-	if len(s.results) > 0 {
+	if len(s.documents) > 0 {
 		fdvIndexOffset, dictOffsets, err = s.writeDicts()
 		if err != nil {
 			return nil, nil, err
@@ -321,7 +322,7 @@ func (s *interim) getOrDefineField(fieldName string) int {
 		s.FieldsMap[fieldName] = fieldIDPlus1
 		s.FieldsInv = append(s.FieldsInv, fieldName)
 
-		s.Dicts = append(s.Dicts, make(map[string]uint64))
+		s.Dicts = append(s.Dicts, make(map[uint64]uint64))
 
 		n := len(s.DictKeys)
 		if n < cap(s.DictKeys) {
@@ -342,7 +343,7 @@ func (s *interim) prepareDicts() {
 	var totTFs int
 	var totLocs int
 
-	for _, result := range s.results {
+	for _, result := range s.documents {
 		pidNext, totLocs, totTFs = s.prepareDictsForDocument(result, pidNext, totLocs, totTFs)
 	}
 
@@ -353,7 +354,7 @@ func (s *interim) prepareDicts() {
 	} else {
 		postings := make([]*roaring.Bitmap, numPostingsLists)
 		copy(postings, s.Postings[:cap(s.Postings)])
-		for i := 0; i < numPostingsLists; i++ {
+		for i := range numPostingsLists {
 			if postings[i] == nil {
 				postings[i] = roaring.New()
 			}
@@ -413,14 +414,14 @@ func (s *interim) prepareDictsForDocument(result segment.Document, pidNext, totL
 		var numTerms int
 		field.EachTerm(func(term segment.FieldTerm) {
 			numTerms++
-			termStr := string(term.Term())
+			termStr := xxh3.Hash(term.Term())
 			pidPlus1, exists := dict[termStr]
 			if !exists {
 				pidNext++
 				pidPlus1 = uint64(pidNext)
 
 				dict[termStr] = pidPlus1
-				dictKeys = append(dictKeys, termStr)
+				dictKeys = append(dictKeys, string(term.Term()))
 
 				s.numTermsPerPostingsList = append(s.numTermsPerPostingsList, 0)
 				s.numLocsPerPostingsList = append(s.numLocsPerPostingsList, 0)
@@ -451,35 +452,36 @@ func (s *interim) prepareDictsForDocument(result segment.Document, pidNext, totL
 }
 
 func (s *interim) processDocuments() {
-	numFields := len(s.FieldsInv)
-	reuseFieldLens := make([]int, numFields)
-	reuseFieldTFs := make([]tokenFrequencies, numFields)
+	reuseFieldLens := make([]int, len(s.FieldsInv))
+	reuseFieldTFs := make([]tokenFrequencies, len(s.FieldsInv))
 
-	for docNum, result := range s.results {
-		for i := 0; i < numFields; i++ { // clear these for reuse
+	for docNum, doc := range s.documents {
+		for i := range reuseFieldLens { // clear these for reuse
 			reuseFieldLens[i] = 0
 			reuseFieldTFs[i] = nil
 		}
 
-		s.processDocument(uint64(docNum), result,
-			reuseFieldLens, reuseFieldTFs)
+		s.processDocument(uint64(docNum), doc, reuseFieldLens, reuseFieldTFs)
 	}
 }
 
-func (s *interim) processDocument(docNum uint64,
+func (s *interim) processDocument(
+	docNum uint64,
 	result segment.Document,
-	fieldLens []int, fieldTFs []tokenFrequencies) {
+	fieldLens []int,
+	fieldTFs []tokenFrequencies,
+) {
 	visitField := func(field segment.Field) {
 		fieldID := uint16(s.getOrDefineField(field.Name()))
 		fieldLens[fieldID] += field.Length()
 
 		if existingFreqs := fieldTFs[fieldID]; existingFreqs == nil {
-			fieldTFs[fieldID] = make(map[string]*tokenFreq)
+			fieldTFs[fieldID] = make(map[uint64]*tokenFreq)
 		}
 
 		existingFreqs := fieldTFs[fieldID]
 		field.EachTerm(func(term segment.FieldTerm) {
-			tfk := string(term.Term())
+			tfk := xxh3.Hash(term.Term())
 			existingTf, exists := existingFreqs[tfk]
 			if exists {
 				term.EachLocation(func(location segment.Location) {
@@ -564,12 +566,12 @@ func (s *interim) writeStoredFields() (
 	defer func() { s.tmp0, s.tmp1 = data, compressed }()
 
 	// keyed by docNum
-	docStoredOffsets := make([]uint64, len(s.results))
+	docStoredOffsets := make([]uint64, len(s.documents))
 
 	// keyed by fieldID, for the current doc in the loop
 	docStoredFields := map[uint16]interimStoredField{}
 
-	for docNum, result := range s.results {
+	for docNum, result := range s.documents {
 		for fieldID := range docStoredFields { // reset for next doc
 			delete(docStoredFields, fieldID)
 		}
@@ -653,8 +655,8 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 	// these int coders are initialized with chunk size 1024
 	// however this will be reset to the correct chunk size
 	// while processing each individual field-term section
-	tfEncoder := newChunkedIntCoder(uint64(legacyChunkMode), uint64(len(s.results)-1))
-	locEncoder := newChunkedIntCoder(uint64(legacyChunkMode), uint64(len(s.results)-1))
+	tfEncoder := newChunkedIntCoder(uint64(legacyChunkMode), uint64(len(s.documents)-1))
+	locEncoder := newChunkedIntCoder(uint64(legacyChunkMode), uint64(len(s.documents)-1))
 
 	var docTermMap [][]byte
 
@@ -692,10 +694,10 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 
 func (s *interim) writeDictsField(docTermMap [][]byte, fieldID int, terms []string, tfEncoder,
 	locEncoder *chunkedIntCoder, buf []byte, dictOffsets, fdvOffsetsStart, fdvOffsetsEnd []uint64) error {
-	if cap(docTermMap) < len(s.results) {
-		docTermMap = make([][]byte, len(s.results))
+	if cap(docTermMap) < len(s.documents) {
+		docTermMap = make([][]byte, len(s.documents))
 	} else {
-		docTermMap = docTermMap[0:len(s.results)]
+		docTermMap = docTermMap[0:len(s.documents)]
 		for docNum := range docTermMap { // reset the docTermMap
 			docTermMap[docNum] = docTermMap[docNum][:0]
 		}
@@ -747,7 +749,7 @@ func (s *interim) writeDictsField(docTermMap [][]byte, fieldID int, terms []stri
 	if err != nil {
 		return err
 	}
-	fdvEncoder := newChunkedContentCoder(chunkSize, uint64(len(s.results)-1), s.w, false)
+	fdvEncoder := newChunkedContentCoder(chunkSize, uint64(len(s.documents)-1), s.w, false)
 	if s.IncludeDocValues[fieldID] {
 		for docNum, docTerms := range docTermMap {
 			if len(docTerms) > 0 {
@@ -779,9 +781,9 @@ func (s *interim) writeDictsField(docTermMap [][]byte, fieldID int, terms []stri
 	return nil
 }
 
-func (s *interim) writeDictsTermField(docTermMap [][]byte, dict map[string]uint64, term string, tfEncoder,
+func (s *interim) writeDictsTermField(docTermMap [][]byte, dict map[uint64]uint64, term string, tfEncoder,
 	locEncoder *chunkedIntCoder, buf []byte) error {
-	pid := dict[term] - 1
+	pid := dict[xxh3.HashString(term)] - 1
 
 	postingsBS := s.Postings[pid]
 
@@ -791,12 +793,12 @@ func (s *interim) writeDictsTermField(docTermMap [][]byte, dict map[string]uint6
 	locs := s.Locs[pid]
 	locOffset := 0
 
-	chunkSize, err := getChunkSize(s.chunkMode, postingsBS.GetCardinality(), uint64(len(s.results)))
+	chunkSize, err := getChunkSize(s.chunkMode, postingsBS.GetCardinality(), uint64(len(s.documents)))
 	if err != nil {
 		return err
 	}
-	tfEncoder.SetChunkSize(chunkSize, uint64(len(s.results)-1))
-	locEncoder.SetChunkSize(chunkSize, uint64(len(s.results)-1))
+	tfEncoder.SetChunkSize(chunkSize, uint64(len(s.documents)-1))
+	locEncoder.SetChunkSize(chunkSize, uint64(len(s.documents)-1))
 
 	postingsItr := postingsBS.Iterator()
 	for postingsItr.HasNext() {

@@ -20,10 +20,11 @@ import (
 	"testing"
 
 	"github.com/pluto-org-co/bluge/index"
+	"github.com/pluto-org-co/bluge/testsuite"
 )
 
 func TestOfflineWriter(t *testing.T) {
-	tmpIndexPath := createTmpIndexPath(t)
+	tmpIndexPath := testsuite.TemporaryDirectory(t)
 
 	config := DefaultConfig(tmpIndexPath)
 	writer, err := OpenOfflineWriter(config)
