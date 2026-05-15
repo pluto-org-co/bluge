@@ -216,24 +216,32 @@ type Analyzer interface {
 
 var standardAnalyzer = analyzer.NewStandardAnalyzer()
 
-func NewKeywordField(name, value string) *Field {
-	return newTextField(name, []byte(value), nil)
+func NewKeywordField(name, value string) (field *Field) {
+	field = new(Field)
+	newTextField(field, name, []byte(value), nil)
+	return field
 }
 
-func NewKeywordFieldBytes(name string, value []byte) *Field {
-	return newTextField(name, value, nil)
+func NewKeywordFieldBytes(name string, value []byte) (field *Field) {
+	field = new(Field)
+	newTextField(field, name, value, nil)
+	return field
 }
 
-func NewTextField(name, value string) *Field {
-	return newTextField(name, []byte(value), standardAnalyzer)
+func NewTextField(name, value string) (field *Field) {
+	field = new(Field)
+	newTextField(field, name, []byte(value), standardAnalyzer)
+	return field
 }
 
-func NewTextFieldBytes(name string, value []byte) *Field {
-	return newTextField(name, value, standardAnalyzer)
+func NewTextFieldBytes(name string, value []byte) (field *Field) {
+	field = new(Field)
+	newTextField(field, name, value, standardAnalyzer)
+	return field
 }
 
-func newTextField(name string, value []byte, fieldAnalyzer Analyzer) *Field {
-	return &Field{
+func newTextField(dst *Field, name string, value []byte, fieldAnalyzer Analyzer) {
+	*dst = Field{
 		FieldOptions:         defaultTextIndexingOptions,
 		name:                 name,
 		value:                value,
@@ -290,17 +298,17 @@ func (n *numericAnalyzer) Analyze(input []byte) analysis.TokenStream {
 	return tokens
 }
 
-func NewNumericField(name string, number float64) *Field {
-	return newNumericFieldWithIndexingOptions(name, number, defaultNumericIndexingOptions)
+func NewNumericField(name string, number float64) (field *Field) {
+	field = new(Field)
+	newNumericFieldWithIndexingOptions(field, name, numeric.Float64ToInt64(number))
+	return field
 }
 
-func newNumericFieldWithIndexingOptions(name string, number float64, options FieldOptions) *Field {
-	numberInt64 := numeric.Float64ToInt64(number)
-	prefixCoded := numeric.MustNewPrefixCodedInt64(numberInt64, 0)
-	return &Field{
-		FieldOptions:      options,
+func newNumericFieldWithIndexingOptions(dst *Field, name string, number int64) {
+	*dst = Field{
+		FieldOptions:      defaultNumericIndexingOptions,
 		name:              name,
-		value:             prefixCoded,
+		value:             numeric.MustNewPrefixCodedInt64(number, 0),
 		numPlainTextBytes: 8,
 		analyzer: &numericAnalyzer{
 			tokenType: analysis.Numeric,

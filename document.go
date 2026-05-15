@@ -20,6 +20,7 @@ import (
 
 type Document struct {
 	hasComposites bool
+	info          *Information
 	Fields        []*Field
 }
 
@@ -29,8 +30,9 @@ func NewDocument(id string) *Document {
 	}
 }
 
-func NewDocumentWithFields(id string, fields ...*Field) (doc *Document) {
+func NewDocumentWithFields(id string, info *Information, fields ...*Field) (doc *Document) {
 	doc = &Document{
+		info:   info,
 		Fields: make([]*Field, 0, 1+len(fields)),
 	}
 

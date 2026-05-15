@@ -90,3 +90,73 @@ func TestOfflineWriter(t *testing.T) {
 		return
 	}
 }
+
+func TestOfflineWriterWithDefinitions(t *testing.T) {
+	assertions := assert.New(t)
+	tmpIndexPath := testsuite.TemporaryDirectory(t)
+
+	config := DefaultConfig(tmpIndexPath)
+	writer, err := OpenOfflineWriter(config)
+	if !assertions.Nil(err, "failed to open writer") {
+		return
+	}
+
+	const docCount uint64 = 1_000_000
+
+	batch := index.NewBatch()
+	for index := range docCount {
+		info, fields := FieldsFromDefinitions(
+			NewKeywordFieldDefinition("name", fmt.Sprintf("hello-%d", index)),
+			NewKeywordFieldDefinition("index", fmt.Sprintf("%d", index)),
+			NewKeywordFieldDefinition("reversed-name", fmt.Sprintf("olleh-%d", index)),
+		)
+		doc := NewDocumentWithFields(fmt.Sprintf("%d", index), info, fields...)
+		batch.Insert(doc)
+	}
+
+	err = writer.Batch(batch)
+	if !assertions.Nil(err, "failed to write batch") {
+		return
+	}
+
+	err = writer.Close()
+	if !assertions.Nil(err, "failed close writer") {
+		return
+	}
+
+	indexReader, err := OpenReader(config)
+	if !assertions.Nil(err, "failed to open reader") {
+		return
+	}
+	t.Cleanup(func() { indexReader.Close() })
+
+	idxDocCount, err := indexReader.Count()
+	if !assertions.Nil(err, "failed to get index count") {
+		return
+	}
+	if !assertions.Equal(docCount, idxDocCount, "expecting exact amount of documents") {
+		return
+	}
+
+	req := NewAllMatches(NewMatchAllQuery())
+	res, err := indexReader.Search(t.Context(), req)
+	if !assertions.Nil(err, "failed to search") {
+		return
+	}
+
+	var searchCount uint64
+	for {
+		doc, err := res.Next()
+		if !assertions.Nil(err, "failed to iter to next value") {
+			return
+		}
+		if doc == nil {
+			break
+		}
+		searchCount++
+	}
+
+	if !assertions.Equal(docCount, searchCount, "expecting same amount of search results") {
+		return
+	}
+}
