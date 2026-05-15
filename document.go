@@ -19,15 +19,13 @@ import (
 )
 
 type Document struct {
-	Fields []*Field
+	hasComposites bool
+	Fields        []*Field
 }
 
-func NewDocument(id string, fields ...*Field) *Document {
-	finalFields := make([]*Field, 0, 1+len(fields))
-	finalFields = append(finalFields, NewKeywordField(_idField, id).StoreValue().Sortable())
-	finalFields = append(finalFields, fields...)
+func NewDocument(id string) *Document {
 	return &Document{
-		Fields: finalFields,
+		Fields: []*Field{NewKeywordField(IdFildName, id).StoreValue().Sortable()},
 	}
 }
 
@@ -48,6 +46,9 @@ func (d Document) ID() segment.Term {
 }
 
 func (d *Document) AddField(f *Field) *Document {
+	if !d.hasComposites && f.kind == FieldKindComposite {
+		d.hasComposites = true
+	}
 	d.Fields = append(d.Fields, f)
 	return d
 }
@@ -65,13 +66,15 @@ func (d Document) Analyze() {
 		lastPos := field.Analyze(fieldOffset)
 		fieldOffsets[field.Name()] = lastPos
 
-		// see if any of the composite fields need this
-		for _, otherField := range d.Fields {
-			if otherField == field {
-				// never include yourself
-				continue
+		if d.hasComposites {
+			// see if any of the composite fields need this
+			for _, otherField := range d.Fields {
+				if otherField.kind != FieldKindComposite || otherField == field {
+					// never include yourself
+					continue
+				}
+				otherField.Consume(field)
 			}
-			otherField.Consume(field)
 		}
 	}
 }

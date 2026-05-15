@@ -69,10 +69,11 @@ type Field struct {
 	analyzedTokenFreqs   analysis.TokenFrequencies
 	analyzer             Analyzer
 	positionIncrementGap int
-	includedFields       map[string]bool
-	excludedFields       map[string]bool
-	defaultInclude       bool
-	kind                 FieldKind
+	// Composite fields
+	includedFields map[string]bool
+	excludedFields map[string]bool
+	defaultInclude bool
+	kind           FieldKind
 }
 
 func (b *Field) PositionIncrementGap() int {
@@ -183,25 +184,28 @@ func (b *Field) WithAnalyzer(fieldAnalyzer Analyzer) *Field {
 }
 
 func (b *Field) Analyze(startOffset int) (lastPos int) {
-	if b.kind == FieldKindComposite {
+	switch b.kind {
+	case FieldKindComposite:
 		return 0
-	}
-	var tokens analysis.TokenStream
-	if b.analyzer != nil {
-		bytesToAnalyze := b.Value()
-		if b.Store() {
-			// need to copy
-			bytesCopied := make([]byte, len(bytesToAnalyze))
-			copy(bytesCopied, bytesToAnalyze)
-			bytesToAnalyze = bytesCopied
+	default:
+		var tokens analysis.TokenStream
+		if b.analyzer != nil {
+			bytesToAnalyze := b.Value()
+			if b.Store() {
+				// need to copy
+				bytesCopied := make([]byte, len(bytesToAnalyze))
+				copy(bytesCopied, bytesToAnalyze)
+				bytesToAnalyze = bytesCopied
+			}
+			tokens = b.analyzer.Analyze(bytesToAnalyze)
+		} else {
+			tokens = b.baseAnalayze(analysis.AlphaNumeric)
 		}
-		tokens = b.analyzer.Analyze(bytesToAnalyze)
-	} else {
-		tokens = b.baseAnalayze(analysis.AlphaNumeric)
+		b.analyzedLength = len(tokens) // number of tokens in this doc field
+		b.analyzedTokenFreqs, lastPos = analysis.TokenFrequency(tokens, b.IncludeLocations(), startOffset)
+		return lastPos
 	}
-	b.analyzedLength = len(tokens) // number of tokens in this doc field
-	b.analyzedTokenFreqs, lastPos = analysis.TokenFrequency(tokens, b.IncludeLocations(), startOffset)
-	return lastPos
+
 }
 
 const defaultTextIndexingOptions = Index
@@ -423,6 +427,9 @@ func (c *Field) includesField(field string) bool {
 }
 
 func (c *Field) Consume(field *Field) {
+	if c.kind != FieldKindComposite {
+		return
+	}
 	if c.includesField(field.Name()) {
 		c.analyzedLength += field.Length()
 		c.analyzedTokenFreqs.MergeAll(field.Name(), field.AnalyzedTokenFrequencies())

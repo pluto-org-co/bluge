@@ -18,12 +18,12 @@ import (
 	"github.com/pluto-org-co/bluge/index"
 )
 
-const _idField = "_id"
+const IdFildName = "_id"
 
 type Identifier string
 
 func (i Identifier) Field() string {
-	return _idField
+	return IdFildName
 }
 
 func (i Identifier) Term() []byte {
