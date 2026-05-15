@@ -32,15 +32,21 @@ func NewDocument(id string) *Document {
 
 func NewDocumentWithFields(id string, info *Information, fields ...*Field) (doc *Document) {
 	doc = &Document{
-		info:   info,
-		Fields: make([]*Field, 0, 1+len(fields)),
+		hasComposites: info.HasComposites,
+		info:          info,
+		Fields:        make([]*Field, 0, 1+len(fields)),
 	}
 
 	doc.Fields = append(doc.Fields, NewKeywordField(IdFieldName, id).StoreValue().Sortable())
-	for _, field := range fields {
-		if !doc.hasComposites && field.kind == FieldKindComposite {
-			doc.hasComposites = true
-		}
+	doc.Fields = append(doc.Fields, fields...)
+	return doc
+}
+
+func NewDocumentWithFieldsManagedId(info *Information, fields ...*Field) (doc *Document) {
+	doc = &Document{
+		hasComposites: info.HasComposites,
+		info:          info,
+		Fields:        fields,
 	}
 	return doc
 }

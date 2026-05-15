@@ -9,7 +9,6 @@ import (
 )
 
 func Test_TextFieldsFromDefinitions(t *testing.T) {
-
 	assertions := assert.New(t)
 
 	defs := []*FieldDefinition{
@@ -22,7 +21,7 @@ func Test_TextFieldsFromDefinitions(t *testing.T) {
 
 	var expectedSize int
 	for _, def := range defs {
-		expectedSize += def.Size()
+		expectedSize += len(def.Name) + len(def.Value)
 	}
 
 	info, fields := FieldsFromDefinitions(defs...)

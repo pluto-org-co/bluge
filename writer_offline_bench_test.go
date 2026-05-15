@@ -105,3 +105,45 @@ func BenchmarkOfflineWriterWithDefinitions(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkOfflineWriterWithDefinitionsManagedId(b *testing.B) {
+	assertions := assert.New(b)
+
+	b.StopTimer()
+	const docCount = 1_000_000
+	batch := index.NewBatch()
+	for index := range docCount {
+		info, fields := FieldsFromDefinitionsWithId(
+			fmt.Sprintf("%d", index),
+			NewKeywordFieldDefinition("name", fmt.Sprintf("hello-%d", index)),
+			NewKeywordFieldDefinition("index", fmt.Sprintf("%d", index)),
+			NewKeywordFieldDefinition("reversed-name", fmt.Sprintf("olleh-%d", index)),
+		)
+		doc := NewDocumentWithFieldsManagedId(info, fields...)
+		batch.Insert(doc)
+	}
+	b.ResetTimer()
+	b.StartTimer()
+
+	for b.Loop() {
+		b.StopTimer()
+		tmpIndexPath := testsuite.TemporaryDirectory(b)
+
+		config := DefaultConfig(tmpIndexPath)
+		writer, err := OpenOfflineWriter(config)
+		if !assertions.Nil(err, "failed to open offline writer") {
+			return
+		}
+
+		b.StartTimer()
+		err = writer.Batch(batch)
+		if err != nil {
+			b.Fatal(err)
+		}
+
+		err = writer.Close()
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}

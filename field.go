@@ -218,38 +218,36 @@ var standardAnalyzer = analyzer.NewStandardAnalyzer()
 
 func NewKeywordField(name, value string) (field *Field) {
 	field = new(Field)
-	newTextField(field, name, []byte(value), nil)
+	newTextField(field, name, []byte(value), nil, 0)
 	return field
 }
 
 func NewKeywordFieldBytes(name string, value []byte) (field *Field) {
 	field = new(Field)
-	newTextField(field, name, value, nil)
+	newTextField(field, name, value, nil, 0)
 	return field
 }
 
 func NewTextField(name, value string) (field *Field) {
 	field = new(Field)
-	newTextField(field, name, []byte(value), standardAnalyzer)
+	newTextField(field, name, []byte(value), standardAnalyzer, 0)
 	return field
 }
 
 func NewTextFieldBytes(name string, value []byte) (field *Field) {
 	field = new(Field)
-	newTextField(field, name, value, standardAnalyzer)
+	newTextField(field, name, value, standardAnalyzer, 0)
 	return field
 }
 
-func newTextField(dst *Field, name string, value []byte, fieldAnalyzer Analyzer) {
-	*dst = Field{
-		FieldOptions:         defaultTextIndexingOptions,
-		name:                 name,
-		value:                value,
-		numPlainTextBytes:    len(value),
-		analyzer:             fieldAnalyzer,
-		positionIncrementGap: 100,
-		kind:                 FieldKindTerm,
-	}
+func newTextField(dst *Field, name string, value []byte, fieldAnalyzer Analyzer, options FieldOptions) {
+	dst.FieldOptions = defaultTextIndexingOptions | options
+	dst.name = name
+	dst.value = value
+	dst.numPlainTextBytes = len(value)
+	dst.analyzer = fieldAnalyzer
+	dst.positionIncrementGap = 100
+	dst.kind = FieldKindTerm
 }
 
 const defaultNumericIndexingOptions = Index | Sortable | Aggregatable
@@ -280,6 +278,21 @@ type numericAnalyzer struct {
 	tokenType analysis.TokenType
 	shiftBy   uint
 }
+
+var (
+	DefaultNumericAnalyzer = &numericAnalyzer{
+		tokenType: analysis.Numeric,
+		shiftBy:   defaultNumericPrecisionStep,
+	}
+	GeoAnalyzer = &numericAnalyzer{
+		tokenType: analysis.Numeric,
+		shiftBy:   geoPrecisionStep,
+	}
+	DateAnalyzer = &numericAnalyzer{
+		tokenType: analysis.DateTime,
+		shiftBy:   defaultDateTimePrecisionStep,
+	}
+)
 
 func (n *numericAnalyzer) Analyze(input []byte) analysis.TokenStream {
 	tokens := analysis.TokenStream{
