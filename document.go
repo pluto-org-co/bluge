@@ -25,7 +25,7 @@ type Document struct {
 
 func NewDocument(id string) *Document {
 	return &Document{
-		Fields: []*Field{NewKeywordField(IdFildName, id).StoreValue().Sortable()},
+		Fields: []*Field{NewKeywordField(IdFieldName, id).StoreValue().Sortable()},
 	}
 }
 

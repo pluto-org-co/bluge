@@ -15,69 +15,78 @@
 package bluge
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
 	"github.com/pluto-org-co/bluge/index"
 	"github.com/pluto-org-co/bluge/testsuite"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestOfflineWriter(t *testing.T) {
+	assertions := assert.New(t)
 	tmpIndexPath := testsuite.TemporaryDirectory(t)
 
 	config := DefaultConfig(tmpIndexPath)
 	writer, err := OpenOfflineWriter(config)
-	if err != nil {
-		t.Fatal(err)
+	if !assertions.Nil(err, "failed to open writer") {
+		return
 	}
 
-	const docCount = 1_000_000
+	const docCount uint64 = 1_000_000
 
 	batch := index.NewBatch()
 	for index := range docCount {
 		doc := NewDocument(fmt.Sprintf("%d", index)).
-			AddField(NewKeywordField("name", "hello"))
+			AddField(NewKeywordField("name", fmt.Sprintf("hello-%d", index))).
+			AddField(NewKeywordField("index", fmt.Sprintf("%d", index))).
+			AddField(NewKeywordField("reversed-name", fmt.Sprintf("olleh-%d", index)))
 		batch.Insert(doc)
 	}
 
 	err = writer.Batch(batch)
-	if err != nil {
-		t.Fatal(err)
+	if !assertions.Nil(err, "failed to write batch") {
+		return
 	}
 
 	err = writer.Close()
-	if err != nil {
-		t.Fatal(err)
+	if !assertions.Nil(err, "failed close writer") {
+		return
 	}
 
 	indexReader, err := OpenReader(config)
-	if err != nil {
-		t.Fatalf("error opening index: %v", err)
+	if !assertions.Nil(err, "failed to open reader") {
+		return
 	}
-	defer func() {
-		err = indexReader.Close()
-		if err != nil {
-			t.Errorf("error closing index: %v", err)
-		}
-	}()
+	t.Cleanup(func() { indexReader.Close() })
 
 	idxDocCount, err := indexReader.Count()
-	if err != nil {
-		t.Errorf("error checking doc count: %v", err)
+	if !assertions.Nil(err, "failed to get index count") {
+		return
 	}
-	if idxDocCount != docCount {
-		t.Errorf("expected doc count to be 10, got %d", idxDocCount)
+	if !assertions.Equal(docCount, idxDocCount, "expecting exact amount of documents") {
+		return
 	}
 
-	q := NewTermQuery("hello")
-	q.SetField("name")
-	req := NewTopNSearch(docCount, q).WithStandardAggregations()
-	res, err := indexReader.Search(context.Background(), req)
-	if err != nil {
-		t.Errorf("error searching index: %v", err)
+	req := NewAllMatches(NewMatchAllQuery())
+	res, err := indexReader.Search(t.Context(), req)
+	if !assertions.Nil(err, "failed to search") {
+		return
 	}
-	if res.Aggregations().Count() != docCount {
-		t.Errorf("expected 10 search hits, got %d", res.Aggregations().Count())
+
+	var searchCount uint64
+	for {
+		doc, err := res.Next()
+		if !assertions.Nil(err, "failed to iter to next value") {
+			return
+		}
+		if doc == nil {
+			break
+		}
+		searchCount++
+	}
+
+	if !assertions.Equal(docCount, searchCount, "expecting same amount of search results") {
+		return
 	}
 }
