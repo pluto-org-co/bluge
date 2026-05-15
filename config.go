@@ -44,7 +44,7 @@ type Config struct {
 // the index will behave as if all documents in this index were
 // indexed with these field/terms, even though nothing is
 // physically persisted about them in the index.
-func (config Config) WithVirtualField(field Field) Config {
+func (config Config) WithVirtualField(field *Field) Config {
 	_ = field.Analyze(0)
 	config.indexConfig = config.indexConfig.WithVirtualField(field)
 	return config

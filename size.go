@@ -33,7 +33,7 @@ func init() {
 	documentMatchEmptySize = dm.Size()
 	var sc search.Context
 	searchContextEmptySize = sc.Size()
-	var f TermField
+	var f Field
 	reflectStaticSizeBaseField = int(reflect.TypeOf(f).Size())
 	var slice []int
 	sizeOfSlice = int(reflect.TypeOf(slice).Size())

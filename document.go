@@ -18,24 +18,23 @@ import (
 	"github.com/pluto-org-co/bluge/segment"
 )
 
-type Document []Field
-
-func NewDocument(id string) *Document {
-	return &Document{
-		NewKeywordField(_idField, id).StoreValue().Sortable(),
-	}
+type Document struct {
+	Fields []*Field
 }
 
-func NewDocumentWithIdentifier(id Identifier) *Document {
+func NewDocument(id string, fields ...*Field) *Document {
+	finalFields := make([]*Field, 0, 1+len(fields))
+	finalFields = append(finalFields, NewKeywordField(_idField, id).StoreValue().Sortable())
+	finalFields = append(finalFields, fields...)
 	return &Document{
-		NewKeywordFieldBytes(id.Field(), id.Term()).StoreValue().Sortable(),
+		Fields: finalFields,
 	}
 }
 
 func (d Document) Size() int {
 	sizeInBytes := sizeOfSlice
 
-	for _, entry := range d {
+	for _, entry := range d.Fields {
 		sizeInBytes += entry.Size()
 	}
 
@@ -45,24 +44,17 @@ func (d Document) Size() int {
 // ID is an experimental helper method
 // to simplify common use cases
 func (d Document) ID() segment.Term {
-	return Identifier(d[0].Value())
+	return Identifier(d.Fields[0].Value())
 }
 
-func (d *Document) AddField(f Field) *Document {
-	*d = append(*d, f)
+func (d *Document) AddField(f *Field) *Document {
+	d.Fields = append(d.Fields, f)
 	return d
-}
-
-// FieldConsumer is anything which can consume a field
-// Fields can implement this interface to consume the
-// content of another field.
-type FieldConsumer interface {
-	Consume(Field)
 }
 
 func (d Document) Analyze() {
 	fieldOffsets := map[string]int{}
-	for _, field := range d {
+	for _, field := range d.Fields {
 		if !field.Index() {
 			continue
 		}
@@ -74,20 +66,18 @@ func (d Document) Analyze() {
 		fieldOffsets[field.Name()] = lastPos
 
 		// see if any of the composite fields need this
-		for _, otherField := range d {
+		for _, otherField := range d.Fields {
 			if otherField == field {
 				// never include yourself
 				continue
 			}
-			if fieldConsumer, ok := otherField.(FieldConsumer); ok {
-				fieldConsumer.Consume(field)
-			}
+			otherField.Consume(field)
 		}
 	}
 }
 
 func (d Document) EachField(vf segment.VisitField) {
-	for _, field := range d {
+	for _, field := range d.Fields {
 		vf(field)
 	}
 }

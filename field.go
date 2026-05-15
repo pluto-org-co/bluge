@@ -26,7 +26,7 @@ import (
 	"github.com/pluto-org-co/bluge/numeric/geo"
 )
 
-type FieldOptions int
+type FieldOptions int64
 
 const (
 	Index FieldOptions = 1 << iota
@@ -53,18 +53,14 @@ func (o FieldOptions) IndexDocValues() bool {
 	return o&Sortable != 0 || o&Aggregatable != 0
 }
 
-type Field interface {
-	segment.Field
+type FieldKind uint8
 
-	Analyze(int) int
-	AnalyzedTokenFrequencies() analysis.TokenFrequencies
+const (
+	FieldKindTerm FieldKind = iota
+	FieldKindComposite
+)
 
-	PositionIncrementGap() int
-
-	Size() int
-}
-
-type TermField struct {
+type Field struct {
 	FieldOptions
 	name                 string
 	value                []byte
@@ -73,79 +69,103 @@ type TermField struct {
 	analyzedTokenFreqs   analysis.TokenFrequencies
 	analyzer             Analyzer
 	positionIncrementGap int
+	includedFields       map[string]bool
+	excludedFields       map[string]bool
+	defaultInclude       bool
+	kind                 FieldKind
 }
 
-func (b *TermField) PositionIncrementGap() int {
+func (b *Field) PositionIncrementGap() int {
+	if b.kind == FieldKindComposite {
+		return 0
+	}
 	return b.positionIncrementGap
 }
 
-func (b *TermField) SetPositionIncrementGap(positionIncrementGap int) *TermField {
+func (b *Field) SetPositionIncrementGap(positionIncrementGap int) *Field {
 	b.positionIncrementGap = positionIncrementGap
 	return b
 }
 
-func (b *TermField) Name() string {
+func (b *Field) Name() string {
 	return b.name
 }
 
-func (b *TermField) Size() int {
-	return reflectStaticSizeBaseField + sizeOfPtr +
-		len(b.name) +
-		len(b.value)
+func (b *Field) Size() int {
+	switch b.kind {
+	case FieldKindComposite:
+		sizeInBytes := b.Size()
+
+		for k := range b.includedFields {
+			sizeInBytes += sizeOfString + len(k) + sizeOfBool
+		}
+
+		for k := range b.excludedFields {
+			sizeInBytes += sizeOfString + len(k) + sizeOfBool
+		}
+
+		return sizeInBytes
+	case FieldKindTerm:
+		return reflectStaticSizeBaseField + sizeOfPtr +
+			len(b.name) +
+			len(b.value)
+	default:
+		return 0
+	}
 }
 
-func (b *TermField) AnalyzedLength() int {
+func (b *Field) AnalyzedLength() int {
 	return b.analyzedLength
 }
 
-func (b *TermField) AnalyzedTokenFrequencies() analysis.TokenFrequencies {
+func (b *Field) AnalyzedTokenFrequencies() analysis.TokenFrequencies {
 	return b.analyzedTokenFreqs
 }
 
-func (b *TermField) Value() []byte {
+func (b *Field) Value() []byte {
 	return b.value
 }
 
-func (b *TermField) NumPlainTextBytes() int {
+func (b *Field) NumPlainTextBytes() int {
 	return b.numPlainTextBytes
 }
 
-func (b *TermField) StoreValue() *TermField {
+func (b *Field) StoreValue() *Field {
 	b.FieldOptions |= Store
 	return b
 }
 
-func (b *TermField) Sortable() *TermField {
+func (b *Field) Sortable() *Field {
 	b.FieldOptions |= Sortable
 	return b
 }
 
-func (b *TermField) Aggregatable() *TermField {
+func (b *Field) Aggregatable() *Field {
 	b.FieldOptions |= Aggregatable
 	return b
 }
 
-func (b *TermField) SearchTermPositions() *TermField {
+func (b *Field) SearchTermPositions() *Field {
 	b.FieldOptions |= SearchTermPositions
 	return b
 }
 
-func (b *TermField) HighlightMatches() *TermField {
+func (b *Field) HighlightMatches() *Field {
 	b.FieldOptions |= HighlightMatches
 	return b
 }
 
-func (b *TermField) EachTerm(vt segment.VisitTerm) {
+func (b *Field) EachTerm(vt segment.VisitTerm) {
 	for _, v := range b.analyzedTokenFreqs {
 		vt(v)
 	}
 }
 
-func (b *TermField) Length() int {
+func (b *Field) Length() int {
 	return b.analyzedLength
 }
 
-func (b *TermField) baseAnalayze(typ analysis.TokenType) analysis.TokenStream {
+func (b *Field) baseAnalayze(typ analysis.TokenType) analysis.TokenStream {
 	var tokens analysis.TokenStream
 	tokens = append(tokens, &analysis.Token{
 		Start:        0,
@@ -157,12 +177,15 @@ func (b *TermField) baseAnalayze(typ analysis.TokenType) analysis.TokenStream {
 	return tokens
 }
 
-func (b *TermField) WithAnalyzer(fieldAnalyzer Analyzer) *TermField {
+func (b *Field) WithAnalyzer(fieldAnalyzer Analyzer) *Field {
 	b.analyzer = fieldAnalyzer
 	return b
 }
 
-func (b *TermField) Analyze(startOffset int) (lastPos int) {
+func (b *Field) Analyze(startOffset int) (lastPos int) {
+	if b.kind == FieldKindComposite {
+		return 0
+	}
 	var tokens analysis.TokenStream
 	if b.analyzer != nil {
 		bytesToAnalyze := b.Value()
@@ -189,30 +212,31 @@ type Analyzer interface {
 
 var standardAnalyzer = analyzer.NewStandardAnalyzer()
 
-func NewKeywordField(name, value string) *TermField {
+func NewKeywordField(name, value string) *Field {
 	return newTextField(name, []byte(value), nil)
 }
 
-func NewKeywordFieldBytes(name string, value []byte) *TermField {
+func NewKeywordFieldBytes(name string, value []byte) *Field {
 	return newTextField(name, value, nil)
 }
 
-func NewTextField(name, value string) *TermField {
+func NewTextField(name, value string) *Field {
 	return newTextField(name, []byte(value), standardAnalyzer)
 }
 
-func NewTextFieldBytes(name string, value []byte) *TermField {
+func NewTextFieldBytes(name string, value []byte) *Field {
 	return newTextField(name, value, standardAnalyzer)
 }
 
-func newTextField(name string, value []byte, fieldAnalyzer Analyzer) *TermField {
-	return &TermField{
+func newTextField(name string, value []byte, fieldAnalyzer Analyzer) *Field {
+	return &Field{
 		FieldOptions:         defaultTextIndexingOptions,
 		name:                 name,
 		value:                value,
 		numPlainTextBytes:    len(value),
 		analyzer:             fieldAnalyzer,
 		positionIncrementGap: 100,
+		kind:                 FieldKindTerm,
 	}
 }
 
@@ -262,14 +286,14 @@ func (n *numericAnalyzer) Analyze(input []byte) analysis.TokenStream {
 	return tokens
 }
 
-func NewNumericField(name string, number float64) *TermField {
+func NewNumericField(name string, number float64) *Field {
 	return newNumericFieldWithIndexingOptions(name, number, defaultNumericIndexingOptions)
 }
 
-func newNumericFieldWithIndexingOptions(name string, number float64, options FieldOptions) *TermField {
+func newNumericFieldWithIndexingOptions(name string, number float64, options FieldOptions) *Field {
 	numberInt64 := numeric.Float64ToInt64(number)
 	prefixCoded := numeric.MustNewPrefixCodedInt64(numberInt64, 0)
-	return &TermField{
+	return &Field{
 		FieldOptions:      options,
 		name:              name,
 		value:             prefixCoded,
@@ -279,6 +303,7 @@ func newNumericFieldWithIndexingOptions(name string, number float64, options Fie
 			shiftBy:   defaultNumericPrecisionStep,
 		},
 		positionIncrementGap: 100,
+		kind:                 FieldKindTerm,
 	}
 }
 
@@ -294,10 +319,10 @@ const defaultDateTimeIndexingOptions = Index | Sortable | Aggregatable
 
 const defaultDateTimePrecisionStep uint = 4
 
-func NewDateTimeField(name string, dt time.Time) *TermField {
+func NewDateTimeField(name string, dt time.Time) *Field {
 	dtInt64 := dt.UnixNano()
 	prefixCoded := numeric.MustNewPrefixCodedInt64(dtInt64, 0)
-	return &TermField{
+	return &Field{
 		FieldOptions:      defaultDateTimeIndexingOptions,
 		name:              name,
 		value:             prefixCoded,
@@ -307,6 +332,7 @@ func NewDateTimeField(name string, dt time.Time) *TermField {
 			shiftBy:   defaultDateTimePrecisionStep,
 		},
 		positionIncrementGap: 100,
+		kind:                 FieldKindTerm,
 	}
 }
 
@@ -320,10 +346,10 @@ func DecodeDateTime(value []byte) (time.Time, error) {
 
 var geoPrecisionStep uint = 9
 
-func NewGeoPointField(name string, lon, lat float64) *TermField {
+func NewGeoPointField(name string, lon, lat float64) *Field {
 	mHash := geo.MortonHash(lon, lat)
 	prefixCoded := numeric.MustNewPrefixCodedInt64(int64(mHash), 0)
-	return &TermField{
+	return &Field{
 		FieldOptions:      defaultNumericIndexingOptions,
 		name:              name,
 		value:             prefixCoded,
@@ -333,6 +359,7 @@ func NewGeoPointField(name string, lon, lat float64) *TermField {
 			shiftBy:   geoPrecisionStep,
 		},
 		positionIncrementGap: 100,
+		kind:                 FieldKindTerm,
 	}
 }
 
@@ -346,38 +373,30 @@ func DecodeGeoLonLat(value []byte) (lon, lat float64, err error) {
 
 const defaultCompositeIndexingOptions = Index
 
-type CompositeField struct {
-	*TermField
-	includedFields map[string]bool
-	excludedFields map[string]bool
-	defaultInclude bool
-}
-
-func NewCompositeFieldIncluding(name string, including []string) *CompositeField {
+func NewCompositeFieldIncluding(name string, including []string) *Field {
 	return newCompositeFieldWithIndexingOptions(name, false, including,
 		nil, defaultCompositeIndexingOptions)
 }
 
-func NewCompositeFieldExcluding(name string, excluding []string) *CompositeField {
+func NewCompositeFieldExcluding(name string, excluding []string) *Field {
 	return newCompositeFieldWithIndexingOptions(name, true, nil,
 		excluding, defaultCompositeIndexingOptions)
 }
 
-func NewCompositeField(name string, defaultInclude bool, include, exclude []string) *CompositeField {
+func NewCompositeField(name string, defaultInclude bool, include, exclude []string) *Field {
 	return newCompositeFieldWithIndexingOptions(name, defaultInclude, include, exclude, defaultCompositeIndexingOptions)
 }
 
 func newCompositeFieldWithIndexingOptions(name string, defaultInclude bool, include, exclude []string,
-	options FieldOptions) *CompositeField {
-	rv := &CompositeField{
-		TermField: &TermField{
-			FieldOptions:       options,
-			name:               name,
-			analyzedTokenFreqs: make(analysis.TokenFrequencies),
-		},
-		defaultInclude: defaultInclude,
-		includedFields: make(map[string]bool, len(include)),
-		excludedFields: make(map[string]bool, len(exclude)),
+	options FieldOptions) *Field {
+	rv := &Field{
+		FieldOptions:       options,
+		name:               name,
+		analyzedTokenFreqs: make(analysis.TokenFrequencies),
+		defaultInclude:     defaultInclude,
+		includedFields:     make(map[string]bool, len(include)),
+		excludedFields:     make(map[string]bool, len(exclude)),
+		kind:               FieldKindComposite,
 	}
 
 	for _, i := range include {
@@ -390,29 +409,7 @@ func newCompositeFieldWithIndexingOptions(name string, defaultInclude bool, incl
 	return rv
 }
 
-func (c *CompositeField) Size() int {
-	sizeInBytes := c.TermField.Size()
-
-	for k := range c.includedFields {
-		sizeInBytes += sizeOfString + len(k) + sizeOfBool
-	}
-
-	for k := range c.excludedFields {
-		sizeInBytes += sizeOfString + len(k) + sizeOfBool
-	}
-
-	return sizeInBytes
-}
-
-func (c *CompositeField) Analyze(int) int {
-	return 0
-}
-
-func (c *CompositeField) PositionIncrementGap() int {
-	return 0
-}
-
-func (c *CompositeField) includesField(field string) bool {
+func (c *Field) includesField(field string) bool {
 	shouldInclude := c.defaultInclude
 	_, fieldShouldBeIncluded := c.includedFields[field]
 	if fieldShouldBeIncluded {
@@ -425,25 +422,16 @@ func (c *CompositeField) includesField(field string) bool {
 	return shouldInclude
 }
 
-func (c *CompositeField) Consume(field Field) {
+func (c *Field) Consume(field *Field) {
 	if c.includesField(field.Name()) {
 		c.analyzedLength += field.Length()
 		c.analyzedTokenFreqs.MergeAll(field.Name(), field.AnalyzedTokenFrequencies())
 	}
 }
 
-func (c *CompositeField) EachTerm(vt segment.VisitTerm) {
-	for _, v := range c.analyzedTokenFreqs {
-		vt(v)
-	}
-}
-
-func (c *CompositeField) Length() int {
-	return c.analyzedLength
-}
-
-func NewStoredOnlyField(name string, value []byte) *TermField {
-	return &TermField{
+func NewStoredOnlyField(name string, value []byte) *Field {
+	return &Field{
+		kind:              FieldKindTerm,
 		FieldOptions:      Store,
 		name:              name,
 		value:             value,
