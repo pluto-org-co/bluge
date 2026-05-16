@@ -334,11 +334,11 @@ func (i *Snapshot) PostingsIterator(term []byte, field string, includeFreq,
 		for _, vField := range vFields {
 			if vField.Index() {
 				var match bool
-				vField.EachTerm(func(vFieldTerm segment.FieldTerm) {
+				for _, vFieldTerm := range vField.AnalyzedTokenFreqs {
 					if bytes.Equal(vFieldTerm.Term(), term) {
 						match = true
 					}
-				})
+				}
 				if match {
 					return i.postingsIteratorAll(string(term))
 				}
@@ -764,9 +764,9 @@ func (dvr *documentValueReader) VisitDocumentValues(number uint64,
 		if vFields, ok := dvr.i.parent.config.virtualFields[field]; ok {
 			for _, vField := range vFields {
 				vField := vField
-				vField.EachTerm(func(term segment.FieldTerm) {
+				for _, term := range vField.AnalyzedTokenFreqs {
 					visitor(vField.Name(), term.Term())
-				})
+				}
 			}
 		}
 	}

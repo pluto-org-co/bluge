@@ -17,8 +17,6 @@ package documents
 import (
 	"time"
 
-	"github.com/pluto-org-co/bluge/segment"
-
 	"github.com/pluto-org-co/bluge/analysis/analyzer"
 
 	"github.com/pluto-org-co/bluge/analysis"
@@ -131,12 +129,6 @@ func (b *Field) SearchTermPositions() *Field {
 func (b *Field) HighlightMatches() *Field {
 	b.FieldOptions |= HighlightMatches
 	return b
-}
-
-func (b *Field) EachTerm(vt segment.VisitTerm) {
-	for _, v := range b.AnalyzedTokenFreqs {
-		vt(v)
-	}
 }
 
 func (b *Field) Length() int {

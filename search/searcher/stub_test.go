@@ -109,7 +109,7 @@ func (s *stubIndexReader) add(d *documents.Document) {
 			fieldsSeen[field.Name()] = struct{}{}
 			s.fieldFreqs[field.Name()] += uint64(fieldLength)
 			fd := s.field(field.Name())
-			field.EachTerm(func(term segment.FieldTerm) {
+			for _, term := range field.AnalyzedTokenFreqs {
 				termStr := string(term.Term())
 				if field.Name() == "_id" {
 					docID = termStr
@@ -135,7 +135,7 @@ func (s *stubIndexReader) add(d *documents.Document) {
 				if field.IndexDocValues() {
 					s.uninv[docNum][field.Name()] = append(s.uninv[docNum][field.Name()], termStr)
 				}
-			})
+			}
 		}
 	}
 	// record fields seen by this doc

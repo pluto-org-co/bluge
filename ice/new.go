@@ -412,7 +412,7 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 		dictKeys := s.DictKeys[fieldID]
 
 		var numTerms int
-		field.EachTerm(func(term segment.FieldTerm) {
+		for _, term := range field.AnalyzedTokenFreqs {
 			numTerms++
 			termStr := xxh3.Hash(term.Term())
 			pidPlus1, exists := dict[termStr]
@@ -438,7 +438,7 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 			s.numLocsPerPostingsList[pid] += numLocations
 
 			totLocs += numLocations
-		})
+		}
 
 		totTFs += numTerms
 
@@ -480,7 +480,7 @@ func (s *interim) processDocument(
 		}
 
 		existingFreqs := fieldTFs[fieldID]
-		field.EachTerm(func(term segment.FieldTerm) {
+		for _, term := range field.AnalyzedTokenFreqs {
 			tfk := xxh3.Hash(term.Term())
 			existingTf, exists := existingFreqs[tfk]
 			if exists {
@@ -510,7 +510,7 @@ func (s *interim) processDocument(
 				})
 				existingFreqs[tfk] = newTf
 			}
-		})
+		}
 	}
 
 	// now that it's been rolled up into fieldTFs, walk that
