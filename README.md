@@ -16,6 +16,18 @@ This fork is optimized for multi-core server hardware and trades CPU utilization
 
 Upstream bluge is a stable, well-maintained library. This fork exists to consolidate internal patches and performance work in one place -- it is not intended as a general-purpose replacement.
 
+## License
+
+This repository is dual-licensed.
+
+- **Upstream code** (all commits by [blugelabs](https://github.com/blugelabs/bluge) and contributors prior to this fork) is licensed under the **Apache License 2.0**. See [`LICENSE`](LICENSE).
+
+- **Fork contributions** (all commits by [Shoriwe (Antonio José Donis Hung)](https://github.com/Shoriwe), any member of [pluto-org-co](https://github.com/pluto-org-co), or any contributor who directly contributes to this fork) are licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**. See [`LICENSE_AGPL`](LICENSE_AGPL).
+
+By submitting a contribution to this repository, you agree that your contribution will be licensed under the AGPL-3.0.
+
+Copyright (C) 2024 Antonio José Donis Hung (Shoriwe) and contributors to this fork.
+
 ## Features
 
 * Supported field types:
