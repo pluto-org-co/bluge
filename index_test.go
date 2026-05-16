@@ -27,6 +27,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/testsuite"
 
@@ -48,43 +49,43 @@ func TestCrud(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docA := NewDocument("a").
-		AddField(NewTextField("name", "marty").StoreValue()).
-		AddField(NewTextField("desc", "gophercon india")).
-		AddField(NewCompositeFieldExcluding("_all", nil))
+	docA := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "marty").StoreValue()).
+		AddField(documents.NewTextField("desc", "gophercon india")).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	err = indexWriter.Update(docA.ID(), docA)
 	if err != nil {
 		t.Error(err)
 	}
 
-	docY := NewDocument("y").
-		AddField(NewTextField("name", "jasper")).
-		AddField(NewTextField("desc", "clojure"))
+	docY := documents.NewDocument("y").
+		AddField(documents.NewTextField("name", "jasper")).
+		AddField(documents.NewTextField("desc", "clojure"))
 	err = indexWriter.Update(docY.ID(), docY)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = indexWriter.Delete(Identifier("y"))
+	err = indexWriter.Delete(documents.Identifier("y"))
 	if err != nil {
 		t.Error(err)
 	}
 
-	docX := NewDocument("x").
-		AddField(NewTextField("name", "rose")).
-		AddField(NewTextField("desc", "googler"))
+	docX := documents.NewDocument("x").
+		AddField(documents.NewTextField("name", "rose")).
+		AddField(documents.NewTextField("desc", "googler"))
 	err = indexWriter.Update(docX.ID(), docX)
 	if err != nil {
 		t.Error(err)
 	}
 
-	docB := NewDocument("b").
-		AddField(NewTextField("name", "steve")).
-		AddField(NewTextField("desc", "cbft master"))
-	batch := NewBatch()
+	docB := documents.NewDocument("b").
+		AddField(documents.NewTextField("name", "steve")).
+		AddField(documents.NewTextField("desc", "cbft master"))
+	batch := documents.NewBatch()
 	batch.Update(docB.ID(), docB)
 
-	batch.Delete(Identifier("x"))
+	batch.Delete(documents.Identifier("x"))
 	err = indexWriter.Batch(batch)
 	if err != nil {
 		t.Error(err)
@@ -126,7 +127,7 @@ func TestCrud(t *testing.T) {
 		t.Errorf("expected doc count 2, got %d", count)
 	}
 
-	docANumber, err := docNumberForTerm(indexReader, Identifier("a"))
+	docANumber, err := docNumberForTerm(indexReader, documents.Identifier("a"))
 	if err != nil {
 		t.Fatalf("error finding doc number for term: %v", err)
 	}
@@ -223,12 +224,12 @@ func TestStoredFieldPreserved(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docA := NewDocument("a").
-		AddField(NewTextField("name", "Marty").StoreValue()).
-		AddField(NewTextField("desc", "GopherCON India").StoreValue()).
-		AddField(NewKeywordField("bool", "t").StoreValue()).
-		AddField(NewNumericField("num", 1.0).StoreValue()).
-		AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+	docA := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "Marty").StoreValue()).
+		AddField(documents.NewTextField("desc", "GopherCON India").StoreValue()).
+		AddField(documents.NewKeywordField("bool", "t").StoreValue()).
+		AddField(documents.NewNumericField("num", 1.0).StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
 	err = indexWriter.Update(docA.ID(), docA)
 	if err != nil {
@@ -266,7 +267,7 @@ func TestStoredFieldPreserved(t *testing.T) {
 				t.Fatalf("expected 'GopherCON India' got '%s'", string(value))
 			}
 		case "num":
-			num, err2 := DecodeNumericFloat64(value)
+			num, err2 := documents.DecodeNumericFloat64(value)
 			if err2 != nil {
 				t.Fatalf("error decoding float: %v", err2)
 			}
@@ -307,25 +308,25 @@ func TestDict(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docA := NewDocument("a").
-		AddField(NewTextField("name", "marty")).
-		AddField(NewTextField("desc", "gophercon india"))
+	docA := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "marty")).
+		AddField(documents.NewTextField("desc", "gophercon india"))
 	err = indexWriter.Update(docA.ID(), docA)
 	if err != nil {
 		t.Error(err)
 	}
 
-	docY := NewDocument("y").
-		AddField(NewTextField("name", "jasper")).
-		AddField(NewTextField("desc", "clojure"))
+	docY := documents.NewDocument("y").
+		AddField(documents.NewTextField("name", "jasper")).
+		AddField(documents.NewTextField("desc", "clojure"))
 	err = indexWriter.Update(docY.ID(), docY)
 	if err != nil {
 		t.Error(err)
 	}
 
-	docX := NewDocument("x").
-		AddField(NewTextField("name", "rose")).
-		AddField(NewTextField("desc", "googler"))
+	docX := documents.NewDocument("x").
+		AddField(documents.NewTextField("name", "rose")).
+		AddField(documents.NewTextField("desc", "googler"))
 	err = indexWriter.Update(docX.ID(), docX)
 	if err != nil {
 		t.Error(err)
@@ -386,9 +387,9 @@ func TestDict(t *testing.T) {
 		t.Fatalf("error closing index reader")
 	}
 
-	docZ := NewDocument("z").
-		AddField(NewTextField("name", "prefix")).
-		AddField(NewTextField("desc", "bob cat cats catting dog doggy zoo"))
+	docZ := documents.NewDocument("z").
+		AddField(documents.NewTextField("name", "prefix")).
+		AddField(documents.NewTextField("desc", "bob cat cats catting dog doggy zoo"))
 	err = indexWriter.Update(docZ.ID(), docZ)
 	if err != nil {
 		t.Error(err)
@@ -471,7 +472,7 @@ func TestIndexMetadataRaceBug198(t *testing.T) {
 
 	for i := 0; i < 100; i++ {
 		batch := index.NewBatch()
-		doc := NewDocument("a")
+		doc := documents.NewDocument("a")
 		batch.Update(doc.ID(), doc)
 		err = indexWriter.Batch(batch)
 		if err != nil {
@@ -500,10 +501,10 @@ func TestSortMatchSearch(t *testing.T) {
 	numbers := []string{"One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve"}
 	b := index.NewBatch()
 	for i := 0; i < 200; i++ {
-		doc := NewDocument(fmt.Sprintf("%d", i)).
-			AddField(NewKeywordField("Name", names[i%len(names)]).StoreValue()).
-			AddField(NewKeywordField("day", days[i%len(days)]).StoreValue()).
-			AddField(NewKeywordField("number", numbers[i%len(numbers)]).StoreValue())
+		doc := documents.NewDocument(fmt.Sprintf("%d", i)).
+			AddField(documents.NewKeywordField("Name", names[i%len(names)]).StoreValue()).
+			AddField(documents.NewKeywordField("day", days[i%len(days)]).StoreValue()).
+			AddField(documents.NewKeywordField("number", numbers[i%len(numbers)]).StoreValue())
 		b.Update(doc.ID(), doc)
 	}
 	err = indexWriter.Batch(b)
@@ -567,12 +568,12 @@ func TestIndexCountMatchSearch(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func(i int) {
-			b := NewBatch()
+			b := documents.NewBatch()
 			for j := 0; j < 200; j++ {
 				id := fmt.Sprintf("%d", (i*200)+j)
-				doc := NewDocument(id).
-					AddField(NewTextField("Body", "match")).
-					AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+				doc := documents.NewDocument(id).
+					AddField(documents.NewTextField("Body", "match")).
+					AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 				b.Update(doc.ID(), doc)
 			}
 			err2 := indexWriter.Batch(b)
@@ -692,14 +693,14 @@ func TestBatchRaceBug260(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := NewBatch()
-	b.Update(Identifier("1"), NewDocument("1"))
+	b := documents.NewBatch()
+	b.Update(documents.Identifier("1"), documents.NewDocument("1"))
 	err = indexWriter.Batch(b)
 	if err != nil {
 		t.Fatal(err)
 	}
 	b.Reset()
-	b.Update(Identifier("2"), NewDocument("2"))
+	b.Update(documents.Identifier("2"), documents.NewDocument("2"))
 	err = indexWriter.Batch(b)
 	if err != nil {
 		t.Fatal(err)
@@ -721,10 +722,10 @@ func BenchmarkBatchOverhead(b *testing.B) {
 	}
 	for n := 0; n < b.N; n++ {
 		// put 1000 items in a batch
-		batch := NewBatch()
+		batch := documents.NewBatch()
 		for i := 0; i < 1000; i++ {
-			doc := NewDocument(fmt.Sprintf("%d", i)).
-				AddField(NewKeywordField("name", "bluge"))
+			doc := documents.NewDocument(fmt.Sprintf("%d", i)).
+				AddField(documents.NewKeywordField("name", "bluge"))
 			batch.Update(doc.ID(), doc)
 		}
 		err = indexWriter.Batch(batch)
@@ -744,9 +745,9 @@ func TestOpenMultipleReaders(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docA := NewDocument("a").
-		AddField(NewKeywordField("name", "marty")).
-		AddField(NewKeywordField("desc", "gophercon india"))
+	docA := documents.NewDocument("a").
+		AddField(documents.NewKeywordField("name", "marty")).
+		AddField(documents.NewKeywordField("desc", "gophercon india"))
 	err = indexWriter.Update(docA.ID(), docA)
 	if err != nil {
 		t.Fatal(err)
@@ -798,11 +799,11 @@ func TestBug408(t *testing.T) {
 
 	for i := 0; i < numToTest; i++ {
 		id := strconv.Itoa(i)
-		doc := NewDocument(id)
+		doc := documents.NewDocument(id)
 		if i%2 == 0 {
-			doc.AddField(NewKeywordField("user_id", noMatchUserID))
+			doc.AddField(documents.NewKeywordField("user_id", noMatchUserID))
 		} else {
-			doc.AddField(NewKeywordField("user_id", matchUserID))
+			doc.AddField(documents.NewKeywordField("user_id", matchUserID))
 			matchingDocIds[id] = struct{}{}
 		}
 		err = indexWriter.Update(doc.ID(), doc)
@@ -879,12 +880,12 @@ func TestIndexAdvancedCountMatchSearch(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func(i int) {
-			b := NewBatch()
+			b := documents.NewBatch()
 			for j := 0; j < 200; j++ {
 				id := fmt.Sprintf("%d", (i*200)+j)
-				doc := NewDocument(id).
-					AddField(NewKeywordField("body", "match")).
-					AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+				doc := documents.NewDocument(id).
+					AddField(documents.NewKeywordField("body", "match")).
+					AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
 				b.Update(doc.ID(), doc)
 			}
@@ -946,13 +947,13 @@ func BenchmarkScorchSearchOverhead(b *testing.B) {
 	}
 
 	elements := []string{"air", "water", "fire", "earth"}
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	for j := 1; j <= 10000; j++ {
 		id := fmt.Sprintf("%d", j)
-		batch.Update(Identifier(id),
-			NewDocument(id).
+		batch.Update(documents.Identifier(id),
+			documents.NewDocument(id).
 				AddField(
-					NewKeywordField("name", elements[j%len(elements)])))
+					documents.NewKeywordField("name", elements[j%len(elements)])))
 
 		if j%1000 == 0 {
 			err = indexWriter.Batch(batch)
@@ -1043,7 +1044,7 @@ func TestBug1096(t *testing.T) {
 	// create a single batch instance that we will reuse
 	// this should be safe because we have single goroutine
 	// and we always wait for batch execution to finish
-	batch := NewBatch()
+	batch := documents.NewBatch()
 
 	// number of batches to execute
 	for i := 0; i < 10; i++ {
@@ -1053,9 +1054,9 @@ func TestBug1096(t *testing.T) {
 			// this could duplicate something already in the index
 			//   this too should be OK and update the item in the index
 			id := fmt.Sprintf("%d", j)
-			doc := NewDocument(id).
-				AddField(NewKeywordField("name", id)).
-				AddField(NewKeywordField("batch", fmt.Sprintf("%d", i)))
+			doc := documents.NewDocument(id).
+				AddField(documents.NewKeywordField("name", id)).
+				AddField(documents.NewKeywordField("batch", fmt.Sprintf("%d", i)))
 			batch.Update(doc.ID(), doc)
 		}
 
@@ -1125,7 +1126,7 @@ func TestDataRaceBug1092(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	for i := 0; i < 10; i++ {
 		err = indexWriter.Batch(batch)
 		if err != nil {
@@ -1148,8 +1149,8 @@ func TestBatchRaceBug1149(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := NewBatch()
-	b.Delete(Identifier("1"))
+	b := documents.NewBatch()
+	b.Delete(documents.Identifier("1"))
 	err = indexWriter.Batch(b)
 	if err != nil {
 		t.Fatal(err)
@@ -1175,10 +1176,10 @@ func TestBackup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docA := NewDocument("a").
-		AddField(NewTextField("name", "marty").StoreValue()).
-		AddField(NewTextField("desc", "gophercon india")).
-		AddField(NewCompositeFieldExcluding("_all", nil))
+	docA := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "marty").StoreValue()).
+		AddField(documents.NewTextField("desc", "gophercon india")).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	err = indexWriter.Update(docA.ID(), docA)
 	if err != nil {
 		t.Error(err)
@@ -1238,31 +1239,31 @@ func TestOptimisedConjunctionSearchHits(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docA := NewDocument("a").
-		AddField(NewTextField("country", "united")).
-		AddField(NewTextField("name", "Mercure Hotel")).
-		AddField(NewTextField("directions", "B560 and B56 Follow signs to the M56")).
-		AddField(NewCompositeFieldExcluding("_all", nil))
+	docA := documents.NewDocument("a").
+		AddField(documents.NewTextField("country", "united")).
+		AddField(documents.NewTextField("name", "Mercure Hotel")).
+		AddField(documents.NewTextField("directions", "B560 and B56 Follow signs to the M56")).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 
-	docB := NewDocument("b").
-		AddField(NewTextField("country", "united")).
-		AddField(NewTextField("name", "Mercure Altrincham Bowdon Hotel")).
-		AddField(NewTextField("directions", "A570 and A57 Follow signs to the M56 Manchester Airport")).
-		AddField(NewCompositeFieldExcluding("_all", nil))
+	docB := documents.NewDocument("b").
+		AddField(documents.NewTextField("country", "united")).
+		AddField(documents.NewTextField("name", "Mercure Altrincham Bowdon Hotel")).
+		AddField(documents.NewTextField("directions", "A570 and A57 Follow signs to the M56 Manchester Airport")).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 
-	docC := NewDocument("c").
-		AddField(NewTextField("country", "india united")).
-		AddField(NewTextField("name", "Sonoma Hotel")).
-		AddField(NewTextField("directions", "Northwest")).
-		AddField(NewCompositeFieldExcluding("_all", nil))
+	docC := documents.NewDocument("c").
+		AddField(documents.NewTextField("country", "india united")).
+		AddField(documents.NewTextField("name", "Sonoma Hotel")).
+		AddField(documents.NewTextField("directions", "Northwest")).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 
-	docD := NewDocument("d").
-		AddField(NewTextField("country", "United Kingdom")).
-		AddField(NewTextField("name", "Cresta Court Hotel")).
-		AddField(NewTextField("directions", "junction of A560 and A56")).
-		AddField(NewCompositeFieldExcluding("_all", nil))
+	docD := documents.NewDocument("d").
+		AddField(documents.NewTextField("country", "United Kingdom")).
+		AddField(documents.NewTextField("name", "Cresta Court Hotel")).
+		AddField(documents.NewTextField("directions", "junction of A560 and A56")).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 
-	b := NewBatch()
+	b := documents.NewBatch()
 	b.Update(docA.ID(), docA)
 	b.Update(docB.ID(), docB)
 	b.Update(docC.ID(), docC)
@@ -1346,8 +1347,8 @@ func TestInMemoryUsage(t *testing.T) {
 		t.Fatalf("unable to open in memory writer: %+v", err)
 	}
 
-	doc := NewDocument("town:1")
-	doc.AddField(NewTextField("en", "Denia, Alicante"))
+	doc := documents.NewDocument("town:1")
+	doc.AddField(documents.NewTextField("en", "Denia, Alicante"))
 
 	err = w.Insert(doc)
 	if err != nil {
@@ -1407,7 +1408,7 @@ func TestInMemoryUsage(t *testing.T) {
 }
 
 func batchAddDocs(docCount int) *index.Batch {
-	batch := NewBatch()
+	batch := documents.NewBatch()
 
 	for i := 0; i < docCount; i++ {
 		doc := randomDoc()
@@ -1421,10 +1422,10 @@ var (
 	field2 = randStr()
 )
 
-func randomDoc() *Document {
-	return NewDocument(randStr()).
-		AddField(NewTextField(field1, randStr())).
-		AddField(NewTextField(field2, randStr()))
+func randomDoc() *documents.Document {
+	return documents.NewDocument(randStr()).
+		AddField(documents.NewTextField(field1, randStr())).
+		AddField(documents.NewTextField(field2, randStr()))
 }
 
 const charset = "01234567890abcdefghijklmnopqrstuvwxyz<>{}[];'"
@@ -1453,14 +1454,14 @@ func TestBug54(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := NewDocument("a1")
-	doc.AddField(NewTextField("TestKey1", "TestKey Data1"))
+	doc := documents.NewDocument("a1")
+	doc.AddField(documents.NewTextField("TestKey1", "TestKey Data1"))
 	if err = indexWriter.Update(doc.ID(), doc); err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("a2")
-	doc.AddField(NewTextField("TestKey2", "TestKey Data2"))
+	doc = documents.NewDocument("a2")
+	doc.AddField(documents.NewTextField("TestKey2", "TestKey Data2"))
 	if err = indexWriter.Update(doc.ID(), doc); err != nil {
 		t.Fatal(err)
 	}
@@ -1476,11 +1477,11 @@ func TestBug54(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err = indexWriter.Delete(Identifier("a1")); err != nil {
+	if err = indexWriter.Delete(documents.Identifier("a1")); err != nil {
 		t.Fatal(err)
 	}
 
-	if err = indexWriter.Delete(Identifier("a2")); err != nil {
+	if err = indexWriter.Delete(documents.Identifier("a2")); err != nil {
 		t.Fatal(err)
 	}
 
@@ -1509,10 +1510,10 @@ func TestSearchSizeZeroWithAggregations(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docA := NewDocument("a").
-		AddField(NewTextField("name", "marty").StoreValue()).
-		AddField(NewTextField("desc", "gophercon india")).
-		AddField(NewCompositeFieldExcluding("_all", nil))
+	docA := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "marty").StoreValue()).
+		AddField(documents.NewTextField("desc", "gophercon india")).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	err = indexWriter.Update(docA.ID(), docA)
 	if err != nil {
 		t.Error(err)
@@ -1578,43 +1579,43 @@ func TestCrudWithNoMMap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	docA := NewDocument("a").
-		AddField(NewTextField("name", "marty").StoreValue()).
-		AddField(NewTextField("desc", "gophercon india")).
-		AddField(NewCompositeFieldExcluding("_all", nil))
+	docA := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "marty").StoreValue()).
+		AddField(documents.NewTextField("desc", "gophercon india")).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	err = indexWriter.Update(docA.ID(), docA)
 	if err != nil {
 		t.Error(err)
 	}
 
-	docY := NewDocument("y").
-		AddField(NewTextField("name", "jasper")).
-		AddField(NewTextField("desc", "clojure"))
+	docY := documents.NewDocument("y").
+		AddField(documents.NewTextField("name", "jasper")).
+		AddField(documents.NewTextField("desc", "clojure"))
 	err = indexWriter.Update(docY.ID(), docY)
 	if err != nil {
 		t.Error(err)
 	}
 
-	err = indexWriter.Delete(Identifier("y"))
+	err = indexWriter.Delete(documents.Identifier("y"))
 	if err != nil {
 		t.Error(err)
 	}
 
-	docX := NewDocument("x").
-		AddField(NewTextField("name", "rose")).
-		AddField(NewTextField("desc", "googler"))
+	docX := documents.NewDocument("x").
+		AddField(documents.NewTextField("name", "rose")).
+		AddField(documents.NewTextField("desc", "googler"))
 	err = indexWriter.Update(docX.ID(), docX)
 	if err != nil {
 		t.Error(err)
 	}
 
-	docB := NewDocument("b").
-		AddField(NewTextField("name", "steve")).
-		AddField(NewTextField("desc", "cbft master"))
-	batch := NewBatch()
+	docB := documents.NewDocument("b").
+		AddField(documents.NewTextField("name", "steve")).
+		AddField(documents.NewTextField("desc", "cbft master"))
+	batch := documents.NewBatch()
 	batch.Update(docB.ID(), docB)
 
-	batch.Delete(Identifier("x"))
+	batch.Delete(documents.Identifier("x"))
 	err = indexWriter.Batch(batch)
 	if err != nil {
 		t.Error(err)
@@ -1656,7 +1657,7 @@ func TestCrudWithNoMMap(t *testing.T) {
 		t.Errorf("expected doc count 2, got %d", count)
 	}
 
-	docANumber, err := docNumberForTerm(indexReader, Identifier("a"))
+	docANumber, err := docNumberForTerm(indexReader, documents.Identifier("a"))
 	if err != nil {
 		t.Fatalf("error finding doc number for term: %v", err)
 	}
@@ -1724,10 +1725,10 @@ func TestBug87(t *testing.T) {
 
 	// create 1025 documents in a batch
 	// this should require more than one chunk in doc values
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	for i := 0; i < 1025; i++ {
-		doc := NewDocument(fmt.Sprintf("%d", i)).
-			AddField(NewTextField("name", "marty").Sortable())
+		doc := documents.NewDocument(fmt.Sprintf("%d", i)).
+			AddField(documents.NewTextField("name", "marty").Sortable())
 		batch.Update(doc.ID(), doc)
 	}
 

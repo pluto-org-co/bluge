@@ -23,10 +23,9 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/pluto-org-co/bluge"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/search/aggregations"
-
-	"github.com/pluto-org-co/bluge"
 )
 
 func collectHits(dmi search.DocumentMatchIterator) (rv []*match, err error) {

@@ -19,9 +19,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/pluto-org-co/bluge/search"
-
 	"github.com/pluto-org-co/bluge"
+	"github.com/pluto-org-co/bluge/documents"
+	"github.com/pluto-org-co/bluge/search"
 )
 
 func sortLoad(writer *bluge.Writer) error {
@@ -29,21 +29,21 @@ func sortLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("a").
-		AddField(bluge.NewTextField("name", "marty").
+	err = writer.Insert(documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "marty").
 			SearchTermPositions().
 			StoreValue().
 			Sortable()).
-		AddField(bluge.NewNumericField("age", 19).
+		AddField(documents.NewNumericField("age", 19).
 			Sortable()).
-		AddField(bluge.NewDateTimeField("born", martyBorn).
+		AddField(documents.NewDateTimeField("born", martyBorn).
 			Sortable()).
-		AddField(bluge.NewTextField("title", "mista")).
-		AddField(bluge.NewKeywordField("tags", "gopher").StoreValue().
+		AddField(documents.NewTextField("title", "mista")).
+		AddField(documents.NewKeywordField("tags", "gopher").StoreValue().
 			Sortable()).
-		AddField(bluge.NewKeywordField("tags", "belieber").StoreValue().
+		AddField(documents.NewKeywordField("tags", "belieber").StoreValue().
 			Sortable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -52,21 +52,21 @@ func sortLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("b").
-		AddField(bluge.NewTextField("name", "steve").
+	err = writer.Insert(documents.NewDocument("b").
+		AddField(documents.NewTextField("name", "steve").
 			SearchTermPositions().
 			StoreValue().
 			Sortable()).
-		AddField(bluge.NewNumericField("age", 21).
+		AddField(documents.NewNumericField("age", 21).
 			Sortable()).
-		AddField(bluge.NewDateTimeField("born", steveBorn).
+		AddField(documents.NewDateTimeField("born", steveBorn).
 			Sortable()).
-		AddField(bluge.NewTextField("title", "zebra")).
-		AddField(bluge.NewKeywordField("tags", "thought-leader").StoreValue().
+		AddField(documents.NewTextField("title", "zebra")).
+		AddField(documents.NewKeywordField("tags", "thought-leader").StoreValue().
 			Sortable()).
-		AddField(bluge.NewKeywordField("tags", "futurist").StoreValue().
+		AddField(documents.NewKeywordField("tags", "futurist").StoreValue().
 			Sortable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -75,23 +75,23 @@ func sortLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("c").
-		AddField(bluge.NewTextField("name", "aster").
+	err = writer.Insert(documents.NewDocument("c").
+		AddField(documents.NewTextField("name", "aster").
 			SearchTermPositions().
 			StoreValue().
 			Sortable()).
-		AddField(bluge.NewNumericField("age", 21).
+		AddField(documents.NewNumericField("age", 21).
 			Sortable()).
-		AddField(bluge.NewDateTimeField("born", asterBorn).
+		AddField(documents.NewDateTimeField("born", asterBorn).
 			Sortable()).
-		AddField(bluge.NewTextField("title", "blogger")).
-		AddField(bluge.NewKeywordField("tags", "red").StoreValue().
+		AddField(documents.NewTextField("title", "blogger")).
+		AddField(documents.NewKeywordField("tags", "red").StoreValue().
 			Sortable()).
-		AddField(bluge.NewKeywordField("tags", "blue").StoreValue().
+		AddField(documents.NewKeywordField("tags", "blue").StoreValue().
 			Sortable()).
-		AddField(bluge.NewKeywordField("tags", "green").StoreValue().
+		AddField(documents.NewKeywordField("tags", "green").StoreValue().
 			Sortable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -100,15 +100,15 @@ func sortLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("d").
-		AddField(bluge.NewNumericField("age", 65).
+	err = writer.Insert(documents.NewDocument("d").
+		AddField(documents.NewNumericField("age", 65).
 			Sortable()).
-		AddField(bluge.NewDateTimeField("born", namelessBorn).
+		AddField(documents.NewDateTimeField("born", namelessBorn).
 			Sortable()).
-		AddField(bluge.NewTextField("title", "agent d is desperately trying out to be successful rapster!")).
-		AddField(bluge.NewKeywordField("tags", "cats").StoreValue().
+		AddField(documents.NewTextField("title", "agent d is desperately trying out to be successful rapster!")).
+		AddField(documents.NewKeywordField("tags", "cats").StoreValue().
 			Sortable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -117,33 +117,33 @@ func sortLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("e").
-		AddField(bluge.NewTextField("name", "nancy").
+	err = writer.Insert(documents.NewDocument("e").
+		AddField(documents.NewTextField("name", "nancy").
 			SearchTermPositions().
 			StoreValue().
 			Sortable()).
-		AddField(bluge.NewDateTimeField("born", nancyBorn).
+		AddField(documents.NewDateTimeField("born", nancyBorn).
 			Sortable()).
-		AddField(bluge.NewTextField("title", "rapstar nancy rapster")).
-		AddField(bluge.NewKeywordField("tags", "pain").StoreValue().
+		AddField(documents.NewTextField("title", "rapstar nancy rapster")).
+		AddField(documents.NewKeywordField("tags", "pain").StoreValue().
 			Sortable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("f").
-		AddField(bluge.NewTextField("name", "frank").
+	err = writer.Insert(documents.NewDocument("f").
+		AddField(documents.NewTextField("name", "frank").
 			SearchTermPositions().
 			StoreValue().
 			Sortable()).
-		AddField(bluge.NewNumericField("age", 1).
+		AddField(documents.NewNumericField("age", 1).
 			Sortable()).
-		AddField(bluge.NewTextField("title", "frank the taxman of cb, Rapster!")).
-		AddField(bluge.NewKeywordField("tags", "vitamin").StoreValue()).
-		AddField(bluge.NewKeywordField("tags", "purple").StoreValue().
+		AddField(documents.NewTextField("title", "frank the taxman of cb, Rapster!")).
+		AddField(documents.NewKeywordField("tags", "vitamin").StoreValue()).
+		AddField(documents.NewKeywordField("tags", "purple").StoreValue().
 			Sortable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}

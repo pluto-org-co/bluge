@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package bluge
+package documents
 
 import (
 	"time"
@@ -263,7 +263,7 @@ var (
 	}
 	GeoAnalyzer = &numericAnalyzer{
 		tokenType: analysis.Numeric,
-		shiftBy:   geoPrecisionStep,
+		shiftBy:   GeoPrecisionStep,
 	}
 	DateAnalyzer = &numericAnalyzer{
 		tokenType: analysis.DateTime,
@@ -346,7 +346,7 @@ func DecodeDateTime(value []byte) (time.Time, error) {
 	return time.Unix(0, i64).UTC(), nil
 }
 
-var geoPrecisionStep uint = 9
+var GeoPrecisionStep uint = 9
 
 func NewGeoPointField(name string, lon, lat float64) *Field {
 	mHash := geo.MortonHash(lon, lat)
@@ -358,7 +358,7 @@ func NewGeoPointField(name string, lon, lat float64) *Field {
 		numPlainTextBytes: 8,
 		analyzer: &numericAnalyzer{
 			tokenType: analysis.Numeric,
-			shiftBy:   geoPrecisionStep,
+			shiftBy:   GeoPrecisionStep,
 		},
 		positionIncrementGap: 100,
 		kind:                 FieldKindTerm,

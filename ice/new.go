@@ -553,8 +553,7 @@ func (s *interim) processDocument(
 	}
 }
 
-func (s *interim) writeStoredFields() (
-	storedIndexOffset uint64, err error) {
+func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 	varBuf := make([]byte, binary.MaxVarintLen64)
 	metaEncode := func(val uint64) (int, error) {
 		wb := binary.PutUvarint(varBuf, val)
@@ -568,7 +567,7 @@ func (s *interim) writeStoredFields() (
 	docStoredOffsets := make([]uint64, len(s.documents))
 
 	// keyed by fieldID, for the current doc in the loop
-	docStoredFields := map[uint16]interimStoredField{}
+	docStoredFields := map[int]interimStoredField{}
 
 	for docNum, result := range s.documents {
 		for fieldID := range docStoredFields { // reset for next doc
@@ -576,7 +575,7 @@ func (s *interim) writeStoredFields() (
 		}
 
 		result.EachField(func(field segment.Field) {
-			fieldID := uint16(s.getOrDefineField(field.Name()))
+			fieldID := s.getOrDefineField(field.Name())
 
 			if field.Store() {
 				isf := docStoredFields[fieldID]
@@ -596,7 +595,7 @@ func (s *interim) writeStoredFields() (
 
 		// handle fields
 		for fieldID := 0; fieldID < len(s.FieldsInv); fieldID++ {
-			isf, exists := docStoredFields[uint16(fieldID)]
+			isf, exists := docStoredFields[fieldID]
 			if exists {
 				curr, data, err = encodeStoredFieldValues(
 					fieldID, isf.vals,

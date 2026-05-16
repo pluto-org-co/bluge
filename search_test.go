@@ -21,6 +21,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search/aggregations"
 	"github.com/pluto-org-co/bluge/search/highlight"
 	"github.com/pluto-org-co/bluge/testsuite"
@@ -63,7 +64,7 @@ func TestNestedBooleanSearchers(t *testing.T) {
 	}
 
 	// create and insert documents as a batch
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	matches := 0
 	for i := 0; i < 100; i++ {
 		hostname := fmt.Sprintf("planner_hostname_%d", i%5)
@@ -75,10 +76,10 @@ func TestNestedBooleanSearchers(t *testing.T) {
 			matches++
 		}
 
-		doc := NewDocument(strconv.Itoa(i)).
-			AddField(NewTextField("hostname", hostname).WithAnalyzer(singleLowercase)).
-			AddField(NewTextField("metadata.region", metadataRegion).WithAnalyzer(customAnalyzer)).
-			AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+		doc := documents.NewDocument(strconv.Itoa(i)).
+			AddField(documents.NewTextField("hostname", hostname).WithAnalyzer(singleLowercase)).
+			AddField(documents.NewTextField("metadata.region", metadataRegion).WithAnalyzer(customAnalyzer)).
+			AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
 		batch.Update(doc.ID(), doc)
 	}
@@ -148,7 +149,7 @@ func TestNestedBooleanMustNotSearcher(t *testing.T) {
 	}
 
 	// create and insert documents as a batch
-	batch := NewBatch()
+	batch := documents.NewBatch()
 
 	docs := []struct {
 		id              string
@@ -208,17 +209,17 @@ func TestNestedBooleanMustNotSearcher(t *testing.T) {
 	}
 
 	for i := 0; i < len(docs); i++ {
-		doc := NewDocument(docs[i].id).
-			AddField(NewTextField("id", docs[i].id)).
-			AddField(NewTextField("investigationID", docs[i].investigationID))
+		doc := documents.NewDocument(docs[i].id).
+			AddField(documents.NewTextField("id", docs[i].id)).
+			AddField(documents.NewTextField("investigationID", docs[i].investigationID))
 
 		if docs[i].hasRole {
-			doc.AddField(NewKeywordField("hasRole", "t"))
+			doc.AddField(documents.NewKeywordField("hasRole", "t"))
 		} else {
-			doc.AddField(NewKeywordField("hasRole", "f"))
+			doc.AddField(documents.NewKeywordField("hasRole", "f"))
 		}
 
-		doc.AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+		doc.AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
 		batch.Update(doc.ID(), doc)
 	}
@@ -279,10 +280,10 @@ func TestSearchOverEmptyKeyword(t *testing.T) {
 	}
 
 	for i := 0; i < 10; i++ {
-		doc := NewDocument(fmt.Sprint(i)).
-			AddField(NewKeywordField("id", "")).
-			AddField(NewTextField("name", fmt.Sprintf("test%d", i))).
-			AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+		doc := documents.NewDocument(fmt.Sprint(i)).
+			AddField(documents.NewKeywordField("id", "")).
+			AddField(documents.NewTextField("name", fmt.Sprintf("test%d", i))).
+			AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 		err = indexWriter.Update(doc.ID(), doc)
 		if err != nil {
 			t.Fatal(err)
@@ -332,14 +333,14 @@ func TestMultipleNestedBooleanMustNotSearchers(t *testing.T) {
 	}
 
 	// create and insert documents as a batch
-	batch := NewBatch()
+	batch := documents.NewBatch()
 
-	doc := NewDocument("1-child-0").
-		AddField(NewTextField("id", "1-child-0")).
-		AddField(NewKeywordField("hasRole", "f")).
-		AddField(NewKeywordField("roles", "R1")).
-		AddField(NewNumericField("type", 0)).
-		AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+	doc := documents.NewDocument("1-child-0").
+		AddField(documents.NewTextField("id", "1-child-0")).
+		AddField(documents.NewKeywordField("hasRole", "f")).
+		AddField(documents.NewKeywordField("roles", "R1")).
+		AddField(documents.NewNumericField("type", 0)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 	batch.Update(doc.ID(), doc)
 
 	docs := []struct {
@@ -370,17 +371,17 @@ func TestMultipleNestedBooleanMustNotSearchers(t *testing.T) {
 	}
 
 	for i := 0; i < len(docs); i++ {
-		doc = NewDocument(docs[i].id).
-			AddField(NewTextField("id", docs[i].id)).
-			AddField(NewNumericField("type", float64(docs[i].typ)))
+		doc = documents.NewDocument(docs[i].id).
+			AddField(documents.NewTextField("id", docs[i].id)).
+			AddField(documents.NewNumericField("type", float64(docs[i].typ)))
 
 		if docs[i].hasRole {
-			doc.AddField(NewKeywordField("hasRole", "t"))
+			doc.AddField(documents.NewKeywordField("hasRole", "t"))
 		} else {
-			doc.AddField(NewKeywordField("hasRole", "f"))
+			doc.AddField(documents.NewKeywordField("hasRole", "f"))
 		}
 
-		doc.AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+		doc.AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
 		batch.Update(doc.ID(), doc)
 	}
@@ -390,12 +391,12 @@ func TestMultipleNestedBooleanMustNotSearchers(t *testing.T) {
 	}
 
 	// Update 1st doc
-	batch = NewBatch()
-	doc = NewDocument("1-child-0").
-		AddField(NewTextField("id", "1-child-0")).
-		AddField(NewKeywordField("hasRole", "f")).
-		AddField(NewNumericField("type", 0)).
-		AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+	batch = documents.NewBatch()
+	doc = documents.NewDocument("1-child-0").
+		AddField(documents.NewTextField("id", "1-child-0")).
+		AddField(documents.NewKeywordField("hasRole", "f")).
+		AddField(documents.NewNumericField("type", 0)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
 	batch.Update(doc.ID(), doc)
 
@@ -471,9 +472,9 @@ func TestBooleanMustNotSearcher(t *testing.T) {
 	}
 
 	for _, doc := range docs {
-		bdoc := NewDocument(doc.Name)
+		bdoc := documents.NewDocument(doc.Name)
 		if doc.HasRole {
-			bdoc.AddField(NewKeywordField("hasRole", "t"))
+			bdoc.AddField(documents.NewKeywordField("hasRole", "t"))
 		}
 		err = indexWriter.Update(bdoc.ID(), bdoc)
 		if err != nil {
@@ -605,7 +606,7 @@ func TestDisjunctionQueryIncorrectMin(t *testing.T) {
 	}
 
 	// create and insert documents as a batch
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	docs := []struct {
 		field1 string
 		field2 int
@@ -621,10 +622,10 @@ func TestDisjunctionQueryIncorrectMin(t *testing.T) {
 	}
 
 	for i := 0; i < len(docs); i++ {
-		doc := NewDocument(strconv.Itoa(docs[i].field2)).
-			AddField(NewTextField("field1", docs[i].field1)).
-			AddField(NewNumericField("field2", float64(docs[i].field2))).
-			AddField(NewCompositeFieldExcluding("_id", []string{"_id"}))
+		doc := documents.NewDocument(strconv.Itoa(docs[i].field2)).
+			AddField(documents.NewTextField("field1", docs[i].field1)).
+			AddField(documents.NewNumericField("field2", float64(docs[i].field2))).
+			AddField(documents.NewCompositeFieldExcluding("_id", []string{"_id"}))
 
 		batch.Update(doc.ID(), doc)
 	}
@@ -671,15 +672,15 @@ func TestBooleanShouldMinPropagation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc1 := NewDocument("doc1").
-		AddField(NewTextField("name", "cersei lannister")).
-		AddField(NewTextField("dept", "queen"))
+	doc1 := documents.NewDocument("doc1").
+		AddField(documents.NewTextField("name", "cersei lannister")).
+		AddField(documents.NewTextField("dept", "queen"))
 
-	doc2 := NewDocument("doc2").
-		AddField(NewTextField("name", "jaime lannister")).
-		AddField(NewTextField("dept", "kings guard"))
+	doc2 := documents.NewDocument("doc2").
+		AddField(documents.NewTextField("name", "jaime lannister")).
+		AddField(documents.NewTextField("dept", "kings guard"))
 
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	batch.Update(doc1.ID(), doc1)
 	batch.Update(doc2.ID(), doc2)
 
@@ -736,22 +737,22 @@ func TestDisjunctionMinPropagation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc1 := NewDocument("doc1").
-		AddField(NewTextField("dept", "finance")).
-		AddField(NewTextField("name", "xyz")).
-		AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+	doc1 := documents.NewDocument("doc1").
+		AddField(documents.NewTextField("dept", "finance")).
+		AddField(documents.NewTextField("name", "xyz")).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
-	doc2 := NewDocument("doc2").
-		AddField(NewTextField("dept", "marketing")).
-		AddField(NewTextField("name", "xyz")).
-		AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+	doc2 := documents.NewDocument("doc2").
+		AddField(documents.NewTextField("dept", "marketing")).
+		AddField(documents.NewTextField("name", "xyz")).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
-	doc3 := NewDocument("doc3").
-		AddField(NewTextField("dept", "engineering")).
-		AddField(NewTextField("name", "abc")).
-		AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+	doc3 := documents.NewDocument("doc3").
+		AddField(documents.NewTextField("dept", "engineering")).
+		AddField(documents.NewTextField("name", "abc")).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	batch.Update(doc1.ID(), doc1)
 	batch.Update(doc2.ID(), doc2)
 	batch.Update(doc3.ID(), doc3)
@@ -802,9 +803,9 @@ func TestDuplicateLocationsIssue1168(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := NewDocument("x").
-		AddField(NewKeywordField("name", "marty").SearchTermPositions()).
-		AddField(NewCompositeFieldExcluding("_all", []string{"_id"}))
+	doc := documents.NewDocument("x").
+		AddField(documents.NewKeywordField("name", "marty").SearchTermPositions()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatalf("bleve index err: %v", err)
@@ -862,11 +863,11 @@ func TestBooleanMustSingleMatchNone(t *testing.T) {
 		},
 	}
 
-	doc := NewDocument("doc").
-		AddField(NewTextField("languages_known", "Dutch").WithAnalyzer(customAnalyzer)).
-		AddField(NewTextField("dept", "Sales").WithAnalyzer(customAnalyzer))
+	doc := documents.NewDocument("doc").
+		AddField(documents.NewTextField("languages_known", "Dutch").WithAnalyzer(customAnalyzer)).
+		AddField(documents.NewTextField("dept", "Sales").WithAnalyzer(customAnalyzer))
 
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {
@@ -925,11 +926,11 @@ func TestBooleanMustNotSingleMatchNone(t *testing.T) {
 		},
 	}
 
-	doc := NewDocument("doc").
-		AddField(NewTextField("languages_known", "Dutch").WithAnalyzer(customAnalyzer)).
-		AddField(NewTextField("dept", "Sales").WithAnalyzer(customAnalyzer))
+	doc := documents.NewDocument("doc").
+		AddField(documents.NewTextField("languages_known", "Dutch").WithAnalyzer(customAnalyzer)).
+		AddField(documents.NewTextField("dept", "Sales").WithAnalyzer(customAnalyzer))
 
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {
@@ -983,68 +984,68 @@ func TestBooleanSearchBug1185(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := NewDocument("17112").
-		AddField(NewKeywordField("owner", "marty")).
-		AddField(NewTextField("type", "A Demo Type").SearchTermPositions())
+	doc := documents.NewDocument("17112").
+		AddField(documents.NewKeywordField("owner", "marty")).
+		AddField(documents.NewTextField("type", "A Demo Type").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("17139").
-		AddField(NewTextField("type", "A Demo Type").SearchTermPositions())
+	doc = documents.NewDocument("17139").
+		AddField(documents.NewTextField("type", "A Demo Type").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("177777").
-		AddField(NewTextField("type", "x").SearchTermPositions())
+	doc = documents.NewDocument("177777").
+		AddField(documents.NewTextField("type", "x").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("177778").
-		AddField(NewTextField("type", "A Demo Type").SearchTermPositions())
+	doc = documents.NewDocument("177778").
+		AddField(documents.NewTextField("type", "A Demo Type").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("17140").
-		AddField(NewTextField("type", "A Demo Type").SearchTermPositions())
+	doc = documents.NewDocument("17140").
+		AddField(documents.NewTextField("type", "A Demo Type").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("17000").
-		AddField(NewKeywordField("owner", "marty")).
-		AddField(NewTextField("type", "x").SearchTermPositions())
+	doc = documents.NewDocument("17000").
+		AddField(documents.NewKeywordField("owner", "marty")).
+		AddField(documents.NewTextField("type", "x").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("17141").
-		AddField(NewTextField("type", "A Demo Type").SearchTermPositions())
+	doc = documents.NewDocument("17141").
+		AddField(documents.NewTextField("type", "A Demo Type").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("17428").
-		AddField(NewKeywordField("owner", "marty")).
-		AddField(NewTextField("type", "A Demo Type").SearchTermPositions())
+	doc = documents.NewDocument("17428").
+		AddField(documents.NewKeywordField("owner", "marty")).
+		AddField(documents.NewTextField("type", "A Demo Type").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	doc = NewDocument("17113").
-		AddField(NewKeywordField("owner", "marty")).
-		AddField(NewTextField("type", "x").SearchTermPositions())
+	doc = documents.NewDocument("17113").
+		AddField(documents.NewKeywordField("owner", "marty")).
+		AddField(documents.NewTextField("type", "x").SearchTermPositions())
 	err = indexWriter.Update(doc.ID(), doc)
 	if err != nil {
 		t.Fatal(err)
@@ -1131,9 +1132,9 @@ func TestGeoDistanceIssue1301(t *testing.T) {
 
 	for i, g := range []string{"wecpkbeddsmf", "wecpk8tne453", "wecpkb80s09t"} {
 		lat, lon := geo.DecodeGeoHash(g)
-		doc := NewDocument(strconv.Itoa(i)).
-			AddField(NewNumericField("ID", float64(i))).
-			AddField(NewGeoPointField("GEO", lon, lat))
+		doc := documents.NewDocument(strconv.Itoa(i)).
+			AddField(documents.NewNumericField("ID", float64(i))).
+			AddField(documents.NewGeoPointField("GEO", lon, lat))
 		if err = indexWriter.Update(doc.ID(), doc); err != nil {
 			t.Fatal(err)
 		}
@@ -1189,13 +1190,13 @@ func TestSearchHighlightingWithRegexpReplacement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := NewDocument("doc").
-		AddField(NewTextField("status", "fool 10").
+	doc := documents.NewDocument("doc").
+		AddField(documents.NewTextField("status", "fool 10").
 			StoreValue().
 			HighlightMatches().
 			WithAnalyzer(customAnalyzer))
 
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {
@@ -1268,10 +1269,10 @@ func TestNumericRangeSearchBoost(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := NewDocument("doc").
-		AddField(NewNumericField("age", 25.0))
+	doc := documents.NewDocument("doc").
+		AddField(documents.NewNumericField("age", 25.0))
 
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {
@@ -1321,10 +1322,10 @@ func TestBooleanSearchBoost(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := NewDocument("doc").
-		AddField(NewNumericField("age", 25.0))
+	doc := documents.NewDocument("doc").
+		AddField(documents.NewNumericField("age", 25.0))
 
-	batch := NewBatch()
+	batch := documents.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {

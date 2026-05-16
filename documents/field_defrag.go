@@ -1,4 +1,4 @@
-package bluge
+package documents
 
 import (
 	"time"

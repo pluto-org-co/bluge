@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/index"
 	"github.com/pluto-org-co/bluge/testsuite"
 	"github.com/stretchr/testify/assert"
@@ -30,10 +31,10 @@ func BenchmarkOfflineWriter(b *testing.B) {
 	const docCount = 1_000_000
 	batch := index.NewBatch()
 	for index := range docCount {
-		doc := NewDocument(fmt.Sprintf("%d", index)).
-			AddField(NewKeywordField("name", fmt.Sprintf("hello-%d", index))).
-			AddField(NewKeywordField("index", fmt.Sprintf("%d", index))).
-			AddField(NewKeywordField("reversed-name", fmt.Sprintf("olleh-%d", index)))
+		doc := documents.NewDocument(fmt.Sprintf("%d", index)).
+			AddField(documents.NewKeywordField("name", fmt.Sprintf("hello-%d", index))).
+			AddField(documents.NewKeywordField("index", fmt.Sprintf("%d", index))).
+			AddField(documents.NewKeywordField("reversed-name", fmt.Sprintf("olleh-%d", index)))
 		batch.Insert(doc)
 	}
 	b.ResetTimer()
@@ -69,12 +70,12 @@ func BenchmarkOfflineWriterWithDefinitions(b *testing.B) {
 	const docCount = 1_000_000
 	batch := index.NewBatch()
 	for index := range docCount {
-		info, fields := FieldsFromDefinitions(
-			NewKeywordFieldDefinition("name", fmt.Sprintf("hello-%d", index)),
-			NewKeywordFieldDefinition("index", fmt.Sprintf("%d", index)),
-			NewKeywordFieldDefinition("reversed-name", fmt.Sprintf("olleh-%d", index)),
+		info, fields := documents.FieldsFromDefinitions(
+			documents.NewKeywordFieldDefinition("name", fmt.Sprintf("hello-%d", index)),
+			documents.NewKeywordFieldDefinition("index", fmt.Sprintf("%d", index)),
+			documents.NewKeywordFieldDefinition("reversed-name", fmt.Sprintf("olleh-%d", index)),
 		)
-		doc := NewDocumentWithFields(
+		doc := documents.NewDocumentWithFields(
 			fmt.Sprintf("%d", index),
 			info, fields...,
 		)
@@ -113,13 +114,13 @@ func BenchmarkOfflineWriterWithDefinitionsManagedId(b *testing.B) {
 	const docCount = 1_000_000
 	batch := index.NewBatch()
 	for index := range docCount {
-		info, fields := FieldsFromDefinitionsWithId(
+		info, fields := documents.FieldsFromDefinitionsWithId(
 			fmt.Sprintf("%d", index),
-			NewKeywordFieldDefinition("name", fmt.Sprintf("hello-%d", index)),
-			NewKeywordFieldDefinition("index", fmt.Sprintf("%d", index)),
-			NewKeywordFieldDefinition("reversed-name", fmt.Sprintf("olleh-%d", index)),
+			documents.NewKeywordFieldDefinition("name", fmt.Sprintf("hello-%d", index)),
+			documents.NewKeywordFieldDefinition("index", fmt.Sprintf("%d", index)),
+			documents.NewKeywordFieldDefinition("reversed-name", fmt.Sprintf("olleh-%d", index)),
 		)
-		doc := NewDocumentWithFieldsManagedId(info, fields...)
+		doc := documents.NewDocumentWithFieldsManagedId(info, fields...)
 		batch.Insert(doc)
 	}
 	b.ResetTimer()
