@@ -17,6 +17,7 @@ package searcher
 import (
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/search"
@@ -28,46 +29,76 @@ func TestTermSearcher(t *testing.T) {
 	var queryBoost = 3.0
 
 	docs := []segment.Document{
-		&FakeDocument{
-			NewFakeField("_id", "a", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "b", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "c", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "d", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "e", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "f", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "g", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "h", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "i", true, false, false, nil),
-			NewFakeField("desc", "beer", false, false, true, nil),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "j", true, false, false, nil),
-			NewFakeField("title", "cat", false, false, true, nil),
-		},
+		func() segment.Document {
+			doc := documents.NewDocument("a").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("b").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("c").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("d").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("e").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("f").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("g").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("h").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("i").
+				AddField(documents.NewTextField("desc", "beer").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
+		func() segment.Document {
+			doc := documents.NewDocument("j").
+				AddField(documents.NewTextField("title", "cat").
+					Aggregatable())
+			doc.Analyze()
+			return doc
+		}(),
 	}
 
 	indexReader := newStubIndexReader()

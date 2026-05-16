@@ -181,58 +181,19 @@ func testGeoPolygonSearch(i search.Reader, polygon []geo.Point, field string) ([
 
 func setupGeoPolygonPoints() *stubIndexReader {
 	docs := []segment.Document{
-		&FakeDocument{
-			NewFakeField("_id", "k", true, false, false, nil),
-			NewFakeGeoField("loc", -80.86469327, 35.2782),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "l", true, false, false, nil),
-			NewFakeGeoField("loc", -80.8713, 35.28138),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "m", true, false, false, nil),
-			NewFakeGeoField("loc", -84.25, 33.153),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "n", true, false, false, nil),
-			NewFakeGeoField("loc", -89.992, 35.063),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "o", true, false, false, nil),
-			NewFakeGeoField("loc", -71.648, 42.437),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "p", true, false, false, nil),
-			NewFakeGeoField("loc", -80.016, 40.314),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "q", true, false, false, nil),
-			NewFakeGeoField("loc", -111.919, 33.494),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "r", true, false, false, nil),
-			NewFakeGeoField("loc", 1.5, 1.1),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "s", true, false, false, nil),
-			NewFakeGeoField("loc", 2, 1.5),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "t", true, false, false, nil),
-			NewFakeGeoField("loc", 2.0, 1.9),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "u", true, false, false, nil),
-			NewFakeGeoField("loc", 2.0, 1.0),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "amoeba", true, false, false, nil),
-			NewFakeGeoField("loc", 77.60490, 12.97467),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "communiti", true, false, false, nil),
-			NewFakeGeoField("loc", 77.608237, 12.97237),
-		},
+		newGeoDoc("k", -80.86469327, 35.2782),
+		newGeoDoc("l", -80.8713, 35.28138),
+		newGeoDoc("m", -84.25, 33.153),
+		newGeoDoc("n", -89.992, 35.063),
+		newGeoDoc("o", -71.648, 42.437),
+		newGeoDoc("p", -80.016, 40.314),
+		newGeoDoc("q", -111.919, 33.494),
+		newGeoDoc("r", 1.5, 1.1),
+		newGeoDoc("s", 2, 1.5),
+		newGeoDoc("t", 2.0, 1.9),
+		newGeoDoc("u", 2.0, 1.0),
+		newGeoDoc("amoeba", 77.60490, 12.97467),
+		newGeoDoc("communiti", 77.608237, 12.97237),
 	}
 
 	geoTestStubIndexReader := newStubIndexReader()
@@ -307,11 +268,7 @@ func TestComplexGeoPolygons(t *testing.T) {
 func setupComplexGeoPolygonPoints(points []geoPoint) *stubIndexReader {
 	geoTestStubIndexReader := newStubIndexReader()
 	for _, point := range points {
-		geoTestStubIndexReader.add(
-			&FakeDocument{
-				NewFakeField("_id", point.title, true, false, false, nil),
-				NewFakeGeoField("loc", point.lon, point.lat),
-			})
+		geoTestStubIndexReader.add(newGeoDoc(point.title, point.lon, point.lat))
 	}
 	return geoTestStubIndexReader
 }

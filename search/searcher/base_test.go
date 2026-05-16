@@ -17,10 +17,9 @@ package searcher
 import (
 	"math"
 
-	"github.com/pluto-org-co/bluge/search/similarity"
-
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search"
-
+	"github.com/pluto-org-co/bluge/search/similarity"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -42,42 +41,81 @@ var testSearchOptions = search.SearcherOptions{
 	Explain: true,
 }
 
+func makeDoc(id string, fields ...*documents.Field) segment.Document {
+	doc := documents.NewDocument(id)
+	for _, f := range fields {
+		doc.AddField(f)
+	}
+	doc.Analyze()
+	return doc
+}
+
 var baseTestIndexDocs = []segment.Document{
 	// must have 4/4 beer
-	&FakeDocument{
-		NewFakeField("_id", "1", true, false, false, nil),
-		NewFakeField("name", "marty", false, false, true, nil),
-		NewFakeField("desc", "beer beer beer beer", false, true, true, nil),
-		NewFakeField("street", "couchbase way", false, false, true, nil),
-	},
+	func() segment.Document {
+		doc := documents.NewDocument("1").
+			AddField(documents.NewTextField("name", "marty").
+				Aggregatable()).
+			AddField(documents.NewTextField("desc", "beer beer beer beer").
+				SearchTermPositions().
+				Aggregatable()).
+			AddField(documents.NewTextField("street", "couchbase way").
+				Aggregatable())
+		doc.Analyze()
+		return doc
+	}(),
 	// must have 1/4 beer
-	&FakeDocument{
-		NewFakeField("_id", "2", true, false, false, nil),
-		NewFakeField("name", "steve", false, false, true, nil),
-		NewFakeField("desc", "angst beer couch database", false, true, true, nil),
-		NewFakeField("street", "couchbase way", false, false, true, nil),
-		NewFakeField("title", "mister", false, false, true, nil),
-	},
+	func() segment.Document {
+		doc := documents.NewDocument("2").
+			AddField(documents.NewTextField("name", "steve").
+				Aggregatable()).
+			AddField(documents.NewTextField("desc", "angst beer couch database").
+				SearchTermPositions().
+				Aggregatable()).
+			AddField(documents.NewTextField("street", "couchbase way").
+				Aggregatable()).
+			AddField(documents.NewTextField("title", "mister").
+				Aggregatable())
+		doc.Analyze()
+		return doc
+	}(),
 	// must have 1/4 beer
-	&FakeDocument{
-		NewFakeField("_id", "3", true, false, false, nil),
-		NewFakeField("name", "dustin", false, false, true, nil),
-		NewFakeField("desc", "apple beer column dank", false, true, true, nil),
-		NewFakeField("title", "mister", false, false, true, nil),
-	},
+	func() segment.Document {
+		doc := documents.NewDocument("3").
+			AddField(documents.NewTextField("name", "dustin").
+				Aggregatable()).
+			AddField(documents.NewTextField("desc", "apple beer column dank").
+				SearchTermPositions().
+				Aggregatable()).
+			AddField(documents.NewTextField("title", "mister").
+				Aggregatable())
+		doc.Analyze()
+		return doc
+	}(),
 	// must have 65/65 beer
-	&FakeDocument{
-		NewFakeField("_id", "4", true, false, false, nil),
-		NewFakeField("name", "ravi", false, false, true, nil),
-		NewFakeField("desc", "beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer", false, true, true, nil),
-	},
+	func() segment.Document {
+		doc := documents.NewDocument("4").
+			AddField(documents.NewTextField("name", "ravi").
+				Aggregatable()).
+			AddField(documents.NewTextField("desc", "beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer beer").
+				SearchTermPositions().
+				Aggregatable())
+		doc.Analyze()
+		return doc
+	}(),
 	// must have 0/x beer
-	&FakeDocument{
-		NewFakeField("_id", "5", true, false, false, nil),
-		NewFakeField("name", "bobert", false, false, true, nil),
-		NewFakeField("desc", "water", false, true, true, nil),
-		NewFakeField("title", "mister", false, false, true, nil),
-	},
+	func() segment.Document {
+		doc := documents.NewDocument("5").
+			AddField(documents.NewTextField("name", "bobert").
+				Aggregatable()).
+			AddField(documents.NewTextField("desc", "water").
+				SearchTermPositions().
+				Aggregatable()).
+			AddField(documents.NewTextField("title", "mister").
+				Aggregatable())
+		doc.Analyze()
+		return doc
+	}(),
 }
 
 func scoresCloseEnough(a, b float64) bool {
