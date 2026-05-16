@@ -16,8 +16,6 @@ package analysis
 
 import (
 	"reflect"
-
-	"github.com/pluto-org-co/bluge/segment"
 )
 
 var reflectStaticSizeTokenLocation int
@@ -85,12 +83,6 @@ func (tf *TokenFreq) Term() []byte {
 
 func (tf *TokenFreq) Frequency() int {
 	return tf.frequency
-}
-
-func (tf *TokenFreq) EachLocation(location segment.VisitLocation) {
-	for _, tl := range tf.Locations {
-		location(tl)
-	}
 }
 
 // TokenFrequencies maps document terms to their combined frequencies from all

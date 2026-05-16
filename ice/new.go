@@ -431,10 +431,7 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 
 			s.numTermsPerPostingsList[pid]++
 
-			var numLocations int
-			term.EachLocation(func(_ segment.Location) {
-				numLocations++
-			})
+			var numLocations = len(term.Locations)
 			s.numLocsPerPostingsList[pid] += numLocations
 
 			totLocs += numLocations
@@ -484,7 +481,7 @@ func (s *interim) processDocument(
 			tfk := xxh3.Hash(term.Term())
 			existingTf, exists := existingFreqs[tfk]
 			if exists {
-				term.EachLocation(func(location segment.Location) {
+				for _, location := range term.Locations {
 					existingTf.Locations = append(existingTf.Locations,
 						&tokenLocation{
 							FieldVal:    field.Name(),
@@ -492,14 +489,14 @@ func (s *interim) processDocument(
 							EndVal:      location.End(),
 							PositionVal: location.Pos(),
 						})
-				})
+				}
 				existingTf.frequency += term.Frequency()
 			} else {
 				newTf := &tokenFreq{
 					TermVal:   term.Term(),
 					frequency: term.Frequency(),
 				}
-				term.EachLocation(func(location segment.Location) {
+				for _, location := range term.Locations {
 					newTf.Locations = append(newTf.Locations,
 						&tokenLocation{
 							FieldVal:    location.Field(),
@@ -507,7 +504,7 @@ func (s *interim) processDocument(
 							EndVal:      location.End(),
 							PositionVal: location.Pos(),
 						})
-				})
+				}
 				existingFreqs[tfk] = newTf
 			}
 		}

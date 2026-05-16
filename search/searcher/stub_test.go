@@ -122,14 +122,14 @@ func (s *stubIndexReader) add(d *documents.Document) {
 						freq: term.Frequency(),
 					},
 				}
-				term.EachLocation(func(location segment.Location) {
+				for _, location := range term.Locations {
 					newThing.freq.locs = append(newThing.freq.locs, &thingLoc{
 						fieldVal:    location.Field(),
 						startVal:    location.Start(),
 						endVal:      location.End(),
 						positionVal: location.Pos(),
 					})
-				})
+				}
 				fd[termStr] = append(fd[termStr], newThing)
 
 				if field.IndexDocValues() {
