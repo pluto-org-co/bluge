@@ -19,7 +19,6 @@ import (
 	"io"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/blevesearch/vellum"
 )
 
 var ErrClosed = fmt.Errorf("index closed")
@@ -36,15 +35,6 @@ type DocumentValueVisitor func(field string, term []byte)
 type DictionaryLookup interface {
 	Contains(key []byte) (bool, error)
 	Close() error
-}
-
-type Dictionary interface {
-	DictionaryLookup
-
-	PostingsList(term []byte, except *roaring.Bitmap, prealloc PostingsList) (PostingsList, error)
-
-	Iterator(a vellum.Automaton,
-		startKeyInclusive, endKeyExclusive []byte) DictionaryIterator
 }
 
 type DictionaryEntry interface {

@@ -113,7 +113,7 @@ func (s *Segment) updateSize() {
 }
 
 // DictionaryReader returns the term dictionary for the specified field
-func (s *Segment) Dictionary(field string) (segment.Dictionary, error) {
+func (s *Segment) Dictionary(field string) (*Dictionary, error) {
 	dict, err := s.dictionary(field)
 	if err == nil && dict == nil {
 		return emptyDictionary, nil

@@ -100,7 +100,7 @@ func expectNumberOfStoredFields(t *testing.T, seg *Segment, docNum uint64, expec
 	}
 }
 
-func expectFieldInSegment(t *testing.T, seg *Segment, field string) segment.Dictionary {
+func expectFieldInSegment(t *testing.T, seg *Segment, field string) *Dictionary {
 	dict, err := seg.Dictionary(field)
 	if err != nil {
 		t.Fatal(err)
@@ -111,7 +111,7 @@ func expectFieldInSegment(t *testing.T, seg *Segment, field string) segment.Dict
 	return dict
 }
 
-func expectTermInDictionary(t *testing.T, dict segment.Dictionary, term string) segment.PostingsIterator {
+func expectTermInDictionary(t *testing.T, dict *Dictionary, term string) segment.PostingsIterator {
 	postingsList, err := dict.PostingsList([]byte(term), nil, nil)
 	if err != nil {
 		t.Fatal(err)

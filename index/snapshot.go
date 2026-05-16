@@ -27,11 +27,12 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
 type asyncSegmentResult struct {
-	dict    segment.Dictionary
+	dict    *ice.Dictionary
 	dictItr segment.DictionaryIterator
 
 	index int
@@ -102,7 +103,7 @@ func (i *Snapshot) updateSize() {
 }
 
 func (i *Snapshot) newDictionary(field string,
-	makeItr func(i segment.Dictionary) segment.DictionaryIterator,
+	makeItr func(i *ice.Dictionary) segment.DictionaryIterator,
 	randomLookup bool) (*dictionary, error) {
 	results := make(chan *asyncSegmentResult)
 	for _, seg := range i.segment {
@@ -167,7 +168,7 @@ func (i *Snapshot) DictionaryLookup(field string) (segment.DictionaryLookup, err
 
 func (i *Snapshot) DictionaryIterator(field string, automaton vellum.Automaton, start, end []byte) (
 	segment.DictionaryIterator, error) {
-	return i.newDictionary(field, func(i segment.Dictionary) segment.DictionaryIterator {
+	return i.newDictionary(field, func(i *ice.Dictionary) segment.DictionaryIterator {
 		return i.Iterator(automaton, start, end)
 	}, false)
 }
@@ -366,7 +367,7 @@ func (i *Snapshot) PostingsIterator(term []byte, field string, includeFreq,
 	rv.currID = 0
 
 	if rv.dicts == nil {
-		rv.dicts = make([]segment.Dictionary, len(i.segment))
+		rv.dicts = make([]*ice.Dictionary, len(i.segment))
 		for i, seg := range i.segment {
 			dict, err := seg.segment.Dictionary(field)
 			if err != nil {

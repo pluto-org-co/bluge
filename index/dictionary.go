@@ -17,11 +17,12 @@ package index
 import (
 	"container/heap"
 
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
 type segmentDictCursor struct {
-	dict segment.Dictionary
+	dict *ice.Dictionary
 	itr  segment.DictionaryIterator
 	curr segment.DictionaryEntry
 }

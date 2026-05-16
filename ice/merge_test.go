@@ -291,9 +291,9 @@ func compareSegmentsField(a, b *Segment, fieldName string, rv []string) (errors 
 		return nil, fmt.Sprintf("bdict err: %v", err), true
 	}
 
-	if adict.(*Dictionary).fst.Len() != bdict.(*Dictionary).fst.Len() {
+	if adict.fst.Len() != bdict.fst.Len() {
 		rv = append(rv, fmt.Sprintf("field %s, dict fst Len()'s  different: %v %v",
-			fieldName, adict.(*Dictionary).fst.Len(), bdict.(*Dictionary).fst.Len()))
+			fieldName, adict.fst.Len(), bdict.fst.Len()))
 	}
 
 	aitr := adict.Iterator(nil, nil, nil)
@@ -303,7 +303,7 @@ func compareSegmentsField(a, b *Segment, fieldName string, rv []string) (errors 
 }
 
 func compareSegmentsDictionaryIterators(a, b *Segment, fieldName string, rv []string,
-	aitr, bitr segment.DictionaryIterator, adict, bdict segment.Dictionary) []string {
+	aitr, bitr segment.DictionaryIterator, adict, bdict *Dictionary) []string {
 	for {
 		anext, aerr := aitr.Next()
 		bnext, berr := bitr.Next()
@@ -328,14 +328,14 @@ func compareSegmentsDictionaryIterators(a, b *Segment, fieldName string, rv []st
 }
 
 func compareSegmentsDictionaryEntry(a, b *Segment, fieldName string, rv []string,
-	anext, bnext segment.DictionaryEntry, adict, bdict segment.Dictionary) []string {
+	anext, bnext segment.DictionaryEntry, adict, bdict *Dictionary) []string {
 	for _, next := range []segment.DictionaryEntry{anext, bnext} {
 		if next == nil {
 			continue
 		}
 
-		aplist, aerr := adict.(*Dictionary).postingsList([]byte(next.Term()), nil, nil)
-		bplist, berr := bdict.(*Dictionary).postingsList([]byte(next.Term()), nil, nil)
+		aplist, aerr := adict.postingsList([]byte(next.Term()), nil, nil)
+		bplist, berr := bdict.postingsList([]byte(next.Term()), nil, nil)
 		if aerr != berr {
 			rv = append(rv, fmt.Sprintf("field %s, term: %s, postingsList() errors different: %v %v",
 				fieldName, next.Term(), aerr, berr))
