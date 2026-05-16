@@ -38,7 +38,7 @@ func CreateConfig(name string) (config Config, cleanup func() error) {
 		WithNormCalc(func(_ string, numTerms int) float32 {
 			return math.Float32frombits(uint32(numTerms))
 		}).
-		WithVirtualField(NewFakeField("", "", false, false, false))
+		WithVirtualField(documents.NewKeywordField("", ""))
 	return rv, func() error { return os.RemoveAll(path) }
 }
 

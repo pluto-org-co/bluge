@@ -325,6 +325,11 @@ func (i *Snapshot) segmentIndexAndLocalDocNumFromGlobal(docNum uint64) (segmentI
 
 func (i *Snapshot) PostingsIterator(term []byte, field string, includeFreq,
 	includeNorm, includeTermVectors bool) (segment.PostingsIterator, error) {
+	// nil term means "all documents"
+	if term == nil {
+		return i.postingsIteratorAll(field)
+	}
+
 	if vFields, ok := i.parent.config.virtualFields[field]; ok {
 		for _, vField := range vFields {
 			if vField.Index() {

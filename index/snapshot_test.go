@@ -293,12 +293,12 @@ func TestIndexDocIdReader(t *testing.T) {
 	var secondNumber uint64
 	for tfd != nil {
 		count++
+		if count == 2 {
+			secondNumber = tfd.Number()
+		}
 		tfd, err = postingsIterator.Next()
 		if err != nil {
 			t.Error(err)
-		}
-		if secondNumber == 0 {
-			secondNumber = tfd.Number()
 		}
 	}
 	if count != expectedCount {
@@ -320,6 +320,9 @@ func TestIndexDocIdReader(t *testing.T) {
 	tfd, err = postingsIterator2.Advance(secondNumber)
 	if err != nil {
 		t.Error(err)
+	}
+	if tfd == nil {
+		t.Fatalf("expected to find number %d, got nil", secondNumber)
 	}
 	if tfd.Number() != secondNumber {
 		t.Errorf("expected to find number %d, got %d", secondNumber, tfd.Number())
