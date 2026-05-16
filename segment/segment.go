@@ -32,34 +32,6 @@ type StoredFieldVisitor func(field string, value []byte) bool
 // DocumentValueReader's VisitDocumentValues method.
 type DocumentValueVisitor func(field string, term []byte)
 
-type Term interface {
-	Field() string
-	Term() []byte
-}
-
-type Segment interface {
-	Dictionary(field string) (Dictionary, error)
-
-	VisitStoredFields(num uint64, visitor StoredFieldVisitor) error
-
-	Count() uint64
-
-	DocsMatchingTerms([]Term) (*roaring.Bitmap, error)
-
-	Fields() []string
-
-	CollectionStats(field string) (CollectionStats, error)
-
-	Size() int
-
-	DocumentValueReader(fields []string) (DocumentValueReader, error)
-
-	WriteTo(w io.Writer, closeCh chan struct{}) (int64, error)
-
-	Type() string
-	Version() uint32
-}
-
 type DictionaryLookup interface {
 	Contains(key []byte) (bool, error)
 	Close() error
