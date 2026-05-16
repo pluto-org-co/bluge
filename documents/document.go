@@ -90,9 +90,3 @@ func (d Document) Analyze() {
 		}
 	}
 }
-
-func (d Document) EachField(vf segment.VisitField) {
-	for _, field := range d.Fields {
-		vf(field)
-	}
-}

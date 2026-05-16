@@ -261,9 +261,9 @@ func (s *interim) convert() (*footer, []uint64, error) {
 	s.getOrDefineField(_idFieldName) // _id field is fieldID 0
 
 	for _, result := range s.documents {
-		result.EachField(func(field segment.Field) {
+		for _, field := range result.Fields {
 			s.getOrDefineField(field.Name())
-		})
+		}
 	}
 
 	sort.Strings(s.FieldsInv[1:]) // keep _id as first field
@@ -402,7 +402,7 @@ func (s *interim) prepareDicts() {
 
 func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, totLocs, totTFs int) (pidNextOut, totLocsOut, totTFsOut int) {
 	fieldsSeen := map[uint16]struct{}{}
-	result.EachField(func(field segment.Field) {
+	for _, field := range result.Fields {
 		fieldID := uint16(s.getOrDefineField(field.Name()))
 
 		fieldsSeen[fieldID] = struct{}{}
@@ -443,7 +443,7 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 		totTFs += numTerms
 
 		s.DictKeys[fieldID] = dictKeys
-	})
+	}
 	// record fields seen by this doc
 	for k := range fieldsSeen {
 		s.FieldDocs[k]++
@@ -471,7 +471,7 @@ func (s *interim) processDocument(
 	fieldLens []int,
 	fieldTFs []tokenFrequencies,
 ) {
-	visitField := func(field segment.Field) {
+	for _, field := range result.Fields {
 		fieldID := uint16(s.getOrDefineField(field.Name()))
 		fieldLens[fieldID] += field.Length()
 
@@ -512,8 +512,6 @@ func (s *interim) processDocument(
 			}
 		})
 	}
-
-	result.EachField(visitField)
 
 	// now that it's been rolled up into fieldTFs, walk that
 	for fieldID, tfs := range fieldTFs {
@@ -575,7 +573,7 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 			delete(docStoredFields, fieldID)
 		}
 
-		result.EachField(func(field segment.Field) {
+		for _, field := range result.Fields {
 			fieldID := s.getOrDefineField(field.Name())
 
 			if field.Store() {
@@ -587,7 +585,7 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 			if field.IndexDocValues() {
 				s.IncludeDocValues[fieldID] = true
 			}
-		})
+		}
 
 		var curr int
 

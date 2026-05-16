@@ -36,12 +36,12 @@ func buildTestSegmentForDict() (*Segment, error) {
 	doc.Analyze() // ← try calling this explicitly first
 
 	// debug: walk the fields
-	doc.EachField(func(f segment.Field) {
+	for _, f := range doc.Fields {
 		fmt.Printf("field: %s\n", f.Name())
 		f.EachTerm(func(t segment.FieldTerm) {
 			fmt.Printf("  term: %s freq: %d\n", t.Term(), t.Frequency())
 		})
-	})
+	}
 
 	results := []*documents.Document{doc}
 	seg, _, err := newWithChunkMode(results, encodeNorm, 1024)

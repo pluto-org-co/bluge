@@ -103,7 +103,7 @@ func (s *stubIndexReader) add(d *documents.Document) {
 
 	// process fields
 	fieldsSeen := map[string]struct{}{}
-	d.EachField(func(field segment.Field) {
+	for _, field := range d.Fields {
 		if field.Index() {
 			fieldLength := field.Length()
 			fieldsSeen[field.Name()] = struct{}{}
@@ -137,7 +137,7 @@ func (s *stubIndexReader) add(d *documents.Document) {
 				}
 			})
 		}
-	})
+	}
 	// record fields seen by this doc
 	for k := range fieldsSeen {
 		s.fieldDocs[k]++
@@ -346,9 +346,9 @@ func automatonAccepts(a segment.Automaton, val string) bool {
 
 func (s *stubIndexReader) VisitStoredFields(number uint64, visitor segment.StoredFieldVisitor) error {
 	if doc, ok := s.doc[number]; ok {
-		doc.EachField(func(field segment.Field) {
+		for _, field := range doc.Fields {
 			visitor(field.Name(), field.Value())
-		})
+		}
 	}
 	return fmt.Errorf("no such doc numbered: %d", number)
 }
