@@ -17,8 +17,8 @@ package bluge
 import (
 	"fmt"
 
+	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/documents"
-	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/index"
 )
@@ -48,13 +48,13 @@ func (w *Writer) Insert(doc *documents.Document) error {
 	return w.Batch(b)
 }
 
-func (w *Writer) Update(id segment.Term, doc *documents.Document) error {
+func (w *Writer) Update(id *analysis.TokenFreq, doc *documents.Document) error {
 	b := index.NewBatch()
 	b.Update(id, doc)
 	return w.Batch(b)
 }
 
-func (w *Writer) Delete(id segment.Term) error {
+func (w *Writer) Delete(id *analysis.TokenFreq) error {
 	b := index.NewBatch()
 	b.Delete(id)
 	return w.Batch(b)

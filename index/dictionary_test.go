@@ -50,7 +50,7 @@ func TestIndexFieldDict(t *testing.T) {
 	doc.Analyze() // ← try calling this explicitly first
 
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -68,7 +68,7 @@ func TestIndexFieldDict(t *testing.T) {
 	doc.Analyze()
 
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)

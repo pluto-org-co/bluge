@@ -27,13 +27,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/testsuite"
 
 	"github.com/pluto-org-co/bluge/index"
-
-	"github.com/pluto-org-co/bluge/segment"
 )
 
 type Fatalfable interface {
@@ -170,8 +169,8 @@ func TestCrud(t *testing.T) {
 	}
 }
 
-func docNumberForTerm(r *Reader, t segment.Term) (uint64, error) {
-	q := NewTermQuery(string(t.Term())).SetField(t.Field())
+func docNumberForTerm(r *Reader, t *analysis.TokenFreq) (uint64, error) {
+	q := NewTermQuery(string(t.Term())).SetField(t.Field)
 	req := NewTopNSearch(1, q)
 	dmi, err := r.Search(context.Background(), req)
 	if err != nil {

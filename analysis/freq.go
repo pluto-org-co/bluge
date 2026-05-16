@@ -64,6 +64,7 @@ func (tl *TokenLocation) Size() int {
 // TokenFreq represents all the occurrences of a term in all fields of a
 // document.
 type TokenFreq struct {
+	Field     string
 	TermVal   []byte
 	Locations []*TokenLocation
 	frequency int
@@ -113,10 +114,10 @@ func (tfs TokenFrequencies) MergeAll(remoteField string, other TokenFrequencies)
 	}
 }
 
-func (tfs TokenFrequencies) mergeOne(remoteField, tfk string, tf *TokenFreq) {
+func (tfs TokenFrequencies) mergeOne(otherFieldName, tfk string, tf *TokenFreq) {
 	// set the remoteField value in incoming token freqs
 	for _, l := range tf.Locations {
-		l.FieldVal = remoteField
+		l.FieldVal = otherFieldName
 	}
 	existingTf, exists := tfs[tfk]
 	if exists {
@@ -124,6 +125,7 @@ func (tfs TokenFrequencies) mergeOne(remoteField, tfk string, tf *TokenFreq) {
 		existingTf.frequency += tf.frequency
 	} else {
 		tfs[tfk] = &TokenFreq{
+			Field:     tf.Field,
 			TermVal:   tf.TermVal,
 			frequency: tf.frequency,
 			Locations: make([]*TokenLocation, len(tf.Locations)),
@@ -143,6 +145,7 @@ func (tfs TokenFrequencies) MergeOneBytes(remoteField string, tfk []byte, tf *To
 		existingTf.frequency += tf.frequency
 	} else {
 		tfs[string(tfk)] = &TokenFreq{
+			Field:     tf.Field,
 			TermVal:   tf.TermVal,
 			frequency: tf.frequency,
 			Locations: make([]*TokenLocation, len(tf.Locations)),

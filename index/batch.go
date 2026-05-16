@@ -15,13 +15,13 @@
 package index
 
 import (
+	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/documents"
-	"github.com/pluto-org-co/bluge/segment"
 )
 
 type Batch struct {
 	documents         []*documents.Document
-	ids               []segment.Term
+	ids               []*analysis.TokenFreq
 	persistedCallback func(error)
 }
 
@@ -33,12 +33,12 @@ func (b *Batch) Insert(doc *documents.Document) {
 	b.documents = append(b.documents, doc)
 }
 
-func (b *Batch) Update(id segment.Term, doc *documents.Document) {
+func (b *Batch) Update(id *analysis.TokenFreq, doc *documents.Document) {
 	b.documents = append(b.documents, doc)
 	b.ids = append(b.ids, id)
 }
 
-func (b *Batch) Delete(id segment.Term) {
+func (b *Batch) Delete(id *analysis.TokenFreq) {
 	b.ids = append(b.ids, id)
 }
 

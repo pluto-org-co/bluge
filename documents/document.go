@@ -14,9 +14,7 @@
 
 package documents
 
-import (
-	"github.com/pluto-org-co/bluge/segment"
-)
+import "github.com/pluto-org-co/bluge/analysis"
 
 type Document struct {
 	HasComposites bool
@@ -53,7 +51,7 @@ func NewDocumentWithFieldsManagedId(info *Information, fields ...*Field) (doc *D
 
 // ID is an experimental helper method
 // to simplify common use cases
-func (d Document) ID() segment.Term {
+func (d Document) ID() *analysis.TokenFreq {
 	return Identifier(d.Fields[0].Value())
 }
 

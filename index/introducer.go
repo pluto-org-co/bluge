@@ -18,16 +18,15 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/pluto-org-co/bluge/segment"
-
 	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
 type segmentIntroduction struct {
 	id        uint64
 	data      *segmentWrapper
 	obsoletes map[uint64]*roaring.Bitmap
-	idTerms   []segment.Term
+	idTerms   []*analysis.TokenFreq
 	internal  map[string][]byte
 
 	applied           chan error

@@ -42,16 +42,6 @@ func CreateConfig(name string) (config Config, cleanup func() error) {
 	return rv, func() error { return os.RemoveAll(path) }
 }
 
-type testIdentifier string
-
-func (i testIdentifier) Field() string {
-	return "_id"
-}
-
-func (i testIdentifier) Term() []byte {
-	return []byte(i)
-}
-
 func TestIndexOpenReopen(t *testing.T) {
 	cfg, cleanup := CreateConfig("TestIndexOpenReopen")
 	defer func() {
@@ -88,7 +78,7 @@ func TestIndexOpenReopen(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -179,7 +169,7 @@ func TestIndexOpenReopenWithInsert(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -217,7 +207,7 @@ func TestIndexOpenReopenWithInsert(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -288,7 +278,7 @@ func TestIndexInsert(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -354,7 +344,7 @@ func TestIndexInsertThenDelete(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -366,7 +356,7 @@ func TestIndexInsertThenDelete(t *testing.T) {
 			Aggregatable())
 	doc2.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc2)
+	b2.Update(documents.Identifier("2"), doc2)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -390,7 +380,7 @@ func TestIndexInsertThenDelete(t *testing.T) {
 	}
 
 	b3 := NewBatch()
-	b3.Delete(testIdentifier("1"))
+	b3.Delete(documents.Identifier("1"))
 	err = idx.Batch(b3)
 	if err != nil {
 		t.Errorf("Error deleting entry from index: %v", err)
@@ -440,7 +430,7 @@ func TestIndexInsertThenDelete(t *testing.T) {
 	}
 
 	b4 := NewBatch()
-	b4.Delete(testIdentifier("2"))
+	b4.Delete(documents.Identifier("2"))
 	err = idx.Batch(b4)
 	if err != nil {
 		t.Errorf("Error deleting entry from index: %v", err)
@@ -490,7 +480,7 @@ func TestIndexInsertThenUpdate(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -502,7 +492,7 @@ func TestIndexInsertThenUpdate(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("1"), doc)
+	b2.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error deleting entry from index: %v", err)
@@ -513,7 +503,7 @@ func TestIndexInsertThenUpdate(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b3 := NewBatch()
-	b3.Update(testIdentifier("1"), doc)
+	b3.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b3)
 	if err != nil {
 		t.Errorf("Error deleting entry from index: %v", err)
@@ -563,7 +553,7 @@ func TestIndexInsertMultiple(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -575,7 +565,7 @@ func TestIndexInsertMultiple(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -587,7 +577,7 @@ func TestIndexInsertMultiple(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b3 := NewBatch()
-	b3.Update(testIdentifier("3"), doc)
+	b3.Update(documents.Identifier("3"), doc)
 	err = idx.Batch(b3)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -654,7 +644,7 @@ func TestIndexInsertWithStore(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -742,7 +732,7 @@ func TestIndexBatch(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -754,7 +744,7 @@ func TestIndexBatch(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -766,13 +756,13 @@ func TestIndexBatch(t *testing.T) {
 		AddField(documents.NewTextField("name", "test3").
 			Aggregatable())
 	doc.Analyze()
-	batch.Update(testIdentifier("3"), doc)
+	batch.Update(documents.Identifier("3"), doc)
 	doc = documents.NewDocument("2").
 		AddField(documents.NewTextField("name", "test2updated").
 			Aggregatable())
 	doc.Analyze()
-	batch.Update(testIdentifier("2"), doc)
-	batch.Delete(testIdentifier("1"))
+	batch.Update(documents.Identifier("2"), doc)
+	batch.Delete(documents.Identifier("1"))
 
 	err = idx.Batch(batch)
 	if err != nil {
@@ -862,7 +852,7 @@ func TestIndexBatchWithCallbacks(t *testing.T) {
 		AddField(documents.NewTextField("name", "test3").
 			Aggregatable())
 	doc.Analyze()
-	batch.Update(testIdentifier("3"), doc)
+	batch.Update(documents.Identifier("3"), doc)
 	batch.SetPersistedCallback(func(e error) {
 		wg.Done()
 	})
@@ -905,7 +895,7 @@ func TestIndexUpdateComposites(t *testing.T) {
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -921,7 +911,7 @@ func TestIndexUpdateComposites(t *testing.T) {
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("1"), doc)
+	b2.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -994,7 +984,7 @@ func TestIndexTermReaderCompositeFields(t *testing.T) {
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1083,7 +1073,7 @@ func TestIndexDocumentVisitFieldTerms(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1156,7 +1146,7 @@ func TestConcurrentUpdate(t *testing.T) {
 					Aggregatable())
 			doc.Analyze()
 			b := NewBatch()
-			b.Update(testIdentifier("1"), doc)
+			b.Update(documents.Identifier("1"), doc)
 			err2 := idx.Batch(b)
 			if err2 != nil {
 				t.Errorf("Error updating index: %v", err2)
@@ -1226,7 +1216,7 @@ func TestLargeField(t *testing.T) {
 			Aggregatable())
 	d.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), d)
+	b.Update(documents.Identifier("1"), d)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Fatal(err)
@@ -1287,7 +1277,7 @@ func TestIndexDocumentVisitFieldTermsWithMultipleDocs(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1336,7 +1326,7 @@ func TestIndexDocumentVisitFieldTermsWithMultipleDocs(t *testing.T) {
 			Aggregatable())
 	doc2.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc2)
+	b2.Update(documents.Identifier("2"), doc2)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1384,7 +1374,7 @@ func TestIndexDocumentVisitFieldTermsWithMultipleDocs(t *testing.T) {
 			Aggregatable())
 	doc3.Analyze()
 	b3 := NewBatch()
-	b3.Update(testIdentifier("3"), doc3)
+	b3.Update(documents.Identifier("3"), doc3)
 	err = idx.Batch(b3)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1480,7 +1470,7 @@ func TestIndexDocumentVisitFieldTermsWithMultipleFieldOptions(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1549,7 +1539,7 @@ func TestAllFieldWithDifferentTermVectorsEnabled(t *testing.T) {
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1583,7 +1573,7 @@ func TestIndexSeekBackwardsStats(t *testing.T) {
 			Aggregatable()).
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
-	batch.Update(testIdentifier("1"), doc)
+	batch.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)
@@ -1596,7 +1586,7 @@ func TestIndexSeekBackwardsStats(t *testing.T) {
 			Aggregatable()).
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
-	batch.Update(testIdentifier("2"), doc)
+	batch.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)

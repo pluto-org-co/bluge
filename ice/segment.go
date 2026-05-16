@@ -25,6 +25,7 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
 	"github.com/klauspost/compress/snappy"
+	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -236,7 +237,7 @@ func (s *Segment) Count() uint64 {
 	return s.footer.numDocs
 }
 
-func (s *Segment) DocsMatchingTerms(terms []segment.Term) (*roaring.Bitmap, error) {
+func (s *Segment) DocsMatchingTerms(terms []*analysis.TokenFreq) (*roaring.Bitmap, error) {
 	rv := roaring.New()
 
 	if len(s.fieldsMap) > 0 {
@@ -247,9 +248,9 @@ func (s *Segment) DocsMatchingTerms(terms []segment.Term) (*roaring.Bitmap, erro
 		var lastField string
 		var dict *Dictionary
 		for i, term := range terms {
-			thisField := term.Field()
+			thisField := term.Field
 			if thisField != lastField {
-				dict, err = s.dictionary(term.Field())
+				dict, err = s.dictionary(term.Field)
 				if err != nil {
 					return nil, err
 				}

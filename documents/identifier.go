@@ -14,14 +14,13 @@
 
 package documents
 
+import "github.com/pluto-org-co/bluge/analysis"
+
 const IdFieldName = "_id"
 
-type Identifier string
-
-func (i Identifier) Field() string {
-	return IdFieldName
-}
-
-func (i Identifier) Term() []byte {
-	return []byte(i)
+func Identifier[T ~string | ~[]byte](id T) (freq *analysis.TokenFreq) {
+	return &analysis.TokenFreq{
+		Field:   IdFieldName,
+		TermVal: []byte(id),
+	}
 }

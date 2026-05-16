@@ -19,6 +19,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/RoaringBitmap/roaring"
@@ -179,16 +181,6 @@ func checkField(t *testing.T, postingsItr segment.PostingsIterator, expectField 
 	}
 }
 
-type testIdentifier string
-
-func (i testIdentifier) Field() string {
-	return "_id"
-}
-
-func (i testIdentifier) Term() []byte {
-	return []byte(i)
-}
-
 func TestOpenMulti(t *testing.T) {
 	path, cleanup := setupTestDir(t)
 	defer cleanup()
@@ -227,7 +219,7 @@ func TestOpenMulti(t *testing.T) {
 	}
 
 	// get docnum of a
-	exclude, err := seg.DocsMatchingTerms([]segment.Term{testIdentifier("a")})
+	exclude, err := seg.DocsMatchingTerms([]*analysis.TokenFreq{documents.Identifier("a")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -309,7 +301,7 @@ func TestOpenMultiWithTwoChunks(t *testing.T) {
 	}
 
 	// get docnum of a
-	exclude, err := seg.DocsMatchingTerms([]segment.Term{testIdentifier("a")})
+	exclude, err := seg.DocsMatchingTerms([]*analysis.TokenFreq{documents.Identifier("a")})
 	if err != nil {
 		t.Fatal(err)
 	}

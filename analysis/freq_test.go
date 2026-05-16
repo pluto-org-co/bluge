@@ -17,6 +17,8 @@ package analysis
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestTokenFrequency(t *testing.T) {
@@ -129,6 +131,8 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 }
 
 func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
+	assertions := assert.New(t)
+
 	tf1 := TokenFrequencies{}
 	tf2 := TokenFrequencies{
 		"water": &TokenFreq{
@@ -167,7 +171,8 @@ func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
 		},
 	}
 	tf1.MergeAll("tf2", tf2)
-	if !reflect.DeepEqual(tf1, expectedResult) {
-		t.Errorf("expected %#v, got %#v", expectedResult, tf1)
+
+	if !assertions.EqualValues(expectedResult, tf1, "values doesn't match") {
+		return
 	}
 }

@@ -76,7 +76,7 @@ func TestObsoleteSegmentMergeIntroduction(t *testing.T) {
 			Aggregatable()).
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
-	batch.Update(testIdentifier("1"), doc)
+	batch.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)
@@ -89,7 +89,7 @@ func TestObsoleteSegmentMergeIntroduction(t *testing.T) {
 			Aggregatable()).
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
-	batch.Update(testIdentifier("2"), doc)
+	batch.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)
@@ -101,15 +101,15 @@ func TestObsoleteSegmentMergeIntroduction(t *testing.T) {
 	// execute another batch which obsoletes the contents of the new merged
 	// segment awaiting introduction.
 	batch.Reset()
-	batch.Delete(testIdentifier("1"))
-	batch.Delete(testIdentifier("2"))
+	batch.Delete(documents.Identifier("1"))
+	batch.Delete(documents.Identifier("2"))
 	doc = documents.NewDocument("3").
 		AddField(documents.NewTextField("name", "test3updated").
 			StoreValue().
 			Aggregatable()).
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 	doc.Analyze()
-	batch.Update(testIdentifier("3"), doc)
+	batch.Update(documents.Identifier("3"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)

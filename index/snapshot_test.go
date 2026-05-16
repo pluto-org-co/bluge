@@ -48,7 +48,7 @@ func TestIndexReader(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -63,7 +63,7 @@ func TestIndexReader(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -240,7 +240,7 @@ func TestIndexDocIdReader(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -255,7 +255,7 @@ func TestIndexDocIdReader(t *testing.T) {
 			Aggregatable())
 	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)

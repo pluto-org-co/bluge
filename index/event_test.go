@@ -47,7 +47,7 @@ func TestEventBatchIntroductionStart(t *testing.T) {
 	doc.Analyze()
 
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
