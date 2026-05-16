@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -37,15 +38,34 @@ func TestBuild(t *testing.T) {
 }
 
 func buildTestSegment() (*Segment, error) {
-	doc := &FakeDocument{
-		NewFakeField("_id", "a", true, false, false),
-		NewFakeField("name", "wow", true, true, false),
-		NewFakeField("desc", "some thing", true, true, false),
-		NewFakeField("tag", "cold", true, true, false),
-		NewFakeField("tag", "dark", true, true, false),
-	}
-	doc.FakeComposite("_all", []string{"_id"})
+	doc := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "wow").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("desc", "some thing").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "cold").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "dark").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
+	doc.Analyze() // ← try calling this explicitly first
 	results := []segment.Document{
 		doc,
 	}
@@ -76,23 +96,56 @@ func buildTestSegmentMultiWithDifferentFields(includeDocA, includeDocB bool) (*S
 }
 
 func buildTestAnalysisResultsMulti() []segment.Document {
-	doc := &FakeDocument{
-		NewFakeField("_id", "a", true, false, false),
-		NewFakeField("name", "wow", true, true, false),
-		NewFakeField("desc", "some thing", true, true, false),
-		NewFakeField("tag", "dark", true, true, false),
-	}
-	doc.FakeComposite("_all", []string{"_id"})
+	doc := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "wow").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("desc", "some thing").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "cold").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
-	doc2 := &FakeDocument{
-		NewFakeField("_id", "b", true, false, false),
-		NewFakeField("name", "who", true, true, false),
-		NewFakeField("desc", "some thing", true, true, false),
-		NewFakeField("tag", "cold", true, true, false),
-		NewFakeField("tag", "dark", true, true, false),
-	}
-	doc2.FakeComposite("_all", []string{"_id"})
+	doc2 := documents.NewDocument("b").
+		AddField(documents.NewTextField("name", "who").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("desc", "some thing").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "cold").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "dark").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
+	doc.Analyze()  // ← try calling this explicitly first
+	doc2.Analyze() // ← try calling this explicitly first
 	results := []segment.Document{
 		doc, doc2,
 	}
@@ -104,25 +157,60 @@ func buildTestAnalysisResultsMultiWithDifferentFields(includeDocA, includeDocB b
 	var results []segment.Document
 
 	if includeDocA {
-		doc := &FakeDocument{
-			NewFakeField("_id", "a", false, false, false),
-			NewFakeField("name", "ABC", false, false, true),
-			NewFakeField("dept", "ABC dept", false, false, true),
-			NewFakeField("manages.id", "XYZ", false, false, true),
-			NewFakeField("manages.count", "1", false, false, true),
-		}
-		doc.FakeComposite("_all", []string{"_id"})
+		doc := documents.NewDocument("a").
+			AddField(documents.NewTextField("name", "mat").
+				Aggregatable().
+				Sortable().
+				HighlightMatches().
+				SearchTermPositions().
+				StoreValue()).
+			AddField(documents.NewTextField("dept", "ABC").
+				Aggregatable().
+				Sortable().
+				HighlightMatches().
+				SearchTermPositions().
+				StoreValue()).
+			AddField(documents.NewTextField("manages.id", "XYZ").
+				Aggregatable().
+				Sortable().
+				HighlightMatches().
+				SearchTermPositions().
+				StoreValue()).
+			AddField(documents.NewTextField("manages.count", "1").
+				Aggregatable().
+				Sortable().
+				HighlightMatches().
+				SearchTermPositions().
+				StoreValue()).
+			AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
+
+		doc.Analyze() // ← try calling this explicitly first
 		results = append(results, doc)
 	}
 
 	if includeDocB {
-		doc := &FakeDocument{
-			NewFakeField("_id", "b", true, false, false),
-			NewFakeField("name", "XYZ", false, false, true),
-			NewFakeField("dept", "ABC dept", false, false, true),
-			NewFakeField("reportsTo.id", "ABC", false, false, true),
-		}
-		doc.FakeComposite("_all", []string{"_id"})
+		doc := documents.NewDocument("b").
+			AddField(documents.NewTextField("name", "mat").
+				Aggregatable().
+				Sortable().
+				HighlightMatches().
+				SearchTermPositions().
+				StoreValue()).
+			AddField(documents.NewTextField("dept", "ABC dept").
+				Aggregatable().
+				Sortable().
+				HighlightMatches().
+				SearchTermPositions().
+				StoreValue()).
+			AddField(documents.NewTextField("reportsTo.id", "ABC").
+				Aggregatable().
+				Sortable().
+				HighlightMatches().
+				SearchTermPositions().
+				StoreValue()).
+			AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
+
+		doc.Analyze() // ← try calling this explicitly first
 		results = append(results, doc)
 	}
 
@@ -131,13 +219,28 @@ func buildTestAnalysisResultsMultiWithDifferentFields(includeDocA, includeDocB b
 
 func buildTestSegmentWithDefaultFieldMapping(chunkFactor uint32) (
 	*Segment, []string, error) {
-	doc := &FakeDocument{
-		NewFakeField("_id", "a", true, false, false),
-		NewFakeField("name", "wow", false, false, true),
-		NewFakeField("desc", "some thing", false, false, true),
-		NewFakeField("tag", "cold", false, false, true),
-	}
-	doc.FakeComposite("_all", []string{"_id"})
+	doc := documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "wow").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("desc", "some thing").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "cold").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
+
+	doc.Analyze() // ← try calling this explicitly first
 
 	var fields []string
 	fields = append(fields, "_id", "name", "desc", "tag")

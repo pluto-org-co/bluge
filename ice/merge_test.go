@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -667,23 +668,62 @@ func buildTestSegmentMulti2() (*Segment, uint64, error) {
 }
 
 func buildTestSegmentMultiHelper(docIds []string) (*Segment, uint64, error) {
-	doc := &FakeDocument{
-		NewFakeField("_id", docIds[0], true, false, false),
-		NewFakeField("name", "mat", true, true, false),
-		NewFakeField("desc", "some thing", true, true, false),
-		NewFakeField("tag", "cold", true, true, false),
-		NewFakeField("tag", "dark", true, true, false),
-	}
-	doc.FakeComposite("_all", []string{"_id"})
+	doc := documents.NewDocument(docIds[0]).
+		AddField(documents.NewTextField("name", "mat").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("desc", "some thing").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "cold").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "dark").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
-	doc2 := &FakeDocument{
-		NewFakeField("_id", docIds[1], true, false, false),
-		NewFakeField("name", "joa", true, true, false),
-		NewFakeField("desc", "some thing", true, true, false),
-		NewFakeField("tag", "cold", true, true, false),
-		NewFakeField("tag", "dark", true, true, false),
-	}
-	doc2.FakeComposite("_all", []string{"_id"})
+	doc2 := documents.NewDocument(docIds[0]).
+		AddField(documents.NewTextField("name", "joa").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("desc", "some thing").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "cold").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "dark").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
+
+	doc.Analyze()  // ← try calling this explicitly first
+	doc2.Analyze() // ← try calling this explicitly first
 
 	results := []segment.Document{doc, doc2}
 
