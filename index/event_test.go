@@ -16,6 +16,8 @@ package index
 
 import (
 	"testing"
+
+	"github.com/pluto-org-co/bluge/documents"
 )
 
 func TestEventBatchIntroductionStart(t *testing.T) {
@@ -39,10 +41,10 @@ func TestEventBatchIntroductionStart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 
 	b := NewBatch()
 	b.Update(testIdentifier("1"), doc)

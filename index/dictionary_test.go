@@ -17,6 +17,8 @@ package index
 import (
 	"reflect"
 	"testing"
+
+	"github.com/pluto-org-co/bluge/documents"
 )
 
 func TestIndexFieldDict(t *testing.T) {
@@ -39,10 +41,14 @@ func TestIndexFieldDict(t *testing.T) {
 		}
 	}()
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.
+			NewTextField("name", "test").
+			StoreValue().
+			SearchTermPositions())
+
+	doc.Analyze() // ← try calling this explicitly first
+
 	b := NewBatch()
 	b.Update(testIdentifier("1"), doc)
 	err = idx.Batch(b)
@@ -50,12 +56,17 @@ func TestIndexFieldDict(t *testing.T) {
 		t.Errorf("Error updating index: %v", err)
 	}
 
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test test test", false, false, true),
-		NewFakeField("desc", "eat more rice", false, true, true),
-		NewFakeField("prefix", "bob cat cats catting dog doggy zoo", false, true, true),
-	}
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test test test").
+			Aggregatable()).
+		AddField(documents.NewTextField("desc", "eat more rice").
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewTextField("prefix", "bob cat cats catting dog doggy zoo").
+			SearchTermPositions().
+			Aggregatable())
+	doc.Analyze()
+
 	b2 := NewBatch()
 	b2.Update(testIdentifier("2"), doc)
 	err = idx.Batch(b2)

@@ -18,6 +18,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -42,10 +43,10 @@ func TestIndexReader(t *testing.T) {
 	}()
 
 	var expectedCount uint64
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
 	b.Update(testIdentifier("1"), doc)
 	err = idx.Batch(b)
@@ -54,11 +55,13 @@ func TestIndexReader(t *testing.T) {
 	}
 	expectedCount++
 
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test test test", false, false, true),
-		NewFakeField("desc", "eat more rice", false, true, true),
-	}
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test test test").
+			Aggregatable()).
+		AddField(documents.NewTextField("desc", "eat more rice").
+			SearchTermPositions().
+			Aggregatable())
+	doc.Analyze()
 	b2 := NewBatch()
 	b2.Update(testIdentifier("2"), doc)
 	err = idx.Batch(b2)
@@ -232,10 +235,10 @@ func TestIndexDocIdReader(t *testing.T) {
 	}()
 
 	var expectedCount uint64
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
 	b.Update(testIdentifier("1"), doc)
 	err = idx.Batch(b)
@@ -244,11 +247,13 @@ func TestIndexDocIdReader(t *testing.T) {
 	}
 	expectedCount++
 
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test test test", false, false, true),
-		NewFakeField("desc", "eat more rice", false, true, true),
-	}
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test test test").
+			Aggregatable()).
+		AddField(documents.NewTextField("desc", "eat more rice").
+			SearchTermPositions().
+			Aggregatable())
+	doc.Analyze()
 	b2 := NewBatch()
 	b2.Update(testIdentifier("2"), doc)
 	err = idx.Batch(b2)
