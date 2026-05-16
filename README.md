@@ -10,7 +10,7 @@ modern text indexing in go - [blugelabs.com](https://www.blugelabs.com/)
 
 This is a mono-repo fork of [bluge](https://github.com/blugelabs/bluge) maintained by [Pluto](https://github.com/pluto-org-co), optimized for high-throughput offline indexing workloads.
 
-**Indexing performance:** ~75% faster than upstream on the full offline indexing pipeline (`WriterOffline` -- parallel document analysis, segment creation, and multi-pass merge), measured by indexing 1 million documents with 4 keyword fields each (11.785s → 6.733s).
+**Indexing performance:** ~75% faster than upstream on the full offline indexing pipeline (`WriterOffline` -- parallel document analysis, segment creation, and multi-pass merge), measured by indexing 1 million documents with 4 keyword fields each (15s → 5.9s).
 
 This fork is optimized for multi-core server hardware and trades CPU utilization for indexing throughput -- peak CPU usage during batch indexing is expected and intentional.
 
