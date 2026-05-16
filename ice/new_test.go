@@ -70,28 +70,28 @@ func buildTestSegment() (*Segment, error) {
 	}
 
 	seg, _, err := newWithChunkMode(results, encodeNorm, defaultChunkMode)
-	return seg.(*Segment), err
+	return seg, err
 }
 
 func buildTestSegmentMulti() (*Segment, error) {
 	results := buildTestAnalysisResultsMulti()
 
 	seg, _, err := newWithChunkMode(results, encodeNorm, defaultChunkMode)
-	return seg.(*Segment), err
+	return seg, err
 }
 
 func buildTestSegmentMultiWithChunkFactor(chunkFactor uint32) (*Segment, error) {
 	results := buildTestAnalysisResultsMulti()
 
 	seg, _, err := newWithChunkMode(results, encodeNorm, chunkFactor)
-	return seg.(*Segment), err
+	return seg, err
 }
 
 func buildTestSegmentMultiWithDifferentFields(includeDocA, includeDocB bool) (*Segment, error) {
 	results := buildTestAnalysisResultsMultiWithDifferentFields(includeDocA, includeDocB)
 
 	seg, _, err := newWithChunkMode(results, encodeNorm, defaultChunkMode)
-	return seg.(*Segment), err
+	return seg, err
 }
 
 func buildTestAnalysisResultsMulti() []*documents.Document {
@@ -250,5 +250,5 @@ func buildTestSegmentWithDefaultFieldMapping(chunkFactor uint32) (
 
 	sb, _, err := newWithChunkMode(results, encodeNorm, chunkFactor)
 
-	return sb.(*Segment), fields, err
+	return sb, fields, err
 }

@@ -26,7 +26,6 @@ import (
 	"github.com/RoaringBitmap/roaring"
 
 	"github.com/pluto-org-co/bluge/ice"
-	"github.com/pluto-org-co/bluge/segment"
 )
 
 type WriterOffline struct {
@@ -233,7 +232,7 @@ func (s *WriterOffline) doMerge() error {
 				// Capture any early return
 				defer cleanupClosers()
 
-				var mergeSegments = make([]segment.Segment, 0, len(chunk))
+				var mergeSegments = make([]*ice.Segment, 0, len(chunk))
 				for _, mergeID := range chunk {
 					data, closer, err := s.directory.Load(ItemKindSegment, mergeID)
 					if err != nil {

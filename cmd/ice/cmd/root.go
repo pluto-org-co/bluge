@@ -45,7 +45,7 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("error opening file: %v", err)
 		}
-		seg = segInt.(*ice.Segment)
+		seg = segInt
 
 		return nil
 	},
@@ -82,7 +82,7 @@ var noCloseFunc = func() error {
 	return nil
 }
 
-func openFromFile(path string) (segment.Segment, closeFunc, error) {
+func openFromFile(path string) (*ice.Segment, closeFunc, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, noCloseFunc, err

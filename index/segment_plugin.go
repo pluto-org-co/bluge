@@ -20,7 +20,6 @@ import (
 
 	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/ice"
-	"github.com/pluto-org-co/bluge/segment"
 )
 
 func (s *Writer) newSegment(results []*documents.Document) (*segmentWrapper, uint64, error) {
@@ -32,7 +31,7 @@ func (s *Writer) newSegment(results []*documents.Document) (*segmentWrapper, uin
 }
 
 type segmentWrapper struct {
-	segment.Segment
+	*ice.Segment
 	refCounter
 	persisted bool
 }

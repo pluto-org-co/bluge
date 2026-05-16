@@ -67,7 +67,7 @@ func TestMerge(t *testing.T) {
 		}
 	}()
 
-	segsToMerge := make([]segment.Segment, 2)
+	segsToMerge := make([]*Segment, 2)
 	segsToMerge[0] = seg
 	segsToMerge[1] = segment2
 
@@ -130,7 +130,7 @@ func testMergeWithEmptySegments(t *testing.T, before bool, numEmptySegments int)
 		}
 	}()
 
-	var segsToMerge []segment.Segment
+	var segsToMerge []*Segment
 
 	if before {
 		segsToMerge = append(segsToMerge, seg)
@@ -196,7 +196,7 @@ func createAndPersistEmptySegment(t *testing.T, path string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = persistToFile(emptySegment.(*Segment), path)
+	err = persistToFile(emptySegment, path)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -214,7 +214,7 @@ func testMergeWithSelf(t *testing.T, segCur *Segment, expectedCount uint64) {
 
 		segPath := filepath.Join(path, fname)
 
-		segsToMerge := make([]segment.Segment, 1)
+		segsToMerge := make([]*Segment, 1)
 		segsToMerge[0] = segCur
 
 		_, err := mergeSegments(segsToMerge, []*roaring.Bitmap{nil, nil}, segPath)
@@ -537,7 +537,7 @@ func testMergeAndDrop(t *testing.T, docsToDrop []*roaring.Bitmap) {
 		}
 	}()
 
-	segsToMerge := make([]segment.Segment, 2)
+	segsToMerge := make([]*Segment, 2)
 	segsToMerge[0] = seg
 	segsToMerge[1] = segment2
 
@@ -602,7 +602,7 @@ func testMergeWithUpdates(t *testing.T, segmentDocIds [][]string, docsToDrop []*
 	path, cleanup := setupTestDir(t)
 	defer cleanup()
 
-	var segsToMerge []segment.Segment
+	var segsToMerge []*Segment
 
 	// convert segmentDocIds to segsToMerge
 	for i, docIds := range segmentDocIds {
@@ -632,7 +632,7 @@ func testMergeWithUpdates(t *testing.T, segmentDocIds [][]string, docsToDrop []*
 	testMergeAndDropSegments(t, segsToMerge, docsToDrop, expectedNumDocs)
 }
 
-func testMergeAndDropSegments(t *testing.T, segsToMerge []segment.Segment, docsToDrop []*roaring.Bitmap, expectedNumDocs uint64) {
+func testMergeAndDropSegments(t *testing.T, segsToMerge []*Segment, docsToDrop []*roaring.Bitmap, expectedNumDocs uint64) {
 	path, cleanup := setupTestDir(t)
 	defer cleanup()
 
@@ -728,7 +728,7 @@ func buildTestSegmentMultiHelper(docIds []string) (*Segment, uint64, error) {
 	results := []*documents.Document{doc, doc2}
 
 	seg, size, err := newWithChunkMode(results, encodeNorm, 1024)
-	return seg.(*Segment), size, err
+	return seg, size, err
 }
 
 func TestMergeBytesWritten(t *testing.T) {
@@ -771,7 +771,7 @@ func TestMergeBytesWritten(t *testing.T) {
 		}
 	}()
 
-	segsToMerge := make([]segment.Segment, 2)
+	segsToMerge := make([]*Segment, 2)
 	segsToMerge[0] = seg
 	segsToMerge[1] = segment2
 

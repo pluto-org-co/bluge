@@ -216,9 +216,9 @@ func (s *Writer) executeMergeTask(merges chan *segmentMerge, task *mergeplan.Mer
 }
 
 func (s *Writer) planSegmentsToMerge(task *mergeplan.MergeTask) (oldMap map[uint64]*segmentSnapshot,
-	segmentsToMerge []segment.Segment, docsToDrop []*roaring.Bitmap) {
+	segmentsToMerge []*ice.Segment, docsToDrop []*roaring.Bitmap) {
 	oldMap = make(map[uint64]*segmentSnapshot)
-	segmentsToMerge = make([]segment.Segment, 0, len(task.Segments))
+	segmentsToMerge = make([]*ice.Segment, 0, len(task.Segments))
 	docsToDrop = make([]*roaring.Bitmap, 0, len(task.Segments))
 	for _, planSegment := range task.Segments {
 		if segSnapshot, ok := planSegment.(*segmentSnapshot); ok {
@@ -289,7 +289,7 @@ func (s *segmentMerge) ProcessSegmentNow(segmentID uint64, segSnapNow *segmentSn
 // persisted segment, and synchronously introduce that new segment
 // into the root
 func (s *Writer) mergeSegmentBases(merges chan *segmentMerge, snapshot *Snapshot,
-	sbs []segment.Segment, sbsDrops []*roaring.Bitmap,
+	sbs []*ice.Segment, sbsDrops []*roaring.Bitmap,
 	sbsIndexes []int) (*Snapshot, uint64, error) {
 	atomic.AddUint64(&s.stats.TotMemMergeBeg, 1)
 
@@ -362,7 +362,7 @@ func (s *Writer) mergeSegmentBases(merges chan *segmentMerge, snapshot *Snapshot
 	return newSnapshot, newSegmentID, nil
 }
 
-func (s *Writer) merge(segments []segment.Segment, drops []*roaring.Bitmap, id uint64) (
+func (s *Writer) merge(segments []*ice.Segment, drops []*roaring.Bitmap, id uint64) (
 	[][]uint64, error) {
 	merger := ice.Merge(segments, drops, s.config.MergeBufferSize)
 

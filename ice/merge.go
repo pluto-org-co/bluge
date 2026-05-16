@@ -35,7 +35,7 @@ const docDropped = math.MaxInt64 // sentinel docNum to represent a deleted doc
 const _idFieldName = "_id"
 
 type Merger struct {
-	segments        []segment.Segment
+	segments        []*Segment
 	drops           []*roaring.Bitmap
 	newDocNums      [][]uint64
 	mergeBufferSize int
@@ -64,7 +64,7 @@ func (m *Merger) DocumentNumbers() [][]uint64 {
 	return m.newDocNums
 }
 
-func Merge(segments []segment.Segment, drops []*roaring.Bitmap, mergeBufferSize int) segment.Merger {
+func Merge(segments []*Segment, drops []*roaring.Bitmap, mergeBufferSize int) segment.Merger {
 	return &Merger{
 		segments:        segments,
 		drops:           drops,
@@ -72,18 +72,8 @@ func Merge(segments []segment.Segment, drops []*roaring.Bitmap, mergeBufferSize 
 	}
 }
 
-func merge(segments []segment.Segment, drops []*roaring.Bitmap,
-	w io.Writer, closeCh chan struct{}) (newDocNums [][]uint64, n uint64, err error) {
-	segmentBases := make([]*Segment, len(segments))
-	for segmenti, seg := range segments {
-		switch segmentx := seg.(type) {
-		case *Segment:
-			segmentBases[segmenti] = segmentx
-		default:
-			panic(fmt.Sprintf("oops, unexpected segment type: %T", seg))
-		}
-	}
-	return mergeSegmentBasesWriter(segmentBases, drops, w, defaultChunkMode, closeCh)
+func merge(segments []*Segment, drops []*roaring.Bitmap, w io.Writer, closeCh chan struct{}) (newDocNums [][]uint64, n uint64, err error) {
+	return mergeSegmentBasesWriter(segments, drops, w, defaultChunkMode, closeCh)
 }
 
 func mergeSegmentBasesWriter(segmentBases []*Segment, drops []*roaring.Bitmap, w io.Writer,

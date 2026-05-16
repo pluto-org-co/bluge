@@ -23,7 +23,7 @@ import (
 )
 
 // Open returns an impl of a segment
-func Load(data *segment.Data) (segment.Segment, error) {
+func Load(data *segment.Data) (*Segment, error) {
 	return load(data)
 }
 

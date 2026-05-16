@@ -36,12 +36,12 @@ var newSegmentBufferAvgBytesPerDocFactor = 1.0
 // New creates an in-memory implementation
 // of a segment for the source documents
 func New(results []*documents.Document, normCalc func(string, int) float32) (
-	segment.Segment, uint64, error) {
+	*Segment, uint64, error) {
 	return newWithChunkMode(results, normCalc, defaultChunkMode)
 }
 
 func newWithChunkMode(results []*documents.Document, normCalc func(string, int) float32,
-	chunkMode uint32) (segment.Segment, uint64, error) {
+	chunkMode uint32) (*Segment, uint64, error) {
 	s := interimPool.Get().(*interim)
 
 	s.normCalc = normCalc

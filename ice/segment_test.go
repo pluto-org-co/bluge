@@ -499,7 +499,7 @@ func TestMergedSegmentDocsWithNonOverlappingFields(t *testing.T) {
 		}
 	}()
 
-	segsToMerge := make([]segment.Segment, 2)
+	segsToMerge := make([]*Segment, 2)
 	segsToMerge[0] = segment1
 	segsToMerge[1] = segment2
 

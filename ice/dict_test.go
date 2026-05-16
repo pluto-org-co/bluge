@@ -45,7 +45,7 @@ func buildTestSegmentForDict() (*Segment, error) {
 
 	results := []*documents.Document{doc}
 	seg, _, err := newWithChunkMode(results, encodeNorm, 1024)
-	return seg.(*Segment), err
+	return seg, err
 }
 
 func TestDictionary(t *testing.T) {

@@ -153,7 +153,7 @@ func persistToFile(sb *Segment, path string) error {
 
 var DefaultFileMergerBufferSize = 1024 * 1024
 
-func mergeSegments(segments []segment.Segment, drops []*roaring.Bitmap, path string) (uint64, error) {
+func mergeSegments(segments []*Segment, drops []*roaring.Bitmap, path string) (uint64, error) {
 	flag := os.O_RDWR | os.O_CREATE
 
 	f, err := os.OpenFile(path, flag, 0600)
