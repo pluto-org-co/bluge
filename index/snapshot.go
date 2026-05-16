@@ -26,6 +26,7 @@ import (
 	"sync/atomic"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -164,7 +165,7 @@ func (i *Snapshot) DictionaryLookup(field string) (segment.DictionaryLookup, err
 	return i.newDictionary(field, nil, true)
 }
 
-func (i *Snapshot) DictionaryIterator(field string, automaton segment.Automaton, start, end []byte) (
+func (i *Snapshot) DictionaryIterator(field string, automaton vellum.Automaton, start, end []byte) (
 	segment.DictionaryIterator, error) {
 	return i.newDictionary(field, func(i segment.Dictionary) segment.DictionaryIterator {
 		return i.Iterator(automaton, start, end)

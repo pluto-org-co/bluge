@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"unicode/utf8"
 
-	"github.com/pluto-org-co/bluge/segment"
-
 	"github.com/blevesearch/vellum"
 	"github.com/blevesearch/vellum/levenshtein"
 	"github.com/pluto-org-co/bluge/search"
@@ -114,7 +112,7 @@ func findFuzzyCandidateTerms(indexReader search.Reader, term string,
 	return terms, boosts, err
 }
 
-func boostFromDistance(fuzziness int, automatons []segment.Automaton, dictTerm string, searchTermLen int) float64 {
+func boostFromDistance(fuzziness int, automatons []vellum.Automaton, dictTerm string, searchTermLen int) float64 {
 	termEditDistance := fuzziness // start assuming it is fuzziness of automaton that found it
 	for i := 1; i < len(automatons); i++ {
 		if vellum.AutomatonContains(automatons[i], []byte(dictTerm)) {
@@ -129,16 +127,16 @@ func boostFromDistance(fuzziness int, automatons []segment.Automaton, dictTerm s
 	return 1.0 - (float64(termEditDistance) / float64(minTermLen))
 }
 
-func getLevAutomaton(term string, fuzziness int) (segment.Automaton, error) {
+func getLevAutomaton(term string, fuzziness int) (vellum.Automaton, error) {
 	if levAutomatonBuilder, ok := levAutomatonBuilders[fuzziness]; ok {
 		return levAutomatonBuilder.BuildDfa(term, uint8(fuzziness))
 	}
 	return nil, fmt.Errorf("unsupported fuzziness: %d", fuzziness)
 }
 
-func getLevAutomatons(term string, maxFuzziness int) (rv []segment.Automaton, err error) {
+func getLevAutomatons(term string, maxFuzziness int) (rv []vellum.Automaton, err error) {
 	for fuzziness := maxFuzziness; fuzziness > 0; fuzziness-- {
-		var levAutomaton segment.Automaton
+		var levAutomaton vellum.Automaton
 		levAutomaton, err = getLevAutomaton(term, fuzziness)
 		if err != nil {
 			return nil, err

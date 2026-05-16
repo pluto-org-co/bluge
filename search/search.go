@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/analysis"
@@ -344,7 +345,7 @@ type Reader interface {
 	// DictionaryIterator provides a way to explore the terms used in the
 	// specified field.  You can optionally filter these terms
 	// by the provided Automaton, or start/end terms.
-	DictionaryIterator(field string, automaton segment.Automaton, start,
+	DictionaryIterator(field string, automaton vellum.Automaton, start,
 		end []byte) (segment.DictionaryIterator, error)
 
 	// PostingsIterator provides a way to find information about all documents

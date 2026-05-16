@@ -19,6 +19,7 @@ import (
 	"io"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/blevesearch/vellum"
 )
 
 var ErrClosed = fmt.Errorf("index closed")
@@ -42,7 +43,7 @@ type Dictionary interface {
 
 	PostingsList(term []byte, except *roaring.Bitmap, prealloc PostingsList) (PostingsList, error)
 
-	Iterator(a Automaton,
+	Iterator(a vellum.Automaton,
 		startKeyInclusive, endKeyExclusive []byte) DictionaryIterator
 }
 

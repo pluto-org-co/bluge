@@ -109,7 +109,7 @@ func (d *Dictionary) Close() error {
 
 // Iterator returns an iterator which only visits terms
 // having the the vellum automaton and start/end key range
-func (d *Dictionary) Iterator(a segment.Automaton,
+func (d *Dictionary) Iterator(a vellum.Automaton,
 	startKeyInclusive, endKeyExclusive []byte) segment.DictionaryIterator {
 	if d.fst != nil {
 		rv := &DictionaryIterator{

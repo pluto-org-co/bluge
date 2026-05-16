@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/search/similarity"
@@ -299,7 +300,7 @@ func (sd *stubDictItr) Close() error {
 	return nil
 }
 
-func (s *stubIndexReader) DictionaryIterator(field string, a segment.Automaton, startTerm, endTerm []byte) (segment.DictionaryIterator, error) {
+func (s *stubIndexReader) DictionaryIterator(field string, a vellum.Automaton, startTerm, endTerm []byte) (segment.DictionaryIterator, error) {
 	fd := s.field(field)
 	sdi := newStubDictItr(fd)
 
@@ -329,7 +330,7 @@ func (s *stubIndexReader) DictionaryIterator(field string, a segment.Automaton, 
 	return sdi, nil
 }
 
-func automatonAccepts(a segment.Automaton, val string) bool {
+func automatonAccepts(a vellum.Automaton, val string) bool {
 	valBytes := []byte(val)
 	var i int
 	curr := a.Start()
