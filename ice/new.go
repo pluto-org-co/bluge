@@ -24,6 +24,7 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
 	"github.com/klauspost/compress/snappy"
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
 )
@@ -34,12 +35,12 @@ var newSegmentBufferAvgBytesPerDocFactor = 1.0
 
 // New creates an in-memory implementation
 // of a segment for the source documents
-func New(results []segment.Document, normCalc func(string, int) float32) (
+func New(results []*documents.Document, normCalc func(string, int) float32) (
 	segment.Segment, uint64, error) {
 	return newWithChunkMode(results, normCalc, defaultChunkMode)
 }
 
-func newWithChunkMode(results []segment.Document, normCalc func(string, int) float32,
+func newWithChunkMode(results []*documents.Document, normCalc func(string, int) float32,
 	chunkMode uint32) (segment.Segment, uint64, error) {
 	s := interimPool.Get().(*interim)
 
@@ -115,7 +116,7 @@ var interimPool = sync.Pool{New: func() any { return &interim{} }}
 // interim holds temporary working data used while converting from
 // the source operations to an encoded segment
 type interim struct {
-	documents []segment.Document
+	documents []*documents.Document
 
 	chunkMode uint32
 
@@ -399,7 +400,7 @@ func (s *interim) prepareDicts() {
 	}
 }
 
-func (s *interim) prepareDictsForDocument(result segment.Document, pidNext, totLocs, totTFs int) (pidNextOut, totLocsOut, totTFsOut int) {
+func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, totLocs, totTFs int) (pidNextOut, totLocsOut, totTFsOut int) {
 	fieldsSeen := map[uint16]struct{}{}
 	result.EachField(func(field segment.Field) {
 		fieldID := uint16(s.getOrDefineField(field.Name()))
@@ -466,7 +467,7 @@ func (s *interim) processDocuments() {
 
 func (s *interim) processDocument(
 	docNum uint64,
-	result segment.Document,
+	result *documents.Document,
 	fieldLens []int,
 	fieldTFs []tokenFrequencies,
 ) {

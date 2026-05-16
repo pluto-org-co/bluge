@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/search/similarity"
 
@@ -60,7 +61,7 @@ func (s stubDict) Close() error {
 
 type stubIndexReader struct {
 	inv       map[string]stubDict
-	doc       map[uint64]segment.Document
+	doc       map[uint64]*documents.Document
 	docExtInt map[string]uint64
 	count     uint64
 	uninv     map[uint64]map[string][]string
@@ -72,7 +73,7 @@ type stubIndexReader struct {
 func newStubIndexReader() *stubIndexReader {
 	return &stubIndexReader{
 		inv:        make(map[string]stubDict),
-		doc:        make(map[uint64]segment.Document),
+		doc:        make(map[uint64]*documents.Document),
 		docExtInt:  make(map[string]uint64),
 		uninv:      make(map[uint64]map[string][]string),
 		fieldDocs:  make(map[string]uint64),
@@ -89,7 +90,7 @@ func (s *stubIndexReader) field(f string) stubDict {
 	return fd
 }
 
-func (s *stubIndexReader) add(d segment.Document) {
+func (s *stubIndexReader) add(d *documents.Document) {
 	docNum := s.count
 	s.count++
 

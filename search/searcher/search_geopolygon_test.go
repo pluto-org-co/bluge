@@ -18,9 +18,8 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search/similarity"
-
-	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/numeric/geo"
 	"github.com/pluto-org-co/bluge/search"
@@ -180,7 +179,7 @@ func testGeoPolygonSearch(i search.Reader, polygon []geo.Point, field string) ([
 }
 
 func setupGeoPolygonPoints() *stubIndexReader {
-	docs := []segment.Document{
+	docs := []*documents.Document{
 		newGeoDoc("k", -80.86469327, 35.2782),
 		newGeoDoc("l", -80.8713, 35.28138),
 		newGeoDoc("m", -84.25, 33.153),

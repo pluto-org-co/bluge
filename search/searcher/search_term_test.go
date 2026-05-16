@@ -18,7 +18,6 @@ import (
 	"testing"
 
 	"github.com/pluto-org-co/bluge/documents"
-	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/search"
 )
@@ -28,71 +27,71 @@ func TestTermSearcher(t *testing.T) {
 	var queryField = "desc"
 	var queryBoost = 3.0
 
-	docs := []segment.Document{
-		func() segment.Document {
+	docs := []*documents.Document{
+		func() *documents.Document {
 			doc := documents.NewDocument("a").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("b").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("c").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("d").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("e").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("f").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("g").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("h").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("i").
 				AddField(documents.NewTextField("desc", "beer").
 					Aggregatable())
 			doc.Analyze()
 			return doc
 		}(),
-		func() segment.Document {
+		func() *documents.Document {
 			doc := documents.NewDocument("j").
 				AddField(documents.NewTextField("title", "cat").
 					Aggregatable())

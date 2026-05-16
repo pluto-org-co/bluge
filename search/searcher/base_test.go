@@ -20,7 +20,6 @@ import (
 	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/search/similarity"
-	"github.com/pluto-org-co/bluge/segment"
 )
 
 var baseTestIndexReaderDirect *stubIndexReader
@@ -41,7 +40,7 @@ var testSearchOptions = search.SearcherOptions{
 	Explain: true,
 }
 
-func makeDoc(id string, fields ...*documents.Field) segment.Document {
+func makeDoc(id string, fields ...*documents.Field) *documents.Document {
 	doc := documents.NewDocument(id)
 	for _, f := range fields {
 		doc.AddField(f)
@@ -50,9 +49,9 @@ func makeDoc(id string, fields ...*documents.Field) segment.Document {
 	return doc
 }
 
-var baseTestIndexDocs = []segment.Document{
+var baseTestIndexDocs = []*documents.Document{
 	// must have 4/4 beer
-	func() segment.Document {
+	func() *documents.Document {
 		doc := documents.NewDocument("1").
 			AddField(documents.NewTextField("name", "marty").
 				Aggregatable()).
@@ -65,7 +64,7 @@ var baseTestIndexDocs = []segment.Document{
 		return doc
 	}(),
 	// must have 1/4 beer
-	func() segment.Document {
+	func() *documents.Document {
 		doc := documents.NewDocument("2").
 			AddField(documents.NewTextField("name", "steve").
 				Aggregatable()).
@@ -80,7 +79,7 @@ var baseTestIndexDocs = []segment.Document{
 		return doc
 	}(),
 	// must have 1/4 beer
-	func() segment.Document {
+	func() *documents.Document {
 		doc := documents.NewDocument("3").
 			AddField(documents.NewTextField("name", "dustin").
 				Aggregatable()).
@@ -93,7 +92,7 @@ var baseTestIndexDocs = []segment.Document{
 		return doc
 	}(),
 	// must have 65/65 beer
-	func() segment.Document {
+	func() *documents.Document {
 		doc := documents.NewDocument("4").
 			AddField(documents.NewTextField("name", "ravi").
 				Aggregatable()).
@@ -104,7 +103,7 @@ var baseTestIndexDocs = []segment.Document{
 		return doc
 	}(),
 	// must have 0/x beer
-	func() segment.Document {
+	func() *documents.Document {
 		doc := documents.NewDocument("5").
 			AddField(documents.NewTextField("name", "bobert").
 				Aggregatable()).

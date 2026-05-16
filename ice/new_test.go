@@ -19,7 +19,6 @@ import (
 	"testing"
 
 	"github.com/pluto-org-co/bluge/documents"
-	"github.com/pluto-org-co/bluge/segment"
 )
 
 func TestBuild(t *testing.T) {
@@ -66,7 +65,7 @@ func buildTestSegment() (*Segment, error) {
 		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
 	doc.Analyze() // ← try calling this explicitly first
-	results := []segment.Document{
+	results := []*documents.Document{
 		doc,
 	}
 
@@ -95,7 +94,7 @@ func buildTestSegmentMultiWithDifferentFields(includeDocA, includeDocB bool) (*S
 	return seg.(*Segment), err
 }
 
-func buildTestAnalysisResultsMulti() []segment.Document {
+func buildTestAnalysisResultsMulti() []*documents.Document {
 	doc := documents.NewDocument("a").
 		AddField(documents.NewTextField("name", "wow").
 			Aggregatable().
@@ -146,15 +145,15 @@ func buildTestAnalysisResultsMulti() []segment.Document {
 
 	doc.Analyze()  // ← try calling this explicitly first
 	doc2.Analyze() // ← try calling this explicitly first
-	results := []segment.Document{
+	results := []*documents.Document{
 		doc, doc2,
 	}
 
 	return results
 }
 
-func buildTestAnalysisResultsMultiWithDifferentFields(includeDocA, includeDocB bool) []segment.Document {
-	var results []segment.Document
+func buildTestAnalysisResultsMultiWithDifferentFields(includeDocA, includeDocB bool) []*documents.Document {
+	var results []*documents.Document
 
 	if includeDocA {
 		doc := documents.NewDocument("a").
@@ -245,7 +244,7 @@ func buildTestSegmentWithDefaultFieldMapping(chunkFactor uint32) (
 	var fields []string
 	fields = append(fields, "_id", "name", "desc", "tag")
 
-	results := []segment.Document{
+	results := []*documents.Document{
 		doc,
 	}
 

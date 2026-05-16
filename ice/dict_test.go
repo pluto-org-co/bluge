@@ -43,7 +43,7 @@ func buildTestSegmentForDict() (*Segment, error) {
 		})
 	})
 
-	results := []segment.Document{doc}
+	results := []*documents.Document{doc}
 	seg, _, err := newWithChunkMode(results, encodeNorm, 1024)
 	return seg.(*Segment), err
 }
