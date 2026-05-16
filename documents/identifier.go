@@ -14,10 +14,6 @@
 
 package documents
 
-import (
-	"github.com/pluto-org-co/bluge/index"
-)
-
 const IdFieldName = "_id"
 
 type Identifier string
@@ -28,9 +24,4 @@ func (i Identifier) Field() string {
 
 func (i Identifier) Term() []byte {
 	return []byte(i)
-}
-
-// NewBatch creates a new empty batch.
-func NewBatch() *index.Batch {
-	return index.NewBatch()
 }

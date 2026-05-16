@@ -216,7 +216,7 @@ func TestNumericField(t *testing.T) {
 	if numTokens != 16 {
 		t.Errorf("expected 16 tokens, got %d ", numTokens)
 	}
-	tokenFreqs := nf.analyzedTokenFreqs
+	tokenFreqs := nf.AnalyzedTokenFreqs
 	if len(tokenFreqs) != 16 {
 		t.Errorf("expected 16 token freqs, got %d", len(tokenFreqs))
 	}
@@ -225,7 +225,7 @@ func TestNumericField(t *testing.T) {
 func TestGeoPointField(t *testing.T) {
 	gf := NewGeoPointField("loc", 0.0015, 0.0015)
 	_ = gf.Analyze(0)
-	numTokens := gf.analyzedLength
+	numTokens := gf.AnalyzedLengthValue
 	if numTokens != 8 {
 		t.Errorf("expected 8 tokens, got %d", numTokens)
 	}

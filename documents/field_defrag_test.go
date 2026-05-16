@@ -32,7 +32,7 @@ func Test_TextFieldsFromDefinitions(t *testing.T) {
 	fmt.Println(string(info.Buffer))
 
 	for index, field := range fields {
-		if !assertions.Equal(defs[index].Name, field.name, "field name doesn't match") {
+		if !assertions.Equal(defs[index].Name, field.NameString, "field name doesn't match") {
 			return
 		}
 	}

@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/pluto-org-co/bluge/documents"
+	"github.com/pluto-org-co/bluge/index"
 	"github.com/pluto-org-co/bluge/search/aggregations"
 	"github.com/pluto-org-co/bluge/search/highlight"
 	"github.com/pluto-org-co/bluge/testsuite"
@@ -64,7 +65,7 @@ func TestNestedBooleanSearchers(t *testing.T) {
 	}
 
 	// create and insert documents as a batch
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	matches := 0
 	for i := 0; i < 100; i++ {
 		hostname := fmt.Sprintf("planner_hostname_%d", i%5)
@@ -149,7 +150,7 @@ func TestNestedBooleanMustNotSearcher(t *testing.T) {
 	}
 
 	// create and insert documents as a batch
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 
 	docs := []struct {
 		id              string
@@ -333,7 +334,7 @@ func TestMultipleNestedBooleanMustNotSearchers(t *testing.T) {
 	}
 
 	// create and insert documents as a batch
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 
 	doc := documents.NewDocument("1-child-0").
 		AddField(documents.NewTextField("id", "1-child-0")).
@@ -391,7 +392,7 @@ func TestMultipleNestedBooleanMustNotSearchers(t *testing.T) {
 	}
 
 	// Update 1st doc
-	batch = documents.NewBatch()
+	batch = index.NewBatch()
 	doc = documents.NewDocument("1-child-0").
 		AddField(documents.NewTextField("id", "1-child-0")).
 		AddField(documents.NewKeywordField("hasRole", "f")).
@@ -606,7 +607,7 @@ func TestDisjunctionQueryIncorrectMin(t *testing.T) {
 	}
 
 	// create and insert documents as a batch
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	docs := []struct {
 		field1 string
 		field2 int
@@ -680,7 +681,7 @@ func TestBooleanShouldMinPropagation(t *testing.T) {
 		AddField(documents.NewTextField("name", "jaime lannister")).
 		AddField(documents.NewTextField("dept", "kings guard"))
 
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(doc1.ID(), doc1)
 	batch.Update(doc2.ID(), doc2)
 
@@ -752,7 +753,7 @@ func TestDisjunctionMinPropagation(t *testing.T) {
 		AddField(documents.NewTextField("name", "abc")).
 		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(doc1.ID(), doc1)
 	batch.Update(doc2.ID(), doc2)
 	batch.Update(doc3.ID(), doc3)
@@ -867,7 +868,7 @@ func TestBooleanMustSingleMatchNone(t *testing.T) {
 		AddField(documents.NewTextField("languages_known", "Dutch").WithAnalyzer(customAnalyzer)).
 		AddField(documents.NewTextField("dept", "Sales").WithAnalyzer(customAnalyzer))
 
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {
@@ -930,7 +931,7 @@ func TestBooleanMustNotSingleMatchNone(t *testing.T) {
 		AddField(documents.NewTextField("languages_known", "Dutch").WithAnalyzer(customAnalyzer)).
 		AddField(documents.NewTextField("dept", "Sales").WithAnalyzer(customAnalyzer))
 
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {
@@ -1196,7 +1197,7 @@ func TestSearchHighlightingWithRegexpReplacement(t *testing.T) {
 			HighlightMatches().
 			WithAnalyzer(customAnalyzer))
 
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {
@@ -1272,7 +1273,7 @@ func TestNumericRangeSearchBoost(t *testing.T) {
 	doc := documents.NewDocument("doc").
 		AddField(documents.NewNumericField("age", 25.0))
 
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {
@@ -1325,7 +1326,7 @@ func TestBooleanSearchBoost(t *testing.T) {
 	doc := documents.NewDocument("doc").
 		AddField(documents.NewNumericField("age", 25.0))
 
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(doc.ID(), doc)
 
 	if err = indexWriter.Batch(batch); err != nil {

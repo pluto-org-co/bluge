@@ -19,8 +19,8 @@ import (
 )
 
 type Document struct {
-	hasComposites bool
-	info          *Information
+	HasComposites bool
+	Information   *Information
 	Fields        []*Field
 }
 
@@ -32,8 +32,8 @@ func NewDocument(id string) *Document {
 
 func NewDocumentWithFields(id string, info *Information, fields ...*Field) (doc *Document) {
 	doc = &Document{
-		hasComposites: info.HasComposites,
-		info:          info,
+		HasComposites: info.HasComposites,
+		Information:   info,
 		Fields:        make([]*Field, 0, 1+len(fields)),
 	}
 
@@ -44,8 +44,8 @@ func NewDocumentWithFields(id string, info *Information, fields ...*Field) (doc 
 
 func NewDocumentWithFieldsManagedId(info *Information, fields ...*Field) (doc *Document) {
 	doc = &Document{
-		hasComposites: info.HasComposites,
-		info:          info,
+		HasComposites: info.HasComposites,
+		Information:   info,
 		Fields:        fields,
 	}
 	return doc
@@ -58,8 +58,8 @@ func (d Document) ID() segment.Term {
 }
 
 func (d *Document) AddField(f *Field) *Document {
-	if !d.hasComposites && f.kind == FieldKindComposite {
-		d.hasComposites = true
+	if !d.HasComposites && f.Kind == FieldKindComposite {
+		d.HasComposites = true
 	}
 	d.Fields = append(d.Fields, f)
 	return d
@@ -78,10 +78,10 @@ func (d Document) Analyze() {
 		lastPos := field.Analyze(fieldOffset)
 		fieldOffsets[field.Name()] = lastPos
 
-		if d.hasComposites {
+		if d.HasComposites {
 			// see if any of the composite fields need this
 			for _, otherField := range d.Fields {
-				if otherField.kind != FieldKindComposite || otherField == field {
+				if otherField.Kind != FieldKindComposite || otherField == field {
 					// never include yourself
 					continue
 				}

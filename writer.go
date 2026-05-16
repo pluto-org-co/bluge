@@ -17,7 +17,6 @@ package bluge
 import (
 	"fmt"
 
-	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/index"
@@ -43,19 +42,19 @@ func OpenWriter(config Config) (*Writer, error) {
 }
 
 func (w *Writer) Insert(doc segment.Document) error {
-	b := documents.NewBatch()
+	b := index.NewBatch()
 	b.Insert(doc)
 	return w.Batch(b)
 }
 
 func (w *Writer) Update(id segment.Term, doc segment.Document) error {
-	b := documents.NewBatch()
+	b := index.NewBatch()
 	b.Update(id, doc)
 	return w.Batch(b)
 }
 
 func (w *Writer) Delete(id segment.Term) error {
-	b := documents.NewBatch()
+	b := index.NewBatch()
 	b.Delete(id)
 	return w.Batch(b)
 }

@@ -97,36 +97,36 @@ func FieldsFromDefinitions(defs ...*FieldDefinition) (info *Information, fields 
 		switch def.Kind {
 		case FieldDefinitionKindText, FieldDefinitionKindKeyword:
 			fields[index].FieldOptions = defaultTextIndexingOptions
-			fields[index].name = nameString
-			fields[index].value = value
-			fields[index].numPlainTextBytes = len(value)
-			fields[index].analyzer = def.Analizer
-			fields[index].positionIncrementGap = 100
-			fields[index].kind = FieldKindTerm
+			fields[index].NameString = nameString
+			fields[index].RawBytes = value
+			fields[index].NumPlainTextBytesValue = len(value)
+			fields[index].Analyzer = def.Analizer
+			fields[index].PositionIncrementGapValue = 100
+			fields[index].Kind = FieldKindTerm
 		case FieldDefinitionKindNumeric:
 			fields[index].FieldOptions = defaultNumericIndexingOptions
-			fields[index].name = nameString
-			fields[index].value = value
-			fields[index].numPlainTextBytes = 8
-			fields[index].analyzer = DefaultNumericAnalyzer
-			fields[index].positionIncrementGap = 100
-			fields[index].kind = FieldKindTerm
+			fields[index].NameString = nameString
+			fields[index].RawBytes = value
+			fields[index].NumPlainTextBytesValue = 8
+			fields[index].Analyzer = DefaultNumericAnalyzer
+			fields[index].PositionIncrementGapValue = 100
+			fields[index].Kind = FieldKindTerm
 		case FieldDefinitionKindGeo:
 			fields[index].FieldOptions = defaultNumericIndexingOptions
-			fields[index].name = nameString
-			fields[index].value = value
-			fields[index].numPlainTextBytes = 8
-			fields[index].analyzer = GeoAnalyzer
-			fields[index].positionIncrementGap = 100
-			fields[index].kind = FieldKindTerm
+			fields[index].NameString = nameString
+			fields[index].RawBytes = value
+			fields[index].NumPlainTextBytesValue = 8
+			fields[index].Analyzer = GeoAnalyzer
+			fields[index].PositionIncrementGapValue = 100
+			fields[index].Kind = FieldKindTerm
 		case FieldDefinitionKindDate:
 			fields[index].FieldOptions = defaultDateTimeIndexingOptions
-			fields[index].name = nameString
-			fields[index].value = value
-			fields[index].numPlainTextBytes = 8
-			fields[index].analyzer = DateAnalyzer
-			fields[index].positionIncrementGap = 100
-			fields[index].kind = FieldKindTerm
+			fields[index].NameString = nameString
+			fields[index].RawBytes = value
+			fields[index].NumPlainTextBytesValue = 8
+			fields[index].Analyzer = DateAnalyzer
+			fields[index].PositionIncrementGapValue = 100
+			fields[index].Kind = FieldKindTerm
 		default:
 			// How we should handle it?
 			// Is it composite?
@@ -158,11 +158,11 @@ func FieldsFromDefinitionsWithId[T ~string | ~[]byte](id T, defs ...*FieldDefini
 	// Prepare the id
 	delta := copy(buffer[currentPosition:], id)
 	fields[0].FieldOptions = defaultTextIndexingOptions | Sortable | Store
-	fields[0].name = IdFieldName
-	fields[0].value = buffer[currentPosition : currentPosition+delta]
-	fields[0].numPlainTextBytes = len(id)
-	fields[0].positionIncrementGap = 100
-	fields[0].kind = FieldKindTerm
+	fields[0].NameString = IdFieldName
+	fields[0].RawBytes = buffer[currentPosition : currentPosition+delta]
+	fields[0].NumPlainTextBytesValue = len(id)
+	fields[0].PositionIncrementGapValue = 100
+	fields[0].Kind = FieldKindTerm
 	currentPosition += delta
 
 	for index, def := range defs {
@@ -179,36 +179,36 @@ func FieldsFromDefinitionsWithId[T ~string | ~[]byte](id T, defs ...*FieldDefini
 		switch def.Kind {
 		case FieldDefinitionKindText, FieldDefinitionKindKeyword:
 			fields[1+index].FieldOptions = defaultTextIndexingOptions
-			fields[1+index].name = nameString
-			fields[1+index].value = value
-			fields[1+index].numPlainTextBytes = len(value)
-			fields[1+index].analyzer = def.Analizer
-			fields[1+index].positionIncrementGap = 100
-			fields[1+index].kind = FieldKindTerm
+			fields[1+index].NameString = nameString
+			fields[1+index].RawBytes = value
+			fields[1+index].NumPlainTextBytesValue = len(value)
+			fields[1+index].Analyzer = def.Analizer
+			fields[1+index].PositionIncrementGapValue = 100
+			fields[1+index].Kind = FieldKindTerm
 		case FieldDefinitionKindNumeric:
 			fields[1+index].FieldOptions = defaultNumericIndexingOptions
-			fields[1+index].name = nameString
-			fields[1+index].value = value
-			fields[1+index].numPlainTextBytes = 8
-			fields[1+index].analyzer = DefaultNumericAnalyzer
-			fields[1+index].positionIncrementGap = 100
-			fields[1+index].kind = FieldKindTerm
+			fields[1+index].NameString = nameString
+			fields[1+index].RawBytes = value
+			fields[1+index].NumPlainTextBytesValue = 8
+			fields[1+index].Analyzer = DefaultNumericAnalyzer
+			fields[1+index].PositionIncrementGapValue = 100
+			fields[1+index].Kind = FieldKindTerm
 		case FieldDefinitionKindGeo:
 			fields[1+index].FieldOptions = defaultNumericIndexingOptions
-			fields[1+index].name = nameString
-			fields[1+index].value = value
-			fields[1+index].numPlainTextBytes = 8
-			fields[1+index].analyzer = GeoAnalyzer
-			fields[1+index].positionIncrementGap = 100
-			fields[1+index].kind = FieldKindTerm
+			fields[1+index].NameString = nameString
+			fields[1+index].RawBytes = value
+			fields[1+index].NumPlainTextBytesValue = 8
+			fields[1+index].Analyzer = GeoAnalyzer
+			fields[1+index].PositionIncrementGapValue = 100
+			fields[1+index].Kind = FieldKindTerm
 		case FieldDefinitionKindDate:
 			fields[1+index].FieldOptions = defaultDateTimeIndexingOptions
-			fields[1+index].name = nameString
-			fields[1+index].value = value
-			fields[1+index].numPlainTextBytes = 8
-			fields[1+index].analyzer = DateAnalyzer
-			fields[1+index].positionIncrementGap = 100
-			fields[1+index].kind = FieldKindTerm
+			fields[1+index].NameString = nameString
+			fields[1+index].RawBytes = value
+			fields[1+index].NumPlainTextBytesValue = 8
+			fields[1+index].Analyzer = DateAnalyzer
+			fields[1+index].PositionIncrementGapValue = 100
+			fields[1+index].Kind = FieldKindTerm
 		}
 	}
 	return &Information{Buffer: buffer}, fields

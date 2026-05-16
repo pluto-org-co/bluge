@@ -82,7 +82,7 @@ func TestCrud(t *testing.T) {
 	docB := documents.NewDocument("b").
 		AddField(documents.NewTextField("name", "steve")).
 		AddField(documents.NewTextField("desc", "cbft master"))
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(docB.ID(), docB)
 
 	batch.Delete(documents.Identifier("x"))
@@ -568,7 +568,7 @@ func TestIndexCountMatchSearch(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func(i int) {
-			b := documents.NewBatch()
+			b := index.NewBatch()
 			for j := 0; j < 200; j++ {
 				id := fmt.Sprintf("%d", (i*200)+j)
 				doc := documents.NewDocument(id).
@@ -693,7 +693,7 @@ func TestBatchRaceBug260(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := documents.NewBatch()
+	b := index.NewBatch()
 	b.Update(documents.Identifier("1"), documents.NewDocument("1"))
 	err = indexWriter.Batch(b)
 	if err != nil {
@@ -722,7 +722,7 @@ func BenchmarkBatchOverhead(b *testing.B) {
 	}
 	for n := 0; n < b.N; n++ {
 		// put 1000 items in a batch
-		batch := documents.NewBatch()
+		batch := index.NewBatch()
 		for i := 0; i < 1000; i++ {
 			doc := documents.NewDocument(fmt.Sprintf("%d", i)).
 				AddField(documents.NewKeywordField("name", "bluge"))
@@ -880,7 +880,7 @@ func TestIndexAdvancedCountMatchSearch(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func(i int) {
-			b := documents.NewBatch()
+			b := index.NewBatch()
 			for j := 0; j < 200; j++ {
 				id := fmt.Sprintf("%d", (i*200)+j)
 				doc := documents.NewDocument(id).
@@ -947,7 +947,7 @@ func BenchmarkScorchSearchOverhead(b *testing.B) {
 	}
 
 	elements := []string{"air", "water", "fire", "earth"}
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	for j := 1; j <= 10000; j++ {
 		id := fmt.Sprintf("%d", j)
 		batch.Update(documents.Identifier(id),
@@ -1044,7 +1044,7 @@ func TestBug1096(t *testing.T) {
 	// create a single batch instance that we will reuse
 	// this should be safe because we have single goroutine
 	// and we always wait for batch execution to finish
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 
 	// number of batches to execute
 	for i := 0; i < 10; i++ {
@@ -1126,7 +1126,7 @@ func TestDataRaceBug1092(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	for i := 0; i < 10; i++ {
 		err = indexWriter.Batch(batch)
 		if err != nil {
@@ -1149,7 +1149,7 @@ func TestBatchRaceBug1149(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b := documents.NewBatch()
+	b := index.NewBatch()
 	b.Delete(documents.Identifier("1"))
 	err = indexWriter.Batch(b)
 	if err != nil {
@@ -1263,7 +1263,7 @@ func TestOptimisedConjunctionSearchHits(t *testing.T) {
 		AddField(documents.NewTextField("directions", "junction of A560 and A56")).
 		AddField(documents.NewCompositeFieldExcluding("_all", nil))
 
-	b := documents.NewBatch()
+	b := index.NewBatch()
 	b.Update(docA.ID(), docA)
 	b.Update(docB.ID(), docB)
 	b.Update(docC.ID(), docC)
@@ -1408,7 +1408,7 @@ func TestInMemoryUsage(t *testing.T) {
 }
 
 func batchAddDocs(docCount int) *index.Batch {
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 
 	for i := 0; i < docCount; i++ {
 		doc := randomDoc()
@@ -1612,7 +1612,7 @@ func TestCrudWithNoMMap(t *testing.T) {
 	docB := documents.NewDocument("b").
 		AddField(documents.NewTextField("name", "steve")).
 		AddField(documents.NewTextField("desc", "cbft master"))
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	batch.Update(docB.ID(), docB)
 
 	batch.Delete(documents.Identifier("x"))
@@ -1725,7 +1725,7 @@ func TestBug87(t *testing.T) {
 
 	// create 1025 documents in a batch
 	// this should require more than one chunk in doc values
-	batch := documents.NewBatch()
+	batch := index.NewBatch()
 	for i := 0; i < 1025; i++ {
 		doc := documents.NewDocument(fmt.Sprintf("%d", i)).
 			AddField(documents.NewTextField("name", "marty").Sortable())
