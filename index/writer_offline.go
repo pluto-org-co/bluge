@@ -203,13 +203,15 @@ func (s *WriterOffline) doMerge() error {
 	defer workersPool.Put(workersCh)
 
 	for len(s.segIDs) > 1 {
-		var newIdsMutex sync.Mutex
-		var newIds = make([]uint64, 0, len(s.segIDs))
+		var newIds = make([]uint64, len(s.segIDs))
 
 		var wg sync.WaitGroup
 		var errorsCh = make(chan error, max(1, len(s.segIDs)/DefaultMergeMax))
+		var idIdx int
 		for chunk := range slices.Chunk(s.segIDs, DefaultMergeMax) {
 			<-workersCh
+			targetIdIdx := idIdx
+			idIdx++
 			wg.Go(func() {
 				defer func() { workersCh <- struct{}{} }()
 				// Cleanup code once merging is completed
@@ -266,9 +268,7 @@ func (s *WriterOffline) doMerge() error {
 					return
 				}
 
-				newIdsMutex.Lock()
-				newIds = append(newIds, newId)
-				newIdsMutex.Unlock()
+				newIds[targetIdIdx] = newId
 
 				// This is mandatory, otherwise open handles will prevent from removing old ones
 				cleanupClosers()
@@ -292,7 +292,7 @@ func (s *WriterOffline) doMerge() error {
 
 		switch len(mergingErrs) {
 		case 0:
-			s.segIDs = newIds
+			s.segIDs = newIds[:idIdx]
 		case 1:
 			return fmt.Errorf("an error ocurred during merge: %w", mergingErrs[0])
 		default:
