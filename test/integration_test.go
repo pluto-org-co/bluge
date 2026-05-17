@@ -20,7 +20,7 @@ import (
 	"io/ioutil"
 	"math"
 	"reflect"
-	"sort"
+	"slices"
 	"testing"
 
 	"github.com/pluto-org-co/bluge"
@@ -180,8 +180,8 @@ func compareFieldVals(t *testing.T, index int, field string, a, b [][]byte, numb
 	for _, bVal := range b {
 		bStrs = append(bStrs, string(bVal))
 	}
-	sort.Strings(aStrs)
-	sort.Strings(bStrs)
+	slices.Sort(aStrs)
+	slices.Sort(bStrs)
 	if !reflect.DeepEqual(aStrs, bStrs) {
 		t.Errorf("expected hit %d - %s to contain %v, got %s number: %d score: %f sort: %v", index, field, aStrs, bStrs, number, score, sortV)
 	}

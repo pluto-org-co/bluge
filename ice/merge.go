@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"sort"
+	"slices"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
@@ -821,7 +821,7 @@ func mergeFields(segments []*Segment) (same bool, fields []string) {
 		}
 	}
 
-	sort.Strings(fields[1:]) // leave _id as first
+	slices.Sort(fields[1:]) // leave _id as first
 
 	return same, fields
 }

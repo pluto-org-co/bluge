@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"math"
 	"slices"
-	"sort"
 	"sync"
 
 	"github.com/RoaringBitmap/roaring"
@@ -272,7 +271,7 @@ func (s *interim) convert() (*footer, []uint64, error) {
 		}
 	}
 
-	sort.Strings(s.FieldsNames[1:]) // keep _id as first field
+	slices.Sort(s.FieldsNames[1:]) // keep _id as first field
 
 	for fieldID, fieldName := range s.FieldsNames {
 		s.FieldsIdxMapper[fieldName] = uint16(fieldID + 1)

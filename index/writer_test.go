@@ -19,7 +19,7 @@ import (
 	"math"
 	"os"
 	"reflect"
-	"sort"
+	"slices"
 	"strconv"
 	"sync"
 	"testing"
@@ -817,7 +817,7 @@ func TestIndexBatch(t *testing.T) {
 		t.Fatalf("error getting postings")
 	}
 
-	sort.Strings(docIDs)
+	slices.Sort(docIDs)
 	expectedIDs := []string{"2", "3"}
 	if !reflect.DeepEqual(expectedIDs, docIDs) {
 		t.Errorf("expected ids: %v, got ids: %v", expectedIDs, docIDs)
@@ -1035,7 +1035,7 @@ func TestIndexTermReaderCompositeFields(t *testing.T) {
 		t.Fatalf("error getting postings")
 	}
 
-	sort.Strings(docIDs)
+	slices.Sort(docIDs)
 	expectedIDs := []string{"1"}
 	if !reflect.DeepEqual(expectedIDs, docIDs) {
 		t.Errorf("expected ids: %v, got ids: %v", expectedIDs, docIDs)

@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
@@ -262,8 +262,8 @@ func compareSegments(a, b *Segment) string {
 
 	afields := append([]string(nil), a.Fields()...)
 	bfields := append([]string(nil), b.Fields()...)
-	sort.Strings(afields)
-	sort.Strings(bfields)
+	slices.Sort(afields)
+	slices.Sort(bfields)
 	if !reflect.DeepEqual(afields, bfields) {
 		return "fields"
 	}

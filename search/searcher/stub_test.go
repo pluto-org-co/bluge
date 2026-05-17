@@ -16,7 +16,7 @@ package searcher
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 
 	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/documents"
@@ -264,7 +264,7 @@ func newStubDictItr(sd stubDict) *stubDictItr {
 	for k := range sd {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 	return &stubDictItr{
 		sd:   sd,
 		keys: keys,
@@ -311,7 +311,7 @@ func (s *stubIndexReader) DictionaryIterator(field string, a vellum.Automaton, s
 			updatedKeys = append(updatedKeys, k)
 		}
 	}
-	sort.Strings(updatedKeys)
+	slices.Sort(updatedKeys)
 
 	// if no automaton, stop now
 	if a == nil {
@@ -426,7 +426,7 @@ func (s *stubIndexReader) Fields() ([]string, error) {
 	for k := range s.inv {
 		fnames = append(fnames, k)
 	}
-	sort.Strings(fnames)
+	slices.Sort(fnames)
 	return fnames, nil
 }
 
