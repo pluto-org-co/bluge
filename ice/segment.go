@@ -16,7 +16,6 @@ package ice
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -199,28 +198,30 @@ func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segme
 		return err
 	}
 
-	var reader bytes.Reader
-	reader.Reset(metadata)
-
 	vdc.uncompressedBuffer, err = snappy.Decode(vdc.uncompressedBuffer[:cap(vdc.uncompressedBuffer)], compressed)
 	if err != nil {
 		return fmt.Errorf("failed to decocompress buffer: %w", err)
 	}
 
+	var mdOffset int
 	for {
-		fieldIdx, fieldErr := binary.ReadUvarint(&reader)
-		offset, offsetErr := binary.ReadUvarint(&reader)
-		length, lengthErr := binary.ReadUvarint(&reader)
-		switch {
-		case fieldErr == io.EOF:
+		fieldIdx, fieldSize := binary.Uvarint(metadata[mdOffset:])
+		if fieldSize == 0 { // Equivalent to io.EOF
 			return nil
-		case fieldErr != nil:
-			return fmt.Errorf("failed to retrieve field: %w", fieldErr)
-		case offsetErr != nil:
-			return fmt.Errorf("failed to retrieve offset: %w", offsetErr)
-		case lengthErr != nil:
-			return fmt.Errorf("failed to retrieve length: %w", lengthErr)
+		} else if fieldSize < 0 {
+			return io.ErrUnexpectedEOF
 		}
+		mdOffset += fieldSize
+		offset, offsetSize := binary.Uvarint(metadata[mdOffset:])
+		if offsetSize <= 0 {
+			return io.ErrUnexpectedEOF
+		}
+		mdOffset += offsetSize
+		length, lengthSize := binary.Uvarint(metadata[mdOffset:])
+		if lengthSize <= 0 {
+			return io.ErrUnexpectedEOF
+		}
+		mdOffset += lengthSize
 
 		value := vdc.uncompressedBuffer[offset : offset+length]
 		if !visitor(s.fieldsInv[fieldIdx], value) {
