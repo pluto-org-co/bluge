@@ -34,8 +34,7 @@ func (s *Segment) getDocStoredMetaAndCompressed(docNum uint64) (metadata, compre
 	return metadata, compressedData, nil
 }
 
-func (s *Segment) getDocStoredOffsets(docNum uint64) (
-	indexOffset, storedOffset, n, metaLen, dataLen uint64, err error) {
+func (s *Segment) getDocStoredOffsets(docNum uint64) (indexOffset, storedOffset, n, metaLen, dataLen uint64, err error) {
 	indexOffset = s.footer.storedIndexOffset + (fileAddrWidth * docNum)
 
 	storedOffsetData, err := s.data.Read(int(indexOffset), int(indexOffset+fileAddrWidth))

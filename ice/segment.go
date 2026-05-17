@@ -195,7 +195,7 @@ func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segme
 
 	metadata, compressed, err := s.getDocStoredMetaAndCompressed(num)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to retrieve document stored metadata and compressed contents: %w", err)
 	}
 
 	vdc.uncompressedBuffer, err = snappy.Decode(vdc.uncompressedBuffer[:cap(vdc.uncompressedBuffer)], compressed)
