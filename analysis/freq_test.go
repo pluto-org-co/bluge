@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeebo/xxh3"
 )
 
 func TestTokenFrequency(t *testing.T) {
@@ -37,7 +38,7 @@ func TestTokenFrequency(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -51,7 +52,7 @@ func TestTokenFrequency(t *testing.T) {
 					EndVal:      11,
 				},
 			},
-			frequency: 2,
+			Frequency: 2,
 		},
 	}
 	result, _ := TokenFrequency(tokens, true, 0)
@@ -62,7 +63,7 @@ func TestTokenFrequency(t *testing.T) {
 
 func TestTokenFrequenciesMergeAll(t *testing.T) {
 	tf1 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -79,7 +80,7 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 		},
 	}
 	tf2 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -96,7 +97,7 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -135,7 +136,7 @@ func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
 
 	tf1 := TokenFrequencies{}
 	tf2 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -152,7 +153,7 @@ func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{

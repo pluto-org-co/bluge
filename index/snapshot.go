@@ -337,7 +337,7 @@ func (i *Snapshot) PostingsIterator(term []byte, field string, includeFreq,
 			if vField.Index() {
 				var match bool
 				for _, vFieldTerm := range vField.AnalyzedTokenFreqs {
-					if bytes.Equal(vFieldTerm.Term(), term) {
+					if bytes.Equal(vFieldTerm.TermVal, term) {
 						match = true
 					}
 				}
@@ -767,7 +767,7 @@ func (dvr *documentValueReader) VisitDocumentValues(number uint64,
 			for _, vField := range vFields {
 				vField := vField
 				for _, term := range vField.AnalyzedTokenFreqs {
-					visitor(vField.Name(), term.Term())
+					visitor(vField.Name(), term.TermVal)
 				}
 			}
 		}

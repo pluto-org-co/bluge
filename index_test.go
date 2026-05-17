@@ -170,7 +170,7 @@ func TestCrud(t *testing.T) {
 }
 
 func docNumberForTerm(r *Reader, t *analysis.TokenFreq) (uint64, error) {
-	q := NewTermQuery(string(t.Term())).SetField(t.Field)
+	q := NewTermQuery(string(t.TermVal)).SetField(t.Field)
 	req := NewTopNSearch(1, q)
 	dmi, err := r.Search(context.Background(), req)
 	if err != nil {

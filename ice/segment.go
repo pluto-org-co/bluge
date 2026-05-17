@@ -258,7 +258,7 @@ func (s *Segment) DocsMatchingTerms(terms []*analysis.TokenFreq) (*roaring.Bitma
 			}
 			term := terms[i]
 			postingsList := emptyPostingsList
-			postingsList, err = dict.postingsList(term.Term(), nil, postingsList)
+			postingsList, err = dict.postingsList(term.TermVal, nil, postingsList)
 			if err != nil {
 				return nil, err
 			}

@@ -39,7 +39,7 @@ func buildTestSegmentForDict() (*Segment, error) {
 	for _, f := range doc.Fields {
 		fmt.Printf("field: %s\n", f.Name())
 		for _, t := range f.AnalyzedTokenFreqs {
-			fmt.Printf("  term: %s freq: %d\n", t.Term(), t.Frequency())
+			fmt.Printf("  term: %s freq: %d\n", t.TermVal, t.Frequency)
 		}
 	}
 

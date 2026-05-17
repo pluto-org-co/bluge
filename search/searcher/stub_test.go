@@ -36,7 +36,7 @@ type thingLoc struct {
 type thingFreq struct {
 	term string
 	locs []*thingLoc
-	freq int
+	freq uint64
 }
 
 type thing struct {
@@ -111,7 +111,7 @@ func (s *stubIndexReader) add(d *documents.Document) {
 			s.fieldFreqs[field.Name()] += uint64(fieldLength)
 			fd := s.field(field.Name())
 			for _, term := range field.AnalyzedTokenFreqs {
-				termStr := string(term.Term())
+				termStr := string(term.TermVal)
 				if field.Name() == "_id" {
 					docID = termStr
 				}
@@ -120,7 +120,7 @@ func (s *stubIndexReader) add(d *documents.Document) {
 					length: fieldLength,
 					freq: &thingFreq{
 						term: termStr,
-						freq: term.Frequency(),
+						freq: term.Frequency,
 					},
 				}
 				for _, location := range term.Locations {
