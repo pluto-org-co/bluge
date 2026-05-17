@@ -203,25 +203,24 @@ func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segme
 		return fmt.Errorf("failed to decocompress buffer: %w", err)
 	}
 
-	var mdOffset int
 	for {
-		fieldIdx, fieldSize := binary.Uvarint(metadata[mdOffset:])
+		fieldIdx, fieldSize := binary.Uvarint(metadata)
 		if fieldSize == 0 { // Equivalent to io.EOF
 			return nil
 		} else if fieldSize < 0 {
 			return io.ErrUnexpectedEOF
 		}
-		mdOffset += fieldSize
-		offset, offsetSize := binary.Uvarint(metadata[mdOffset:])
+		metadata = metadata[fieldSize:]
+		offset, offsetSize := binary.Uvarint(metadata)
 		if offsetSize <= 0 {
 			return io.ErrUnexpectedEOF
 		}
-		mdOffset += offsetSize
-		length, lengthSize := binary.Uvarint(metadata[mdOffset:])
+		metadata = metadata[offsetSize:]
+		length, lengthSize := binary.Uvarint(metadata)
 		if lengthSize <= 0 {
 			return io.ErrUnexpectedEOF
 		}
-		mdOffset += lengthSize
+		metadata = metadata[lengthSize:]
 
 		value := vdc.uncompressedBuffer[offset : offset+length]
 		if !visitor(s.fieldsInv[fieldIdx], value) {
