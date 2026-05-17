@@ -364,7 +364,7 @@ func (s *Writer) mergeSegmentBases(merges chan *segmentMerge, snapshot *Snapshot
 
 func (s *Writer) merge(segments []*ice.Segment, drops []*roaring.Bitmap, id uint64) (
 	[][]uint64, error) {
-	merger := ice.Merge(segments, drops, s.config.MergeBufferSize)
+	merger := ice.Merge(segments, drops)
 
 	err := s.directory.Persist(ItemKindSegment, id, merger, s.closeCh)
 	if err != nil {

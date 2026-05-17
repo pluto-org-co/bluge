@@ -16,22 +16,22 @@ package ice
 
 import "encoding/binary"
 
-func (s *Segment) getDocStoredMetaAndCompressed(docNum uint64) (meta, data []byte, err error) {
+func (s *Segment) getDocStoredMetaAndCompressed(docNum uint64) (metadata, compressedData []byte, err error) {
 	_, storedOffset, n, metaLen, dataLen, err := s.getDocStoredOffsets(docNum)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	meta, err = s.data.Read(int(storedOffset+n), int(storedOffset+n+metaLen))
+	metadata, err = s.data.Read(int(storedOffset+n), int(storedOffset+n+metaLen))
 	if err != nil {
 		return nil, nil, err
 	}
-	data, err = s.data.Read(int(storedOffset+n+metaLen), int(storedOffset+n+metaLen+dataLen))
+	compressedData, err = s.data.Read(int(storedOffset+n+metaLen), int(storedOffset+n+metaLen+dataLen))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return meta, data, nil
+	return metadata, compressedData, nil
 }
 
 func (s *Segment) getDocStoredOffsets(docNum uint64) (

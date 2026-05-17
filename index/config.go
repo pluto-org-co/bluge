@@ -33,8 +33,6 @@ type Config struct {
 	DirectoryFunc      func() Directory
 	NormCalc           func(string, int) float32
 
-	MergeBufferSize int
-
 	// Optimizations
 	OptimizeConjunction          bool
 	OptimizeConjunctionUnadorned bool
@@ -132,8 +130,6 @@ func defaultConfig() Config {
 		DeletionPolicyFunc: func() DeletionPolicy {
 			return NewKeepNLatestDeletionPolicy(1)
 		},
-
-		MergeBufferSize: 1024 * 1024,
 
 		// Optimizations enabled
 		OptimizeConjunction:          true,

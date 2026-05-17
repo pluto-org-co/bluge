@@ -151,8 +151,6 @@ func persistToFile(sb *Segment, path string) error {
 	return nil
 }
 
-var DefaultFileMergerBufferSize = 1024 * 1024
-
 func mergeSegments(segments []*Segment, drops []*roaring.Bitmap, path string) (uint64, error) {
 	flag := os.O_RDWR | os.O_CREATE
 

@@ -170,8 +170,7 @@ func (s *Segment) dictionary(field string) (rv *Dictionary, err error) {
 // visitDocumentCtx holds data structures that are reusable across
 // multiple VisitStoredFields() calls to avoid memory allocations
 type visitDocumentCtx struct {
-	buf    []byte
-	reader bytes.Reader
+	uncompressedBuffer []byte
 }
 
 var visitDocumentCtxPool = sync.Pool{
@@ -189,47 +188,45 @@ func (s *Segment) VisitStoredFields(num uint64, visitor segment.StoredFieldVisit
 	return s.visitDocument(vdc, num, visitor)
 }
 
-func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64,
-	visitor segment.StoredFieldVisitor) error {
+func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segment.StoredFieldVisitor) error {
 	// first make sure this is a valid number in this segment
-	if num < s.footer.numDocs {
-		meta, compressed, err := s.getDocStoredMetaAndCompressed(num)
-		if err != nil {
-			return err
-		}
-
-		vdc.reader.Reset(meta)
-
-		uncompressed, err := snappy.Decode(vdc.buf[:cap(vdc.buf)], compressed)
-		if err != nil {
-			return err
-		}
-
-		var keepGoing = true
-		for keepGoing {
-			field, err := binary.ReadUvarint(&vdc.reader)
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				return err
-			}
-			offset, err := binary.ReadUvarint(&vdc.reader)
-			if err != nil {
-				return err
-			}
-			l, err := binary.ReadUvarint(&vdc.reader)
-			if err != nil {
-				return err
-			}
-
-			value := uncompressed[offset : offset+l]
-			keepGoing = visitor(s.fieldsInv[field], value)
-		}
-
-		vdc.buf = uncompressed
+	if num >= s.footer.numDocs {
+		return nil
 	}
-	return nil
+
+	metadata, compressed, err := s.getDocStoredMetaAndCompressed(num)
+	if err != nil {
+		return err
+	}
+
+	var reader bytes.Reader
+	reader.Reset(metadata)
+
+	vdc.uncompressedBuffer, err = snappy.Decode(vdc.uncompressedBuffer[:cap(vdc.uncompressedBuffer)], compressed)
+	if err != nil {
+		return fmt.Errorf("failed to decocompress buffer: %w", err)
+	}
+
+	for {
+		fieldIdx, fieldErr := binary.ReadUvarint(&reader)
+		offset, offsetErr := binary.ReadUvarint(&reader)
+		length, lengthErr := binary.ReadUvarint(&reader)
+		switch {
+		case fieldErr == io.EOF:
+			return nil
+		case fieldErr != nil:
+			return fmt.Errorf("failed to retrieve field: %w", fieldErr)
+		case offsetErr != nil:
+			return fmt.Errorf("failed to retrieve offset: %w", offsetErr)
+		case lengthErr != nil:
+			return fmt.Errorf("failed to retrieve length: %w", lengthErr)
+		}
+
+		value := vdc.uncompressedBuffer[offset : offset+length]
+		if !visitor(s.fieldsInv[fieldIdx], value) {
+			return nil
+		}
+	}
 }
 
 // Count returns the number of documents in this segment.

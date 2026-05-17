@@ -259,7 +259,7 @@ func (s *WriterOffline) doMerge() error {
 
 				// do the merge
 				drops := make([]*roaring.Bitmap, len(chunk))
-				merger := ice.Merge(mergeSegments, drops, s.config.MergeBufferSize)
+				merger := ice.Merge(mergeSegments, drops)
 
 				newId := s.segCount.Add(1)
 				err := s.directory.Persist(ItemKindSegment, newId, merger, nil)
