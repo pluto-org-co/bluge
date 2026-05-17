@@ -212,7 +212,7 @@ func TestIndexingOptions(t *testing.T) {
 func TestNumericField(t *testing.T) {
 	nf := NewNumericField("age", 3.4)
 	_ = nf.Analyze(0)
-	numTokens := nf.AnalyzedLength()
+	numTokens := nf.AnalyzedLengthValue
 	if numTokens != 16 {
 		t.Errorf("expected 16 tokens, got %d ", numTokens)
 	}
@@ -229,7 +229,7 @@ func TestGeoPointField(t *testing.T) {
 	if numTokens != 8 {
 		t.Errorf("expected 8 tokens, got %d", numTokens)
 	}
-	tokenFreqs := gf.AnalyzedTokenFrequencies()
+	tokenFreqs := gf.AnalyzedTokenFreqs
 	if len(tokenFreqs) != 8 {
 		t.Errorf("expected 8 token freqs, got %d", len(tokenFreqs))
 	}

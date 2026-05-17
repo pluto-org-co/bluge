@@ -75,7 +75,7 @@ func (config Config) WithPersisterNapTimeMSec(napTime int) Config {
 }
 
 func (config Config) WithVirtualField(field *documents.Field) Config {
-	config.virtualFields[field.Name()] = append(config.virtualFields[field.Name()], field)
+	config.virtualFields[field.NameString] = append(config.virtualFields[field.NameString], field)
 	return config
 }
 

@@ -268,7 +268,7 @@ func (s *interim) convert() (*footer, []uint64, error) {
 
 	for _, result := range s.documents {
 		for _, field := range result.Fields {
-			s.getOrDefineField(field.Name())
+			s.getOrDefineField(field.NameString)
 		}
 	}
 
@@ -408,9 +408,9 @@ func (s *interim) prepareDicts() {
 
 func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, totLocs, totTFs int) (pidNextOut, totLocsOut, totTFsOut int) {
 	for _, field := range result.Fields {
-		fieldID := s.getOrDefineField(field.Name())
+		fieldID := s.getOrDefineField(field.NameString)
 		s.FieldDocs[fieldID]++
-		s.FieldTokenCounters[fieldID] += uint64(field.Length())
+		s.FieldTokenCounters[fieldID] += uint64(field.AnalyzedLengthValue)
 
 		dict := s.TermDicts[fieldID]
 		dictKeys := s.DictKeys[fieldID]
@@ -467,8 +467,8 @@ func (s *interim) processDocument(
 	fieldTFs []analysis.TokenFrequencies,
 ) {
 	for _, field := range result.Fields {
-		fieldID := uint16(s.getOrDefineField(field.Name()))
-		fieldLens[fieldID] += field.Length()
+		fieldID := uint16(s.getOrDefineField(field.NameString))
+		fieldLens[fieldID] += field.AnalyzedLengthValue
 
 		if existingFreqs := fieldTFs[fieldID]; existingFreqs == nil {
 			fieldTFs[fieldID] = make(analysis.TokenFrequencies)
@@ -554,11 +554,11 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 		}
 
 		for _, field := range result.Fields {
-			fieldID := s.getOrDefineField(field.Name())
+			fieldID := s.getOrDefineField(field.NameString)
 
 			if field.Store() {
 				isf := docStoredFields[fieldID]
-				isf.vals = append(isf.vals, field.Value())
+				isf.vals = append(isf.vals, field.RawBytes)
 				docStoredFields[fieldID] = isf
 			}
 

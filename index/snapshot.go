@@ -216,7 +216,7 @@ func (i *Snapshot) CollectionStats(field string) (segment.CollectionStats, error
 	// first handle case where this is a virtual field
 	if vFields, ok := i.parent.config.virtualFields[field]; ok {
 		for _, vField := range vFields {
-			if field == vField.Name() {
+			if field == vField.NameString {
 				totalDocCount, _ := i.Count()
 				return &collectionStats{
 					totalDocCount:    totalDocCount,
@@ -299,7 +299,7 @@ func (i *Snapshot) VisitStoredFields(number uint64, visitor segment.StoredFieldV
 	for _, vFields := range i.parent.config.virtualFields {
 		for _, vField := range vFields {
 			if vField.Store() {
-				cont := visitor(vField.Name(), vField.Value())
+				cont := visitor(vField.NameString, vField.RawBytes)
 				if !cont {
 					return nil
 				}
@@ -767,7 +767,7 @@ func (dvr *documentValueReader) VisitDocumentValues(number uint64,
 			for _, vField := range vFields {
 				vField := vField
 				for _, term := range vField.AnalyzedTokenFreqs {
-					visitor(vField.Name(), term.TermVal)
+					visitor(vField.NameString, term.TermVal)
 				}
 			}
 		}

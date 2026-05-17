@@ -86,22 +86,6 @@ func (b *Field) SetPositionIncrementGap(positionIncrementGap int) *Field {
 	return b
 }
 
-func (b *Field) Name() string {
-	return b.NameString
-}
-
-func (b *Field) AnalyzedLength() int {
-	return b.AnalyzedLengthValue
-}
-
-func (b *Field) AnalyzedTokenFrequencies() analysis.TokenFrequencies {
-	return b.AnalyzedTokenFreqs
-}
-
-func (b *Field) Value() []byte {
-	return b.RawBytes
-}
-
 func (b *Field) NumPlainTextBytes() int {
 	return b.NumPlainTextBytesValue
 }
@@ -131,10 +115,6 @@ func (b *Field) HighlightMatches() *Field {
 	return b
 }
 
-func (b *Field) Length() int {
-	return b.AnalyzedLengthValue
-}
-
 func (b *Field) baseAnalayze(typ analysis.TokenType) analysis.TokenStream {
 	var tokens analysis.TokenStream
 	tokens = append(tokens, &analysis.Token{
@@ -159,7 +139,7 @@ func (b *Field) Analyze(startOffset int) (lastPos int) {
 	default:
 		var tokens analysis.TokenStream
 		if b.Analyzer != nil {
-			bytesToAnalyze := b.Value()
+			bytesToAnalyze := b.RawBytes
 			if b.Store() {
 				// need to copy
 				bytesCopied := make([]byte, len(bytesToAnalyze))
@@ -419,9 +399,9 @@ func (c *Field) Consume(field *Field) {
 	if c.Kind != FieldKindComposite {
 		return
 	}
-	if c.includesField(field.Name()) {
-		c.AnalyzedLengthValue += field.Length()
-		c.AnalyzedTokenFreqs.MergeAll(field.Name(), field.AnalyzedTokenFrequencies())
+	if c.includesField(field.NameString) {
+		c.AnalyzedLengthValue += field.AnalyzedLengthValue
+		c.AnalyzedTokenFreqs.MergeAll(field.NameString, field.AnalyzedTokenFreqs)
 	}
 }
 

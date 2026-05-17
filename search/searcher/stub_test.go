@@ -106,13 +106,13 @@ func (s *stubIndexReader) add(d *documents.Document) {
 	fieldsSeen := map[string]struct{}{}
 	for _, field := range d.Fields {
 		if field.Index() {
-			fieldLength := field.Length()
-			fieldsSeen[field.Name()] = struct{}{}
-			s.fieldFreqs[field.Name()] += uint64(fieldLength)
-			fd := s.field(field.Name())
+			fieldLength := field.AnalyzedLengthValue
+			fieldsSeen[field.NameString] = struct{}{}
+			s.fieldFreqs[field.NameString] += uint64(fieldLength)
+			fd := s.field(field.NameString)
 			for _, term := range field.AnalyzedTokenFreqs {
 				termStr := string(term.TermVal)
-				if field.Name() == "_id" {
+				if field.NameString == "_id" {
 					docID = termStr
 				}
 				newThing := &thing{
@@ -134,7 +134,7 @@ func (s *stubIndexReader) add(d *documents.Document) {
 				fd[termStr] = append(fd[termStr], newThing)
 
 				if field.IndexDocValues() {
-					s.uninv[docNum][field.Name()] = append(s.uninv[docNum][field.Name()], termStr)
+					s.uninv[docNum][field.NameString] = append(s.uninv[docNum][field.NameString], termStr)
 				}
 			}
 		}
@@ -348,7 +348,7 @@ func automatonAccepts(a vellum.Automaton, val string) bool {
 func (s *stubIndexReader) VisitStoredFields(number uint64, visitor segment.StoredFieldVisitor) error {
 	if doc, ok := s.doc[number]; ok {
 		for _, field := range doc.Fields {
-			visitor(field.Name(), field.Value())
+			visitor(field.NameString, field.RawBytes)
 		}
 	}
 	return fmt.Errorf("no such doc numbered: %d", number)

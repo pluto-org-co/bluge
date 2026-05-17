@@ -52,7 +52,7 @@ func NewDocumentWithFieldsManagedId(info *Information, fields ...*Field) (doc *D
 // ID is an experimental helper method
 // to simplify common use cases
 func (d Document) ID() *analysis.TokenFreq {
-	return Identifier(d.Fields[0].Value())
+	return Identifier(d.Fields[0].RawBytes)
 }
 
 func (d *Document) AddField(f *Field) *Document {
@@ -69,12 +69,12 @@ func (d Document) Analyze() {
 		if !field.Index() {
 			continue
 		}
-		fieldOffset := fieldOffsets[field.Name()]
+		fieldOffset := fieldOffsets[field.NameString]
 		if fieldOffset > 0 {
 			fieldOffset += field.PositionIncrementGap()
 		}
 		lastPos := field.Analyze(fieldOffset)
-		fieldOffsets[field.Name()] = lastPos
+		fieldOffsets[field.NameString] = lastPos
 
 		if d.HasComposites {
 			// see if any of the composite fields need this
