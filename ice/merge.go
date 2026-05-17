@@ -544,8 +544,6 @@ func setupActiveForField(segments []*Segment, dropsIn []*roaring.Bitmap, newDocN
 	return newDocNums, drops, dicts, itrs, segmentsInFocus, nil
 }
 
-const numUintsLocation = 4
-
 func mergeTermFreqNormLocs(fieldsMap map[string]uint16, postItr *PostingsIterator,
 	newDocNums []uint64, newRoaring *roaring.Bitmap,
 	tfEncoder, locEncoder *chunkedIntCoder, bufLoc []uint64, docTracking *roaring.Bitmap) (
@@ -565,7 +563,7 @@ func mergeTermFreqNormLocs(fieldsMap map[string]uint16, postItr *PostingsIterato
 
 		locs := next.Locations()
 
-		tfEncoder.Add(hitNewDocNum, encodeFreqHasLocs(uint64(nextFreq), len(locs) > 0), nextNorm)
+		tfEncoder.Add2(hitNewDocNum, encodeFreqHasLocs(uint64(nextFreq), len(locs) > 0), nextNorm)
 
 		if len(locs) > 0 {
 			numBytesLocs := 0
@@ -574,18 +572,16 @@ func mergeTermFreqNormLocs(fieldsMap map[string]uint16, postItr *PostingsIterato
 					uint64(loc.Pos()), uint64(loc.Start()), uint64(loc.End()))
 			}
 
-			locEncoder.Add(hitNewDocNum, uint64(numBytesLocs))
+			locEncoder.Add1(hitNewDocNum, uint64(numBytesLocs))
 
 			for _, loc := range locs {
-				if cap(bufLoc) < numUintsLocation {
-					bufLoc = make([]uint64, 0, numUintsLocation)
-				}
-				args := bufLoc[0:4]
-				args[0] = uint64(fieldsMap[loc.Field()] - 1)
-				args[1] = uint64(loc.Pos())
-				args[2] = uint64(loc.Start())
-				args[3] = uint64(loc.End())
-				locEncoder.Add(hitNewDocNum, args...)
+				locEncoder.Add4(
+					hitNewDocNum,
+					uint64(fieldsMap[loc.Field()]-1),
+					uint64(loc.Pos()),
+					uint64(loc.Start()),
+					uint64(loc.End()),
+				)
 			}
 		}
 

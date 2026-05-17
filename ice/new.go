@@ -816,9 +816,11 @@ func (s *interim) writeDictsTermField(
 
 		freqNorm := freqNorms[freqNormOffset]
 
-		tfEncoder.Add(docNum,
+		tfEncoder.Add2(
+			docNum,
 			encodeFreqHasLocs(freqNorm.freq, freqNorm.numLocs > 0),
-			uint64(math.Float32bits(freqNorm.norm)))
+			uint64(math.Float32bits(freqNorm.norm)),
+		)
 
 		if freqNorm.numLocs > 0 {
 			numBytesLocs := 0
@@ -827,9 +829,9 @@ func (s *interim) writeDictsTermField(
 					uint64(loc.fieldID), loc.pos, loc.start, loc.end)
 			}
 
-			locEncoder.Add(docNum, uint64(numBytesLocs))
+			locEncoder.Add1(docNum, uint64(numBytesLocs))
 			for _, loc := range locs[locOffset : locOffset+freqNorm.numLocs] {
-				locEncoder.Add(docNum, uint64(loc.fieldID), loc.pos, loc.start, loc.end)
+				locEncoder.Add4(docNum, uint64(loc.fieldID), loc.pos, loc.start, loc.end)
 			}
 
 			locOffset += freqNorm.numLocs

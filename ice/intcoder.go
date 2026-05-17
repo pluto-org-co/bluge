@@ -75,7 +75,8 @@ func (c *chunkedIntCoder) SetChunkSize(chunkSize, maxDocNum uint64) {
 
 // Add encodes the provided integers into the correct chunk for the provided
 // doc num.  You MUST call Add() with increasing docNums.
-func (c *chunkedIntCoder) Add(docNum uint64, vals ...uint64) {
+func (c *chunkedIntCoder) AddMany(docNum uint64, vals ...uint64) {
+
 	chunk := docNum / c.chunkSize
 	if chunk != c.currChunk {
 		// starting a new chunk
@@ -92,6 +93,83 @@ func (c *chunkedIntCoder) Add(docNum uint64, vals ...uint64) {
 		wb := binary.PutUvarint(c.buf, val)
 		c.chunkBuf.Write(c.buf[:wb])
 	}
+}
+
+// Add encodes the provided integers into the correct chunk for the provided
+// doc num.  You MUST call Add() with increasing docNums.
+func (c *chunkedIntCoder) Add1(docNum uint64, val uint64) {
+
+	chunk := docNum / c.chunkSize
+	if chunk != c.currChunk {
+		// starting a new chunk
+		c.Close()
+		c.chunkBuf.Reset()
+		c.currChunk = chunk
+	}
+
+	var buf [binary.MaxVarintLen64]byte
+	n := binary.PutUvarint(buf[:], val)
+	c.chunkBuf.Write(buf[:n])
+}
+
+// Add encodes the provided integers into the correct chunk for the provided
+// doc num.  You MUST call Add() with increasing docNums.
+func (c *chunkedIntCoder) Add2(docNum uint64, val1, val2 uint64) {
+
+	chunk := docNum / c.chunkSize
+	if chunk != c.currChunk {
+		// starting a new chunk
+		c.Close()
+		c.chunkBuf.Reset()
+		c.currChunk = chunk
+	}
+
+	const maxSize = 2 * binary.MaxVarintLen64
+	if c.chunkBuf.Available() < maxSize {
+		c.chunkBuf.Grow(maxSize - c.chunkBuf.Available())
+	}
+
+	var buf [maxSize]byte
+
+	var total int
+	n := binary.PutUvarint(buf[:], val1)
+	total += n
+	n = binary.PutUvarint(buf[total:], val2)
+	total += n
+
+	c.chunkBuf.Write(buf[:total])
+}
+
+// Add encodes the provided integers into the correct chunk for the provided
+// doc num.  You MUST call Add() with increasing docNums.
+func (c *chunkedIntCoder) Add4(docNum uint64, val1, val2, val3, val4 uint64) {
+
+	chunk := docNum / c.chunkSize
+	if chunk != c.currChunk {
+		// starting a new chunk
+		c.Close()
+		c.chunkBuf.Reset()
+		c.currChunk = chunk
+	}
+
+	const maxSize = 4 * binary.MaxVarintLen64
+	if c.chunkBuf.Available() < maxSize {
+		c.chunkBuf.Grow(maxSize - c.chunkBuf.Available())
+	}
+
+	var buf [maxSize]byte
+
+	var total int
+	n := binary.PutUvarint(buf[:], val1)
+	total += n
+	n = binary.PutUvarint(buf[total:], val2)
+	total += n
+	n = binary.PutUvarint(buf[total:], val3)
+	total += n
+	n = binary.PutUvarint(buf[total:], val4)
+	total += n
+
+	c.chunkBuf.Write(buf[:total])
 }
 
 // Close indicates you are done calling Add() this allows the final chunk

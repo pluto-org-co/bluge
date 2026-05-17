@@ -54,7 +54,7 @@ func TestChunkIntCoder(t *testing.T) {
 	for _, test := range tests {
 		cic := newChunkedIntCoder(test.chunkSize, test.maxDocNum)
 		for i, docNum := range test.docNums {
-			cic.Add(docNum, test.vals[i]...)
+			cic.AddMany(docNum, test.vals[i]...)
 		}
 		cic.Close()
 		var actual bytes.Buffer
