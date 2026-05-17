@@ -17,6 +17,7 @@ package ice
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -75,7 +76,7 @@ func (c *chunkedIntCoder) SetChunkSize(chunkSize, maxDocNum uint64) {
 
 // Add encodes the provided integers into the correct chunk for the provided
 // doc num.  You MUST call Add() with increasing docNums.
-func (c *chunkedIntCoder) Add(docNum uint64, vals ...uint64) error {
+func (c *chunkedIntCoder) Add(docNum uint64, vals ...uint64) {
 	chunk := docNum / c.chunkSize
 	if chunk != c.currChunk {
 		// starting a new chunk
@@ -90,13 +91,8 @@ func (c *chunkedIntCoder) Add(docNum uint64, vals ...uint64) error {
 
 	for _, val := range vals {
 		wb := binary.PutUvarint(c.buf, val)
-		_, err := c.chunkBuf.Write(c.buf[:wb])
-		if err != nil {
-			return err
-		}
+		c.chunkBuf.Write(c.buf[:wb])
 	}
-
-	return nil
 }
 
 // Close indicates you are done calling Add() this allows the final chunk
@@ -108,8 +104,8 @@ func (c *chunkedIntCoder) Close() {
 	c.currChunk = uint64(cap(c.chunkLens)) // sentinel to detect double close
 }
 
-// Write commits all the encoded chunked integers to the provided writer.
-func (c *chunkedIntCoder) Write(w io.Writer) (int, error) {
+// WriteTo commits all the encoded chunked integers to the provided writer.
+func (c *chunkedIntCoder) WriteTo(w io.Writer) (n int64, err error) {
 	bufNeeded := binary.MaxVarintLen64 * (1 + len(c.chunkLens))
 	if len(c.buf) < bufNeeded {
 		c.buf = make([]byte, bufNeeded)
@@ -120,23 +116,27 @@ func (c *chunkedIntCoder) Write(w io.Writer) (int, error) {
 	chunkOffsets := modifyLengthsToEndOffsets(c.chunkLens)
 
 	// write out the number of chunks & each chunk offsets
-	n := binary.PutUvarint(buf, uint64(len(chunkOffsets)))
+	offset := binary.PutUvarint(buf, uint64(len(chunkOffsets)))
+	n += int64(offset)
 	for _, chunkOffset := range chunkOffsets {
-		n += binary.PutUvarint(buf[n:], chunkOffset)
+		delta := binary.PutUvarint(buf[offset:], chunkOffset)
+		n += int64(delta)
+		offset += delta
 	}
 
-	tw, err := w.Write(buf[:n])
+	delta, err := w.Write(buf[:n])
+	n += int64(delta)
 	if err != nil {
-		return tw, err
+		return n, fmt.Errorf("failed to write offset chunk: %w", err)
 	}
 
 	// write out the data
-	nw, err := w.Write(c.final)
-	tw += nw
+	delta, err = w.Write(c.final)
+	n += int64(delta)
 	if err != nil {
-		return tw, err
+		return n, fmt.Errorf("failed to write data: %w", err)
 	}
-	return tw, nil
+	return n, nil
 }
 
 // writeAt commits all the encoded chunked integers to the provided writer
@@ -151,7 +151,7 @@ func (c *chunkedIntCoder) writeAt(w io.Writer) (startOffset uint64, err error) {
 		startOffset = uint64(chw.Count())
 	}
 
-	_, err = c.Write(w)
+	_, err = c.WriteTo(w)
 	return startOffset, err
 }
 

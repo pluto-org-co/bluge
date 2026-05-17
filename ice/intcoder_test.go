@@ -54,14 +54,11 @@ func TestChunkIntCoder(t *testing.T) {
 	for _, test := range tests {
 		cic := newChunkedIntCoder(test.chunkSize, test.maxDocNum)
 		for i, docNum := range test.docNums {
-			err := cic.Add(docNum, test.vals[i]...)
-			if err != nil {
-				t.Fatalf("error adding to intcoder: %v", err)
-			}
+			cic.Add(docNum, test.vals[i]...)
 		}
 		cic.Close()
 		var actual bytes.Buffer
-		_, err := cic.Write(&actual)
+		_, err := cic.WriteTo(&actual)
 		if err != nil {
 			t.Fatalf("error writing: %v", err)
 		}

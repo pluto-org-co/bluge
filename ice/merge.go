@@ -565,11 +565,7 @@ func mergeTermFreqNormLocs(fieldsMap map[string]uint16, postItr *PostingsIterato
 
 		locs := next.Locations()
 
-		err = tfEncoder.Add(hitNewDocNum,
-			encodeFreqHasLocs(uint64(nextFreq), len(locs) > 0), nextNorm)
-		if err != nil {
-			return 0, 0, 0, nil, err
-		}
+		tfEncoder.Add(hitNewDocNum, encodeFreqHasLocs(uint64(nextFreq), len(locs) > 0), nextNorm)
 
 		if len(locs) > 0 {
 			numBytesLocs := 0
@@ -578,10 +574,7 @@ func mergeTermFreqNormLocs(fieldsMap map[string]uint16, postItr *PostingsIterato
 					uint64(loc.Pos()), uint64(loc.Start()), uint64(loc.End()))
 			}
 
-			err = locEncoder.Add(hitNewDocNum, uint64(numBytesLocs))
-			if err != nil {
-				return 0, 0, 0, nil, err
-			}
+			locEncoder.Add(hitNewDocNum, uint64(numBytesLocs))
 
 			for _, loc := range locs {
 				if cap(bufLoc) < numUintsLocation {
@@ -592,10 +585,7 @@ func mergeTermFreqNormLocs(fieldsMap map[string]uint16, postItr *PostingsIterato
 				args[1] = uint64(loc.Pos())
 				args[2] = uint64(loc.Start())
 				args[3] = uint64(loc.End())
-				err = locEncoder.Add(hitNewDocNum, args...)
-				if err != nil {
-					return 0, 0, 0, nil, err
-				}
+				locEncoder.Add(hitNewDocNum, args...)
 			}
 		}
 

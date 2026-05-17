@@ -17,7 +17,9 @@ package ice
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"math"
+	"slices"
 	"sort"
 	"sync"
 
@@ -73,8 +75,8 @@ func newWithChunkMode(results []*documents.Document, normCalc func(string, int) 
 	footer.numDocs = uint64(len(results))
 
 	sb, err := initSegmentBase(br.Bytes(), footer,
-		s.FieldsMap, s.FieldsInv,
-		s.FieldDocs, s.FieldFreqs,
+		s.FieldsIdxMapper, s.FieldsNames,
+		s.FieldDocs, s.FieldTokenCounters,
 		dictOffsets)
 
 	if err == nil && s.reset() == nil {
@@ -122,25 +124,28 @@ type interim struct {
 
 	w *countHashWriter
 
-	// FieldsMap adds 1 to field id to avoid zero value issues
+	// FieldsIdxMapper adds 1 to field id to avoid zero value issues
+	// Maps field names to the index pointed at FieldsInv
 	//  name -> field id + 1
-	FieldsMap map[string]uint16
+	FieldsIdxMapper map[string]uint16
 
-	// FieldsInv is the inverse of FieldsMap
+	// FieldsNames is the inverse of FieldsMap
+	// Ordered list of fields
 	//  field id -> name
-	FieldsInv []string
+	FieldsNames []string
 
 	// FieldDocs tracks how many documents have at least one value
 	// for each field
 	FieldDocs map[uint16]uint64
 
-	// FieldFreqs tracks how many total tokens there are in a field
+	// FieldTokenCounters tracks how many total tokens there are in a field
 	// across all documents
-	FieldFreqs map[uint16]uint64
+	FieldTokenCounters map[uint16]uint64
 
 	// Term dictionaries for each field
-	//  field id -> term -> postings list id + 1
-	Dicts []map[uint64]uint64
+	// field id -> term -> postings list id + 1
+	// Term is xxh3 hashed to reduce memory preasure
+	TermDicts []map[uint64]uint64
 
 	// Terms for each field, where terms are sorted ascending
 	//  field id -> []term
@@ -182,12 +187,12 @@ func (s *interim) reset() (err error) {
 	s.documents = nil
 	s.chunkMode = 0
 	s.w = nil
-	s.FieldsMap = nil
-	s.FieldsInv = nil
-	for i := range s.Dicts {
-		s.Dicts[i] = nil
+	s.FieldsIdxMapper = nil
+	s.FieldsNames = nil
+	for i := range s.TermDicts {
+		s.TermDicts[i] = nil
 	}
-	s.Dicts = s.Dicts[:0]
+	s.TermDicts = s.TermDicts[:0]
 	for i := range s.DictKeys {
 		s.DictKeys[i] = s.DictKeys[i][:0]
 	}
@@ -252,9 +257,9 @@ type interimLoc struct {
 }
 
 func (s *interim) convert() (*footer, []uint64, error) {
-	s.FieldsMap = map[string]uint16{}
+	s.FieldsIdxMapper = map[string]uint16{}
 	s.FieldDocs = map[uint16]uint64{}
-	s.FieldFreqs = map[uint16]uint64{}
+	s.FieldTokenCounters = map[uint16]uint64{}
 
 	// FIXME review if this is still necessary
 	// YES, integration tests fail when removed
@@ -266,22 +271,22 @@ func (s *interim) convert() (*footer, []uint64, error) {
 		}
 	}
 
-	sort.Strings(s.FieldsInv[1:]) // keep _id as first field
+	sort.Strings(s.FieldsNames[1:]) // keep _id as first field
 
-	for fieldID, fieldName := range s.FieldsInv {
-		s.FieldsMap[fieldName] = uint16(fieldID + 1)
+	for fieldID, fieldName := range s.FieldsNames {
+		s.FieldsIdxMapper[fieldName] = uint16(fieldID + 1)
 	}
 
-	if cap(s.IncludeDocValues) >= len(s.FieldsInv) {
-		s.IncludeDocValues = s.IncludeDocValues[:len(s.FieldsInv)]
+	if cap(s.IncludeDocValues) >= len(s.FieldsNames) {
+		s.IncludeDocValues = s.IncludeDocValues[:len(s.FieldsNames)]
 	} else {
-		s.IncludeDocValues = make([]bool, len(s.FieldsInv))
+		s.IncludeDocValues = make([]bool, len(s.FieldsNames))
 	}
 
 	s.prepareDicts()
 
 	for _, dict := range s.DictKeys {
-		sort.Strings(dict)
+		slices.Sort(dict)
 	}
 
 	s.processDocuments()
@@ -300,10 +305,10 @@ func (s *interim) convert() (*footer, []uint64, error) {
 			return nil, nil, err
 		}
 	} else {
-		dictOffsets = make([]uint64, len(s.FieldsInv))
+		dictOffsets = make([]uint64, len(s.FieldsNames))
 	}
 
-	fieldsIndexOffset, err := persistFields(s.FieldsInv, s.FieldDocs, s.FieldFreqs, s.w, dictOffsets)
+	fieldsIndexOffset, err := persistFields(s.FieldsNames, s.FieldDocs, s.FieldTokenCounters, s.w, dictOffsets)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -317,13 +322,13 @@ func (s *interim) convert() (*footer, []uint64, error) {
 }
 
 func (s *interim) getOrDefineField(fieldName string) int {
-	fieldIDPlus1, exists := s.FieldsMap[fieldName]
+	fieldIDPlus1, exists := s.FieldsIdxMapper[fieldName]
 	if !exists {
-		fieldIDPlus1 = uint16(len(s.FieldsInv) + 1)
-		s.FieldsMap[fieldName] = fieldIDPlus1
-		s.FieldsInv = append(s.FieldsInv, fieldName)
+		fieldIDPlus1 = uint16(len(s.FieldsNames) + 1)
+		s.FieldsIdxMapper[fieldName] = fieldIDPlus1
+		s.FieldsNames = append(s.FieldsNames, fieldName)
 
-		s.Dicts = append(s.Dicts, make(map[uint64]uint64))
+		s.TermDicts = append(s.TermDicts, make(map[uint64]uint64))
 
 		n := len(s.DictKeys)
 		if n < cap(s.DictKeys) {
@@ -406,9 +411,9 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 		fieldID := uint16(s.getOrDefineField(field.Name()))
 
 		fieldsSeen[fieldID] = struct{}{}
-		s.FieldFreqs[fieldID] += uint64(field.Length())
+		s.FieldTokenCounters[fieldID] += uint64(field.Length())
 
-		dict := s.Dicts[fieldID]
+		dict := s.TermDicts[fieldID]
 		dictKeys := s.DictKeys[fieldID]
 
 		var numTerms int
@@ -449,8 +454,8 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 }
 
 func (s *interim) processDocuments() {
-	reuseFieldLens := make([]int, len(s.FieldsInv))
-	reuseFieldTFs := make([]tokenFrequencies, len(s.FieldsInv))
+	reuseFieldLens := make([]int, len(s.FieldsNames))
+	reuseFieldTFs := make([]tokenFrequencies, len(s.FieldsNames))
 
 	for docNum, doc := range s.documents {
 		for i := range reuseFieldLens { // clear these for reuse
@@ -512,8 +517,8 @@ func (s *interim) processDocument(
 
 	// now that it's been rolled up into fieldTFs, walk that
 	for fieldID, tfs := range fieldTFs {
-		dict := s.Dicts[fieldID]
-		norm := s.normCalc(s.FieldsInv[fieldID], fieldLens[fieldID])
+		dict := s.TermDicts[fieldID]
+		norm := s.normCalc(s.FieldsNames[fieldID], fieldLens[fieldID])
 
 		for term, tf := range tfs {
 			pid := dict[term] - 1
@@ -590,7 +595,7 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 		data = data[:0]
 
 		// handle fields
-		for fieldID := 0; fieldID < len(s.FieldsInv); fieldID++ {
+		for fieldID := 0; fieldID < len(s.FieldsNames); fieldID++ {
 			isf, exists := docStoredFields[fieldID]
 			if exists {
 				curr, data, err = encodeStoredFieldValues(
@@ -639,10 +644,10 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 }
 
 func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err error) {
-	dictOffsets = make([]uint64, len(s.FieldsInv))
+	dictOffsets = make([]uint64, len(s.FieldsNames))
 
-	fdvOffsetsStart := make([]uint64, len(s.FieldsInv))
-	fdvOffsetsEnd := make([]uint64, len(s.FieldsInv))
+	fdvOffsetsStart := make([]uint64, len(s.FieldsNames))
+	fdvOffsetsEnd := make([]uint64, len(s.FieldsNames))
 
 	buf := s.grabBuf(binary.MaxVarintLen64)
 
@@ -670,7 +675,7 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 
 	fdvIndexOffset = uint64(s.w.Count())
 
-	for i := 0; i < len(fdvOffsetsStart); i++ {
+	for i := range fdvOffsetsStart {
 		n := binary.PutUvarint(buf, fdvOffsetsStart[i])
 		_, err := s.w.Write(buf[:n])
 		if err != nil {
@@ -686,8 +691,14 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 	return fdvIndexOffset, dictOffsets, nil
 }
 
-func (s *interim) writeDictsField(docTermMap [][]byte, fieldID int, terms []string, tfEncoder,
-	locEncoder *chunkedIntCoder, buf []byte, dictOffsets, fdvOffsetsStart, fdvOffsetsEnd []uint64) error {
+func (s *interim) writeDictsField(
+	docTermMap [][]byte,
+	fieldID int,
+	terms []string, // Terms are the words extracted from a field
+	tfEncoder, locEncoder *chunkedIntCoder,
+	buf []byte,
+	dictOffsets, fdvOffsetsStart, fdvOffsetsEnd []uint64,
+) (err error) {
 	if cap(docTermMap) < len(s.documents) {
 		docTermMap = make([][]byte, len(s.documents))
 	} else {
@@ -697,16 +708,16 @@ func (s *interim) writeDictsField(docTermMap [][]byte, fieldID int, terms []stri
 		}
 	}
 
-	dict := s.Dicts[fieldID]
+	termDict := s.TermDicts[fieldID]
 
 	for _, term := range terms { // terms are already sorted
-		err2 := s.writeDictsTermField(docTermMap, dict, term, tfEncoder, locEncoder, buf)
-		if err2 != nil {
-			return err2
+		err := s.writeDictsTermField(docTermMap, termDict, term, tfEncoder, locEncoder, buf)
+		if err != nil {
+			return fmt.Errorf("failed to write dicts term fields: %w", err)
 		}
 	}
 
-	err := s.builder.Close()
+	err = s.builder.Close()
 	if err != nil {
 		return err
 	}
@@ -775,8 +786,13 @@ func (s *interim) writeDictsField(docTermMap [][]byte, fieldID int, terms []stri
 	return nil
 }
 
-func (s *interim) writeDictsTermField(docTermMap [][]byte, dict map[uint64]uint64, term string, tfEncoder,
-	locEncoder *chunkedIntCoder, buf []byte) error {
+func (s *interim) writeDictsTermField(
+	docTermMap [][]byte,
+	dict map[uint64]uint64,
+	term string,
+	tfEncoder, locEncoder *chunkedIntCoder,
+	buf []byte,
+) (err error) {
 	pid := dict[xxh3.HashString(term)] - 1
 
 	postingsBS := s.Postings[pid]
@@ -794,18 +810,15 @@ func (s *interim) writeDictsTermField(docTermMap [][]byte, dict map[uint64]uint6
 	tfEncoder.SetChunkSize(chunkSize, uint64(len(s.documents)-1))
 	locEncoder.SetChunkSize(chunkSize, uint64(len(s.documents)-1))
 
-	postingsItr := postingsBS.Iterator()
-	for postingsItr.HasNext() {
-		docNum := uint64(postingsItr.Next())
+	// var err error
+	postingsBS.Iterate(func(x uint32) bool {
+		docNum := uint64(x)
 
 		freqNorm := freqNorms[freqNormOffset]
 
-		err = tfEncoder.Add(docNum,
+		tfEncoder.Add(docNum,
 			encodeFreqHasLocs(freqNorm.freq, freqNorm.numLocs > 0),
 			uint64(math.Float32bits(freqNorm.norm)))
-		if err != nil {
-			return err
-		}
 
 		if freqNorm.numLocs > 0 {
 			numBytesLocs := 0
@@ -814,17 +827,9 @@ func (s *interim) writeDictsTermField(docTermMap [][]byte, dict map[uint64]uint6
 					uint64(loc.fieldID), loc.pos, loc.start, loc.end)
 			}
 
-			err = locEncoder.Add(docNum, uint64(numBytesLocs))
-			if err != nil {
-				return err
-			}
-
+			locEncoder.Add(docNum, uint64(numBytesLocs))
 			for _, loc := range locs[locOffset : locOffset+freqNorm.numLocs] {
-				err = locEncoder.Add(docNum,
-					uint64(loc.fieldID), loc.pos, loc.start, loc.end)
-				if err != nil {
-					return err
-				}
+				locEncoder.Add(docNum, uint64(loc.fieldID), loc.pos, loc.start, loc.end)
 			}
 
 			locOffset += freqNorm.numLocs
@@ -832,10 +837,9 @@ func (s *interim) writeDictsTermField(docTermMap [][]byte, dict map[uint64]uint6
 
 		freqNormOffset++
 
-		docTermMap[docNum] = append(
-			append(docTermMap[docNum], term...),
-			termSeparator)
-	}
+		docTermMap[docNum] = append(append(docTermMap[docNum], term...), termSeparator)
+		return true
+	})
 
 	tfEncoder.Close()
 	locEncoder.Close()
