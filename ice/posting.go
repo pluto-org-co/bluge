@@ -23,6 +23,27 @@ import (
 	"github.com/pluto-org-co/bluge/segment"
 )
 
+// NewUnadornedPostingsIteratorFromBitmap returns a PostingsIterator that
+// iterates over bm with no freq/norm/loc decoding.
+func NewUnadornedPostingsIteratorFromBitmap(bm *roaring.Bitmap) *PostingsIterator {
+	return &PostingsIterator{
+		UnadornedBM: bm,
+		ActualBM:    bm,
+		Actual:      bm.Iterator(),
+	}
+}
+
+// NewUnadornedPostingsIteratorFrom1Hit returns a PostingsIterator for a
+// single document with no freq/norm/loc decoding.
+func NewUnadornedPostingsIteratorFrom1Hit(docNum uint64) *PostingsIterator {
+	return &PostingsIterator{
+		// reuse existing 1-hit machinery; normBits1Hit=1 signals "1-hit mode"
+		// use a sentinel norm of 1 (not 0, which signals "general" mode)
+		docNum1Hit:   docNum,
+		normBits1Hit: 1,
+	}
+}
+
 // FST or vellum value (uint64) encoding is determined by the top two
 // highest-order or most significant bits...
 //
@@ -117,22 +138,16 @@ func (p *PostingsList) OrInto(receiver *roaring.Bitmap) {
 }
 
 // Iterator returns an iterator for this postings list
-func (p *PostingsList) Iterator(includeFreq, includeNorm, includeLocs bool,
-	prealloc segment.PostingsIterator) (segment.PostingsIterator, error) {
+func (p *PostingsList) Iterator(includeFreq, includeNorm, includeLocs bool, prealloc *PostingsIterator) (*PostingsIterator, error) {
 	if p.normBits1Hit == 0 && p.postings == nil {
-		return emptyPostingsIterator, nil
+		return EmptyPostingsIterator, nil
 	}
 
-	var preallocPI *PostingsIterator
-	pi, ok := prealloc.(*PostingsIterator)
-	if ok && pi != nil {
-		preallocPI = pi
-	}
-	if preallocPI == emptyPostingsIterator {
-		preallocPI = nil
+	if prealloc == EmptyPostingsIterator {
+		prealloc = nil
 	}
 
-	return p.iterator(includeFreq, includeNorm, includeLocs, preallocPI)
+	return p.iterator(includeFreq, includeNorm, includeLocs, prealloc)
 }
 
 func (p *PostingsList) iterator(includeFreq, includeNorm, includeLocs bool,
@@ -305,7 +320,10 @@ type PostingsIterator struct {
 	postings *PostingsList
 	all      roaring.IntPeekable
 	Actual   roaring.IntPeekable
-	ActualBM *roaring.Bitmap
+	// unadornedBM is set when this iterator is used in "unadorned bitmap" mode,
+	// bypassing all freq/norm/loc machinery entirely.
+	UnadornedBM *roaring.Bitmap
+	ActualBM    *roaring.Bitmap
 
 	currChunk      uint32
 	freqNormReader *chunkedIntDecoder
@@ -324,7 +342,7 @@ type PostingsIterator struct {
 	includeLocs     bool
 }
 
-var emptyPostingsIterator = &PostingsIterator{}
+var EmptyPostingsIterator = &PostingsIterator{}
 
 func (i *PostingsIterator) Size() int {
 	sizeInBytes := reflectStaticSizePostingsIterator + sizeOfPtr +
@@ -441,20 +459,20 @@ func (i *PostingsIterator) readLocation(l *Location) error {
 }
 
 // Next returns the next posting on the postings list, or nil at the end
-func (i *PostingsIterator) Next() (segment.Posting, error) {
+func (i *PostingsIterator) Next() (*Posting, error) {
 	return i.nextAtOrAfter(0)
 }
 
 // Advance returns the posting at the specified docNum or it is not present
 // the next posting, or if the end is reached, nil
-func (i *PostingsIterator) Advance(docNum uint64) (segment.Posting, error) {
+func (i *PostingsIterator) Advance(docNum uint64) (*Posting, error) {
 	return i.nextAtOrAfter(docNum)
 }
 
 const locSliceGrowth = 2
 
 // Next returns the next posting on the postings list, or nil at the end
-func (i *PostingsIterator) nextAtOrAfter(atOrAfter uint64) (segment.Posting, error) {
+func (i *PostingsIterator) nextAtOrAfter(atOrAfter uint64) (*Posting, error) {
 	docNum, exists, err := i.nextDocNumAtOrAfter(atOrAfter)
 	if err != nil || !exists {
 		return nil, err
@@ -516,6 +534,18 @@ func (i *PostingsIterator) nextAtOrAfter(atOrAfter uint64) (segment.Posting, err
 // nextDocNum returns the next docNum on the postings list, and also
 // sets up the currChunk / loc related fields of the iterator.
 func (i *PostingsIterator) nextDocNumAtOrAfter(atOrAfter uint64) (docNum uint64, exists bool, err error) {
+	// unadorned bitmap mode — no postings list, no freq/norm/loc
+	if i.UnadornedBM != nil {
+		if i.Actual == nil || !i.Actual.HasNext() {
+			return 0, false, nil
+		}
+		i.Actual.AdvanceIfNeeded(uint32(atOrAfter))
+		if !i.Actual.HasNext() {
+			return 0, false, nil
+		}
+		return uint64(i.Actual.Next()), true, nil
+	}
+
 	if i.normBits1Hit != 0 {
 		if i.docNum1Hit == docNum1HitFinished {
 			return 0, false, nil
@@ -682,6 +712,9 @@ func (i *PostingsIterator) ReplaceActual(abm *roaring.Bitmap) {
 }
 
 func (i *PostingsIterator) Count() uint64 {
+	if i.UnadornedBM != nil {
+		return i.UnadornedBM.GetCardinality()
+	}
 	return i.postings.Count()
 }
 

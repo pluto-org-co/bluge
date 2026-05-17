@@ -354,10 +354,10 @@ func (i *Snapshot) PostingsIterator(term []byte, field string, includeFreq,
 	rv.field = field
 	rv.snapshot = i
 	if rv.postings == nil {
-		rv.postings = make([]segment.PostingsList, len(i.segment))
+		rv.postings = make([]*ice.PostingsList, len(i.segment))
 	}
 	if rv.iterators == nil {
-		rv.iterators = make([]segment.PostingsIterator, len(i.segment))
+		rv.iterators = make([]*ice.PostingsIterator, len(i.segment))
 	}
 	rv.segmentOffset = 0
 	rv.includeFreq = includeFreq
@@ -441,7 +441,7 @@ func (i *Snapshot) unadornedPostingsIterator(
 		term:               term,
 		field:              field,
 		snapshot:           i,
-		iterators:          make([]segment.PostingsIterator, len(i.segment)),
+		iterators:          make([]*ice.PostingsIterator, len(i.segment)),
 		segmentOffset:      0,
 		includeFreq:        false,
 		includeNorm:        false,

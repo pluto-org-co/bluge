@@ -18,6 +18,7 @@ import (
 	"math"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -85,11 +86,8 @@ func (i *unadornedPostingsIteratorBitmap) ReplaceActual(actual *roaring.Bitmap) 
 	i.actual = actual.Iterator()
 }
 
-func newUnadornedPostingsIteratorFromBitmap(bm *roaring.Bitmap) segment.PostingsIterator {
-	return &unadornedPostingsIteratorBitmap{
-		actualBM: bm,
-		actual:   bm.Iterator(),
-	}
+func newUnadornedPostingsIteratorFromBitmap(bm *roaring.Bitmap) *ice.PostingsIterator {
+	return ice.NewUnadornedPostingsIteratorFromBitmap(bm)
 }
 
 const docNum1HitFinished = math.MaxUint64
@@ -145,10 +143,8 @@ func (i *unadornedPostingsIterator1Hit) Close() error {
 	return nil
 }
 
-func newUnadornedPostingsIteratorFrom1Hit(docNum1Hit uint64) segment.PostingsIterator {
-	return &unadornedPostingsIterator1Hit{
-		docNum1Hit,
-	}
+func newUnadornedPostingsIteratorFrom1Hit(docNum uint64) *ice.PostingsIterator {
+	return ice.NewUnadornedPostingsIteratorFrom1Hit(docNum)
 }
 
 type unadornedPosting uint64

@@ -21,7 +21,6 @@ import (
 
 	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/documents"
-	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/RoaringBitmap/roaring"
 )
@@ -111,7 +110,7 @@ func expectFieldInSegment(t *testing.T, seg *Segment, field string) *Dictionary 
 	return dict
 }
 
-func expectTermInDictionary(t *testing.T, dict *Dictionary, term string) segment.PostingsIterator {
+func expectTermInDictionary(t *testing.T, dict *Dictionary, term string) *PostingsIterator {
 	postingsList, err := dict.PostingsList([]byte(term), nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -119,7 +118,7 @@ func expectTermInDictionary(t *testing.T, dict *Dictionary, term string) segment
 	if postingsList == nil {
 		t.Fatal("got nil postings list, expected non-nil")
 	}
-	var postingsItr segment.PostingsIterator
+	var postingsItr *PostingsIterator
 	postingsItr, err = postingsList.Iterator(true, true, true, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -130,7 +129,7 @@ func expectTermInDictionary(t *testing.T, dict *Dictionary, term string) segment
 	return postingsItr
 }
 
-func checkField(t *testing.T, postingsItr segment.PostingsIterator, expectField string, expectDecodedNorm int,
+func checkField(t *testing.T, postingsItr *PostingsIterator, expectField string, expectDecodedNorm int,
 	expectLocations, checkStartEndPos bool) {
 	count := 0
 	nextPosting, err := postingsItr.Next()

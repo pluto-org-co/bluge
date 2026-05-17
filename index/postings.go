@@ -27,8 +27,8 @@ type postingsIterator struct {
 	field              string
 	snapshot           *Snapshot
 	dicts              []*ice.Dictionary
-	postings           []segment.PostingsList
-	iterators          []segment.PostingsIterator
+	postings           []*ice.PostingsList
+	iterators          []*ice.PostingsIterator
 	segmentOffset      int
 	includeFreq        bool
 	includeNorm        bool

@@ -378,8 +378,13 @@ func compareSegmentsDictionaryEntry(a, b *Segment, fieldName string, rv []string
 	return rv
 }
 
-func compareSegmentPostingIterator(a, b *Segment, fieldName string, rv []string, apitr, bpitr segment.PostingsIterator,
-	next segment.DictionaryEntry) []string {
+func compareSegmentPostingIterator(
+	a, b *Segment,
+	fieldName string,
+	rv []string,
+	apitr, bpitr *PostingsIterator,
+	next segment.DictionaryEntry,
+) []string {
 	for {
 		apitrn, aerr := apitr.Next()
 		bpitrn, berr := bpitr.Next()
