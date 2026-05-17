@@ -58,7 +58,7 @@ func TestChunkIntCoder(t *testing.T) {
 		}
 		cic.Close()
 		var actual bytes.Buffer
-		_, err := cic.WriteTo(&actual)
+		_, err := cic.WriteToBuffer(&actual)
 		if err != nil {
 			t.Fatalf("error writing: %v", err)
 		}

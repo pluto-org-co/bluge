@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"io"
 )
 
 // We can safely use 0 to represent termNotEncoded since 0
@@ -105,7 +104,35 @@ func (c *chunkedIntCoder) Close() {
 }
 
 // WriteTo commits all the encoded chunked integers to the provided writer.
-func (c *chunkedIntCoder) WriteTo(w io.Writer) (n int64, err error) {
+func (c *chunkedIntCoder) WriteToBuffer(w *bytes.Buffer) (n int64, err error) {
+	var workingBuf = make([]byte, binary.MaxVarintLen64)
+
+	bufNeeded := binary.MaxVarintLen64*(1+len(c.chunkLens)) + len(c.final)
+	if w.Available() < bufNeeded {
+		w.Grow(bufNeeded - w.Available())
+	}
+
+	// convert the chunk lengths into chunk offsets
+	chunkOffsets := modifyLengthsToEndOffsets(c.chunkLens)
+
+	// write out the number of chunks & each chunk offsets
+	size := binary.PutUvarint(workingBuf, uint64(len(chunkOffsets)))
+	written, _ := w.Write(workingBuf[:size])
+	n += int64(written)
+	for _, chunkOffset := range chunkOffsets {
+		size := binary.PutUvarint(workingBuf, chunkOffset)
+		written, _ := w.Write(workingBuf[:size])
+		n += int64(written)
+	}
+
+	// write out the data
+	written, _ = w.Write(c.final)
+	n += int64(written)
+	return n, nil
+}
+
+// WriteTo commits all the encoded chunked integers to the provided writer.
+func (c *chunkedIntCoder) WriteToCountHashWriter(w *countHashWriter) (n int64, err error) {
 	bufNeeded := binary.MaxVarintLen64 * (1 + len(c.chunkLens))
 	if len(c.buf) < bufNeeded {
 		c.buf = make([]byte, bufNeeded)
@@ -141,18 +168,18 @@ func (c *chunkedIntCoder) WriteTo(w io.Writer) (n int64, err error) {
 
 // writeAt commits all the encoded chunked integers to the provided writer
 // and returns the starting offset, total bytes written and an error
-func (c *chunkedIntCoder) writeAt(w io.Writer) (startOffset uint64, err error) {
-	startOffset = uint64(termNotEncoded)
+func (c *chunkedIntCoder) writeAt(w *countHashWriter) (startOffset uint64, err error) {
 	if len(c.final) == 0 {
-		return startOffset, nil
+		return termNotEncoded, nil
 	}
 
-	if chw := w.(*countHashWriter); chw != nil {
-		startOffset = uint64(chw.Count())
-	}
+	startOffset = uint64(w.Count())
 
-	_, err = c.WriteTo(w)
-	return startOffset, err
+	_, err = c.WriteToCountHashWriter(w)
+	if err != nil {
+		return startOffset, fmt.Errorf("failed to write to hash writer: %w", err)
+	}
+	return startOffset, nil
 }
 
 func (c *chunkedIntCoder) FinalSize() int {
