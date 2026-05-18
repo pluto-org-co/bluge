@@ -252,7 +252,7 @@ type interimFreqNorm struct {
 }
 
 type interimLoc struct {
-	FieldId  uint8
+	FieldId  uint16
 	Position uint64
 	Start    uint64
 	End      uint64
@@ -478,7 +478,7 @@ func (s *interim) processDocument(
 	fieldTFs []analysis.TokenFrequencies,
 ) {
 	for _, field := range result.Fields {
-		fieldID := uint8(s.getOrDefineField(field.NameString))
+		fieldID := uint16(s.getOrDefineField(field.NameString))
 		fieldLens[fieldID] += field.AnalyzedLengthValue
 
 		if existingFreqs := fieldTFs[fieldID]; existingFreqs == nil {
@@ -520,9 +520,9 @@ func (s *interim) processDocument(
 				locs := s.Locs[pid]
 
 				for _, loc := range tf.Locations {
-					var locf = uint8(fieldID)
+					var locf = uint16(fieldID)
 					if loc.FieldVal != "" {
-						locf = uint8(s.getOrDefineField(loc.FieldVal))
+						locf = s.getOrDefineField(loc.FieldVal)
 					}
 					locs = append(locs, interimLoc{
 						FieldId:  locf,
