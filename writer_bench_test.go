@@ -24,7 +24,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func BenchmarkOfflineWriter(b *testing.B) {
+const WriterDocumentCount = 1_000_000
+
+func BenchmarkWriter(b *testing.B) {
 	assertions := assert.New(b)
 
 	b.StopTimer()
@@ -44,7 +46,7 @@ func BenchmarkOfflineWriter(b *testing.B) {
 		tmpIndexPath := testsuite.TemporaryDirectory(b)
 
 		config := DefaultConfig(tmpIndexPath)
-		writer, err := OpenOfflineWriter(config)
+		writer, err := OpenWriter(config)
 		if !assertions.Nil(err, "failed to open offline writer") {
 			return
 		}
@@ -62,7 +64,7 @@ func BenchmarkOfflineWriter(b *testing.B) {
 	}
 }
 
-func BenchmarkOfflineWriterWithDefinitions(b *testing.B) {
+func BenchmarkWriterWithDefinitions(b *testing.B) {
 	assertions := assert.New(b)
 
 	b.StopTimer()
@@ -87,7 +89,7 @@ func BenchmarkOfflineWriterWithDefinitions(b *testing.B) {
 		tmpIndexPath := testsuite.TemporaryDirectory(b)
 
 		config := DefaultConfig(tmpIndexPath)
-		writer, err := OpenOfflineWriter(config)
+		writer, err := OpenWriter(config)
 		if !assertions.Nil(err, "failed to open offline writer") {
 			return
 		}
@@ -105,7 +107,7 @@ func BenchmarkOfflineWriterWithDefinitions(b *testing.B) {
 	}
 }
 
-func BenchmarkOfflineWriterWithDefinitionsManagedId(b *testing.B) {
+func BenchmarkWriterWithDefinitionsManagedId(b *testing.B) {
 	assertions := assert.New(b)
 
 	b.StopTimer()
@@ -128,7 +130,7 @@ func BenchmarkOfflineWriterWithDefinitionsManagedId(b *testing.B) {
 		tmpIndexPath := testsuite.TemporaryDirectory(b)
 
 		config := DefaultConfig(tmpIndexPath)
-		writer, err := OpenOfflineWriter(config)
+		writer, err := OpenWriter(config)
 		if !assertions.Nil(err, "failed to open offline writer") {
 			return
 		}
