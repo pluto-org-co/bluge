@@ -482,18 +482,13 @@ func (s *interim) processDocument(
 		existingFreqs := fieldTFs[fieldID]
 		for _, term := range field.AnalyzedTokenFreqs {
 			tfk := xxh3.Hash(term.TermVal)
+
 			existingTf, exists := existingFreqs[tfk]
 			if exists {
 				existingTf.Locations = append(existingTf.Locations, term.Locations...)
 				existingTf.Frequency += term.Frequency
 			} else {
-				newTf := &analysis.TokenFreq{
-					Field:     term.Field,
-					TermVal:   term.TermVal,
-					Locations: slices.Clone(term.Locations),
-					Frequency: term.Frequency,
-				}
-				existingFreqs[tfk] = newTf
+				existingFreqs[tfk] = term
 			}
 		}
 	}
