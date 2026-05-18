@@ -420,28 +420,36 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 		dict := s.TermDicts[fieldID]
 		dictKeys := s.DictKeys[fieldID]
 
+		if len(dictKeys) == 0 && cap(dictKeys) == 0 {
+			dictKeys = make([]*Term, 0, len(field.AnalyzedTokenFreqs))
+		}
+		if len(s.numLocsPerPostingsList) == 0 && cap(s.numLocsPerPostingsList) == 0 {
+			s.numLocsPerPostingsList = make([]uint32, 0, len(field.AnalyzedTokenFreqs))
+		}
+		if len(s.numTermsPerPostingsList) == 0 && cap(s.numTermsPerPostingsList) == 0 {
+			s.numTermsPerPostingsList = make([]uint32, 0, len(field.AnalyzedTokenFreqs))
+		}
+
 		totTFs += len(field.AnalyzedTokenFreqs)
 		for _, term := range field.AnalyzedTokenFreqs {
 			termKey := xxh3.Hash(term.TermVal)
 
 			postingListIdPlus1, exists := dict[termKey]
 			if exists {
-				var numLocations = len(term.Locations)
-				s.numLocsPerPostingsList[postingListIdPlus1-1] += uint32(numLocations)
+				s.numLocsPerPostingsList[postingListIdPlus1-1] += uint32(len(term.Locations))
 				s.numTermsPerPostingsList[postingListIdPlus1-1]++
-				totLocs += numLocations
+				totLocs += len(term.Locations)
 				continue
 			}
+
 			pidNext++
 			postingListIdPlus1 = uint64(pidNext)
-
+			totLocs += len(term.Locations)
 			dict[termKey] = postingListIdPlus1
-			dictKeys = append(dictKeys, &term.TermVal)
 
-			var numLocations = len(term.Locations)
-			s.numLocsPerPostingsList = append(s.numLocsPerPostingsList, uint32(numLocations))
+			dictKeys = append(dictKeys, &term.TermVal)
+			s.numLocsPerPostingsList = append(s.numLocsPerPostingsList, uint32(len(term.Locations)))
 			s.numTermsPerPostingsList = append(s.numTermsPerPostingsList, 1)
-			totLocs += numLocations
 		}
 
 		s.DictKeys[fieldID] = dictKeys
