@@ -16,7 +16,7 @@ This fork is optimized for multi-core server hardware and trades CPU utilization
 
 Upstream bluge is a stable, well-maintained library. This fork exists to consolidate internal patches and performance work in one place -- it is not intended as a general-purpose replacement.
 
-<iframe src="docs/optimization-chart-18-05-2026.html" width="100%" height="600" frameborder="0"></iframe>
+![Bluge benchmark optimization history](docs/optimization-chart-18-05-2026.webp)
 
 ## License
 
