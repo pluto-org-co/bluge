@@ -148,12 +148,11 @@ func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int
 
 	if includeTermVectors {
 		tls := make([]TokenLocation, len(tokens))
-		tlNext := 0
 
 		position = startOffset
-		for _, token := range tokens {
+		for index, token := range tokens {
 			position += token.PositionIncr
-			tls[tlNext] = TokenLocation{
+			tls[index] = TokenLocation{
 				StartVal:    token.Start,
 				EndVal:      token.End,
 				PositionVal: position,
@@ -162,17 +161,15 @@ func TokenFrequency(tokens TokenStream, includeTermVectors bool, startOffset int
 			tokenFreqsKey := xxh3.Hash(token.Term)
 			curr, ok := tokenFreqs[tokenFreqsKey]
 			if ok {
-				curr.Locations = append(curr.Locations, &tls[tlNext])
+				curr.Locations = append(curr.Locations, &tls[index])
 				curr.Frequency++
 			} else {
 				tokenFreqs[tokenFreqsKey] = &TokenFreq{
 					TermVal:   token.Term,
-					Locations: []*TokenLocation{&tls[tlNext]},
+					Locations: []*TokenLocation{&tls[index]},
 					Frequency: 1,
 				}
 			}
-
-			tlNext++
 		}
 	} else {
 		for _, token := range tokens {

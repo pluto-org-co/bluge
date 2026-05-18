@@ -150,8 +150,7 @@ func (p *PostingsList) Iterator(includeFreq, includeNorm, includeLocs bool, prea
 	return p.iterator(includeFreq, includeNorm, includeLocs, prealloc)
 }
 
-func (p *PostingsList) iterator(includeFreq, includeNorm, includeLocs bool,
-	rv *PostingsIterator) (*PostingsIterator, error) {
+func (p *PostingsList) iterator(includeFreq, includeNorm, includeLocs bool, rv *PostingsIterator) (*PostingsIterator, error) {
 	if rv == nil {
 		rv = &PostingsIterator{}
 	} else {
