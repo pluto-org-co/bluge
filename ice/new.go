@@ -619,6 +619,15 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 	return storedIndexOffset, nil
 }
 
+type DocumentTermsEntry struct {
+	Size  int
+	Terms []*Term
+}
+
+type DocumentsTermsMap struct {
+	Entries []DocumentTermsEntry
+}
+
 func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err error) {
 	dictOffsets = make([]uint64, len(s.FieldsNames))
 
@@ -633,7 +642,9 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 	tfEncoder := newChunkedIntCoder(uint64(legacyChunkMode), uint64(len(s.documents)-1))
 	locEncoder := newChunkedIntCoder(uint64(legacyChunkMode), uint64(len(s.documents)-1))
 
-	var docTermMap [][]byte
+	var docTermMap = DocumentsTermsMap{
+		Entries: make([]DocumentTermsEntry, len(s.documents)),
+	}
 
 	if s.builder == nil {
 		s.builder, err = vellum.New(&s.builderBuf, nil)
@@ -643,9 +654,9 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 	}
 
 	for fieldID, terms := range s.DictKeys {
-		err2 := s.writeDictsField(docTermMap, fieldID, terms, tfEncoder, locEncoder, buf, dictOffsets, fdvOffsetsStart, fdvOffsetsEnd)
-		if err2 != nil {
-			return 0, nil, err2
+		err := s.writeDictsField(&docTermMap, fieldID, terms, tfEncoder, locEncoder, buf, dictOffsets, fdvOffsetsStart, fdvOffsetsEnd)
+		if err != nil {
+			return 0, nil, fmt.Errorf("failed to write dicts field: %w", err)
 		}
 	}
 
@@ -668,26 +679,17 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 }
 
 func (s *interim) writeDictsField(
-	docTermMap [][]byte,
+	docTermMap *DocumentsTermsMap,
 	fieldID int,
 	terms []*Term, // Terms are the words extracted from a field
 	tfEncoder, locEncoder *chunkedIntCoder,
 	buf []byte,
 	dictOffsets, fdvOffsetsStart, fdvOffsetsEnd []uint64,
 ) (err error) {
-	if cap(docTermMap) < len(s.documents) {
-		docTermMap = make([][]byte, len(s.documents))
-	} else {
-		docTermMap = docTermMap[0:len(s.documents)]
-		for docNum := range docTermMap { // reset the docTermMap
-			docTermMap[docNum] = docTermMap[docNum][:0]
-		}
-	}
-
 	termDict := s.TermDicts[fieldID]
 
 	for _, term := range terms { // terms are already sorted
-		err := s.writeDictsTermField(docTermMap, termDict, *term, tfEncoder, locEncoder, buf)
+		err := s.writeDictsTermField(docTermMap, termDict, term, tfEncoder, locEncoder, buf)
 		if err != nil {
 			return fmt.Errorf("failed to write dicts term fields: %w", err)
 		}
@@ -732,13 +734,30 @@ func (s *interim) writeDictsField(
 	}
 	fdvEncoder := newChunkedContentCoder(chunkSize, uint64(len(s.documents)-1), s.w, false)
 	if s.IncludeDocValues[fieldID] {
-		for docNum, docTerms := range docTermMap {
-			if len(docTerms) > 0 {
-				err = fdvEncoder.Add(uint64(docNum), docTerms)
-				if err != nil {
-					return err
-				}
+		var buffer []byte
+		for docNum := range docTermMap.Entries {
+			if len(docTermMap.Entries[docNum].Terms) == 0 {
+				continue
 			}
+
+			bufferSize := (len(docTermMap.Entries[docNum].Terms) - 1) + docTermMap.Entries[docNum].Size
+			if cap(buffer) < bufferSize {
+				buffer = make([]byte, 0, bufferSize)
+			} else {
+				buffer = buffer[:0]
+			}
+			for _, term := range docTermMap.Entries[docNum].Terms {
+				buffer = append(buffer, (*term)...)
+				buffer = append(buffer, termSeparator)
+			}
+
+			err = fdvEncoder.Add(uint64(docNum), buffer)
+			if err != nil {
+				return err
+			}
+
+			docTermMap.Entries[docNum].Size = 0
+			docTermMap.Entries[docNum].Terms = docTermMap.Entries[docNum].Terms[:0]
 		}
 		err = fdvEncoder.Close()
 		if err != nil {
@@ -758,18 +777,23 @@ func (s *interim) writeDictsField(
 	} else {
 		fdvOffsetsStart[fieldID] = fieldNotUninverted
 		fdvOffsetsEnd[fieldID] = fieldNotUninverted
+
+		for docNum := range docTermMap.Entries {
+			docTermMap.Entries[docNum].Size = 0
+			docTermMap.Entries[docNum].Terms = docTermMap.Entries[docNum].Terms[:0]
+		}
 	}
 	return nil
 }
 
 func (s *interim) writeDictsTermField(
-	docTermMap [][]byte,
+	docTermMap *DocumentsTermsMap,
 	dict map[uint64]uint64,
-	term Term,
+	term *Term,
 	tfEncoder, locEncoder *chunkedIntCoder,
 	buf []byte,
 ) (err error) {
-	pid := dict[xxh3.Hash(term)] - 1
+	pid := dict[xxh3.Hash(*term)] - 1
 
 	postingsBS := s.Postings[pid]
 
@@ -815,7 +839,9 @@ func (s *interim) writeDictsTermField(
 
 		freqNormOffset++
 
-		docTermMap[docNum] = append(append(docTermMap[docNum], term...), termSeparator)
+		entry := &docTermMap.Entries[docNum]
+		entry.Size += len(*term)
+		entry.Terms = append(entry.Terms, term)
 		return true
 	})
 
@@ -830,7 +856,7 @@ func (s *interim) writeDictsTermField(
 	}
 
 	if postingsOffset > uint64(0) {
-		err = s.builder.Insert([]byte(term), postingsOffset)
+		err = s.builder.Insert(*term, postingsOffset)
 		if err != nil {
 			return err
 		}
