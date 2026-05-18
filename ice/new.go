@@ -425,24 +425,22 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 			termKey := xxh3.Hash(term.TermVal)
 
 			postingListIdPlus1, exists := dict[termKey]
-			if !exists {
-				pidNext++
-				postingListIdPlus1 = uint64(pidNext)
-
-				dict[termKey] = postingListIdPlus1
-				dictKeys = append(dictKeys, &term.TermVal)
-
-				s.numTermsPerPostingsList = append(s.numTermsPerPostingsList, 0)
-				s.numLocsPerPostingsList = append(s.numLocsPerPostingsList, 0)
+			if exists {
+				var numLocations = len(term.Locations)
+				s.numLocsPerPostingsList[postingListIdPlus1-1] += uint32(numLocations)
+				s.numTermsPerPostingsList[postingListIdPlus1-1]++
+				totLocs += numLocations
+				continue
 			}
+			pidNext++
+			postingListIdPlus1 = uint64(pidNext)
 
-			pid := postingListIdPlus1 - 1
-
-			s.numTermsPerPostingsList[pid]++
+			dict[termKey] = postingListIdPlus1
+			dictKeys = append(dictKeys, &term.TermVal)
 
 			var numLocations = len(term.Locations)
-			s.numLocsPerPostingsList[pid] += uint32(numLocations)
-
+			s.numLocsPerPostingsList = append(s.numLocsPerPostingsList, uint32(numLocations))
+			s.numTermsPerPostingsList = append(s.numTermsPerPostingsList, 1)
 			totLocs += numLocations
 		}
 
