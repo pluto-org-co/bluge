@@ -26,6 +26,7 @@ import (
 	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/zeebo/xxh3"
 )
 
 const Version uint32 = 1
@@ -36,7 +37,7 @@ type Segment struct {
 	data   *segment.Data
 	footer *footer
 
-	fieldsMap  map[string]uint8 // fieldName -> fieldID+1
+	fieldsMap  map[uint64]uint8 // fieldName -> fieldID+1
 	fieldsInv  []string         // fieldID -> fieldName
 	fieldDocs  map[uint8]uint64 // fieldID -> # docs with value in field
 	fieldFreqs map[uint8]uint64 // fieldID -> # total tokens in field
@@ -90,8 +91,8 @@ func (s *Segment) updateSize() {
 		s.data.Size()
 
 	// fieldsMap
-	for k := range s.fieldsMap {
-		sizeInBytes += (len(k) + sizeOfString) + sizeOfUint16
+	for _, v := range s.fieldsInv {
+		sizeInBytes += (len(v) + sizeOfString) + sizeOfUint16
 	}
 
 	// fieldsInv, dictLocs
@@ -121,7 +122,7 @@ func (s *Segment) Dictionary(field string) (*Dictionary, error) {
 }
 
 func (s *Segment) dictionary(field string) (rv *Dictionary, err error) {
-	fieldIDPlus1 := s.fieldsMap[field]
+	fieldIDPlus1 := s.fieldsMap[xxh3.HashString(field)]
 	if fieldIDPlus1 > 0 {
 		rv = &Dictionary{
 			sb:      s,

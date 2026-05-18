@@ -16,6 +16,7 @@ package ice
 
 import (
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/zeebo/xxh3"
 )
 
 type CollectionStats struct {
@@ -44,7 +45,7 @@ func (c *CollectionStats) Merge(other segment.CollectionStats) {
 
 func (s *Segment) CollectionStats(field string) (segment.CollectionStats, error) {
 	var rv = &CollectionStats{}
-	fieldIDPlus1 := s.fieldsMap[field]
+	fieldIDPlus1 := s.fieldsMap[xxh3.HashString(field)]
 	if fieldIDPlus1 > 0 {
 		rv.totalDocCount = s.footer.numDocs
 		rv.docCount = s.fieldDocs[fieldIDPlus1-1]

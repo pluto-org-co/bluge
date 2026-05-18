@@ -347,7 +347,7 @@ func automatonAccepts(a vellum.Automaton, val string) bool {
 
 func (s *stubIndexReader) VisitStoredFields(number uint64, visitor segment.StoredFieldVisitor) error {
 	if doc, ok := s.doc[number]; ok {
-		for _, field := range *doc.Fields {
+		for _, field := range doc.Fields {
 			visitor(field.NameString, field.RawBytes)
 		}
 	}

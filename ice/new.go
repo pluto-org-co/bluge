@@ -89,7 +89,7 @@ func newWithChunkMode(results []*documents.Document, normCalc func(string, int) 
 }
 
 func initSegmentBase(mem []byte, footer *footer,
-	fieldsMap map[string]uint8, fieldsInv []string,
+	fieldsMap map[uint64]uint8, fieldsInv []string,
 	fieldsDocs, fieldsFreqs map[uint8]uint64,
 	dictLocs []uint64) (*Segment, error) {
 	sb := &Segment{
@@ -129,7 +129,7 @@ type interim struct {
 	// FieldsIdxMapper adds 1 to field id to avoid zero value issues
 	// Maps field names to the index pointed at FieldsInv
 	//  name -> field id + 1
-	FieldsIdxMapper map[string]uint8
+	FieldsIdxMapper map[uint64]uint8
 
 	// FieldsNames is the inverse of FieldsMap
 	// Ordered list of fields
@@ -259,7 +259,7 @@ type interimLoc struct {
 }
 
 func (s *interim) convert() (*footer, []uint64, error) {
-	s.FieldsIdxMapper = map[string]uint8{}
+	s.FieldsIdxMapper = map[uint64]uint8{}
 	s.FieldDocs = map[uint8]uint64{}
 	s.FieldTokenCounters = map[uint8]uint64{}
 
@@ -276,7 +276,7 @@ func (s *interim) convert() (*footer, []uint64, error) {
 	slices.Sort(s.FieldsNames[1:]) // keep _id as first field
 
 	for fieldID, fieldName := range s.FieldsNames {
-		s.FieldsIdxMapper[fieldName] = uint8(fieldID + 1)
+		s.FieldsIdxMapper[xxh3.HashString(fieldName)] = uint8(fieldID + 1)
 	}
 
 	if cap(s.IncludeDocValues) >= len(s.FieldsNames) {
@@ -324,14 +324,15 @@ func (s *interim) convert() (*footer, []uint64, error) {
 }
 
 func (s *interim) getOrDefineField(fieldName string) uint8 {
-	fieldIDPlus1, exists := s.FieldsIdxMapper[fieldName]
+	fieldNameKey := xxh3.HashString(fieldName)
+	fieldIDPlus1, exists := s.FieldsIdxMapper[fieldNameKey]
 	if exists {
 
 		return fieldIDPlus1 - 1
 	}
 
 	fieldIDPlus1 = uint8(len(s.FieldsNames)) + 1
-	s.FieldsIdxMapper[fieldName] = fieldIDPlus1
+	s.FieldsIdxMapper[fieldNameKey] = fieldIDPlus1
 	s.FieldsNames = append(s.FieldsNames, fieldName)
 
 	s.TermDicts = append(s.TermDicts, make(map[uint64]uint64))

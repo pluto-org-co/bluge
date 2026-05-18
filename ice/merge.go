@@ -27,6 +27,7 @@ import (
 	"github.com/blevesearch/vellum"
 	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/zeebo/xxh3"
 )
 
 const docDropped = math.MaxInt64 // sentinel docNum to represent a deleted doc
@@ -377,7 +378,7 @@ func buildMergedDocVals(newSegDocCount uint64, w *countHashWriter, closeCh chan 
 			return segment.ErrClosed
 		}
 
-		fieldIDPlus1 := seg.fieldsMap[fieldName]
+		fieldIDPlus1 := seg.fieldsMap[xxh3.HashString(fieldName)]
 		if dvIter, exists := seg.fieldDvReaders[fieldIDPlus1-1]; exists &&
 			dvIter != nil {
 			fdvReadersAvailable = true
