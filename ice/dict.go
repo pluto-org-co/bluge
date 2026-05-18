@@ -26,7 +26,7 @@ import (
 type Dictionary struct {
 	sb        *Segment
 	field     string
-	fieldID   uint16
+	fieldID   uint8
 	fst       *vellum.FST
 	fstReader *vellum.Reader
 }

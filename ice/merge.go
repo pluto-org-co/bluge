@@ -117,7 +117,7 @@ func mergeToWriter(
 	}
 
 	var storedIndexOffset uint64
-	var fieldDocs, fieldFreqs map[uint16]uint64
+	var fieldDocs, fieldFreqs map[uint8]uint64
 	var dictLocs []uint64
 	if numDocs > 0 {
 		storedIndexOffset, newDocNums, err = mergeStoredAndRemap(segments, drops,
@@ -152,10 +152,10 @@ func mergeToWriter(
 
 // mapFields takes the fieldsInv list and returns a map of fieldName
 // to fieldID+1
-func mapFields(fields []string) map[string]uint16 {
-	rv := make(map[string]uint16, len(fields))
+func mapFields(fields []string) map[string]uint8 {
+	rv := make(map[string]uint8, len(fields))
 	for i, fieldName := range fields {
-		rv[fieldName] = uint16(i) + 1
+		rv[fieldName] = uint8(i) + 1
 	}
 	return rv
 }
@@ -174,10 +174,10 @@ func computeNewDocCount(segments []*Segment, drops []*roaring.Bitmap) uint64 {
 }
 
 func persistMergedRest(segments []*Segment, dropsIn []*roaring.Bitmap,
-	fieldsInv []string, fieldsMap map[string]uint16,
+	fieldsInv []string, fieldsMap map[string]uint8,
 	newDocNumsIn [][]uint64, newSegDocCount uint64, chunkMode uint32,
 	w *countHashWriter, closeCh chan struct{}) (dictLocs []uint64, fieldDocs,
-	fieldFreqs map[uint16]uint64, docValueOffset uint64, err error) {
+	fieldFreqs map[uint8]uint64, docValueOffset uint64, err error) {
 	var bufMaxVarintLen64 = make([]byte, binary.MaxVarintLen64)
 
 	dictLocs = make([]uint64, len(fieldsInv))
@@ -198,9 +198,9 @@ func persistMergedRest(segments []*Segment, dropsIn []*roaring.Bitmap,
 
 	newRoaring := roaring.NewBitmap()
 
-	fieldDocs = map[uint16]uint64{}
+	fieldDocs = map[uint8]uint64{}
 	fieldDocTracking := roaring.NewBitmap()
-	fieldFreqs = map[uint16]uint64{}
+	fieldFreqs = map[uint8]uint64{}
 
 	// for each field
 	for fieldID, fieldName := range fieldsInv {
@@ -218,7 +218,7 @@ func persistMergedRest(segments []*Segment, dropsIn []*roaring.Bitmap,
 			return nil, nil, nil, 0, err
 		}
 
-		fieldDocs[uint16(fieldID)] += fieldDocTracking.GetCardinality()
+		fieldDocs[uint8(fieldID)] += fieldDocTracking.GetCardinality()
 	}
 
 	docValueOffset, err = writeDvLocs(w, bufMaxVarintLen64, fieldDvLocsStart, fieldDvLocsEnd)
@@ -229,10 +229,10 @@ func persistMergedRest(segments []*Segment, dropsIn []*roaring.Bitmap,
 	return dictLocs, fieldDocs, fieldFreqs, docValueOffset, nil
 }
 
-func persistMergedRestField(segments []*Segment, dropsIn []*roaring.Bitmap, fieldsMap map[string]uint16,
+func persistMergedRestField(segments []*Segment, dropsIn []*roaring.Bitmap, fieldsMap map[string]uint8,
 	newDocNumsIn [][]uint64, newSegDocCount uint64, chunkMode uint32, w *countHashWriter, closeCh chan struct{},
 	fieldName string, newRoaring, fieldDocTracking *roaring.Bitmap, tfEncoder, locEncoder *chunkedIntCoder,
-	newVellum *vellum.Builder, vellumBuf *bytes.Buffer, bufMaxVarintLen64 []byte, fieldFreqs map[uint16]uint64,
+	newVellum *vellum.Builder, vellumBuf *bytes.Buffer, bufMaxVarintLen64 []byte, fieldFreqs map[uint8]uint64,
 	fieldID int, dictLocs, fieldDvLocsStart, fieldDvLocsEnd []uint64) error {
 	var postings *PostingsList
 	var postItr *PostingsIterator
@@ -420,7 +420,7 @@ func buildMergedDocVals(newSegDocCount uint64, w *countHashWriter, closeCh chan 
 }
 
 func prepareNewTerm(newSegDocCount uint64, chunkMode uint32, tfEncoder, locEncoder *chunkedIntCoder,
-	fieldFreqs map[uint16]uint64, fieldID int, enumerator *enumerator, dicts []*Dictionary,
+	fieldFreqs map[uint8]uint64, fieldID int, enumerator *enumerator, dicts []*Dictionary,
 	drops []*roaring.Bitmap) error {
 	var err error
 
@@ -434,7 +434,7 @@ func prepareNewTerm(newSegDocCount uint64, chunkMode uint32, tfEncoder, locEncod
 			return err
 		}
 		newCard += pl.Count()
-		fieldFreqs[uint16(fieldID)] += newCard
+		fieldFreqs[uint8(fieldID)] += newCard
 	}
 	// compute correct chunk size with this
 	var chunkSize uint64
@@ -546,7 +546,7 @@ func setupActiveForField(segments []*Segment, dropsIn []*roaring.Bitmap, newDocN
 	return newDocNums, drops, dicts, itrs, segmentsInFocus, nil
 }
 
-func mergeTermFreqNormLocs(fieldsMap map[string]uint16, postItr *PostingsIterator,
+func mergeTermFreqNormLocs(fieldsMap map[string]uint8, postItr *PostingsIterator,
 	newDocNums []uint64, newRoaring *roaring.Bitmap,
 	tfEncoder, locEncoder *chunkedIntCoder, bufLoc []uint64, docTracking *roaring.Bitmap) (
 	lastDocNum, lastFreq, lastNorm uint64, bufLocOut []uint64, err error) {
@@ -600,7 +600,7 @@ func mergeTermFreqNormLocs(fieldsMap map[string]uint16, postItr *PostingsIterato
 func mergeStoredAndRemap(
 	segments []*Segment,
 	drops []*roaring.Bitmap,
-	fieldsMap map[string]uint16,
+	fieldsMap map[string]uint8,
 	fieldsInv []string,
 	fieldsSame bool,
 	newSegDocCount uint64,
@@ -680,7 +680,7 @@ func mergeStoredAndRemap(
 
 func mergeStoredAndRemapSegment(seg *Segment, dropsI *roaring.Bitmap, segNewDocNums []uint64, newDocNum uint64,
 	metaBuf *bytes.Buffer, data []byte, fieldsInv []string, vals [][][]byte, vdc *visitDocumentCtx,
-	fieldsMap map[string]uint16, metaEncode func(val uint64) (int, error), compressed []byte, docNumOffsets []uint64,
+	fieldsMap map[string]uint8, metaEncode func(val uint64) (int, error), compressed []byte, docNumOffsets []uint64,
 	w *countHashWriter) (uint64, error) {
 	// for each doc num
 	for docNum := range seg.footer.numDocs {

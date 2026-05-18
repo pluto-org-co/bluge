@@ -89,8 +89,8 @@ func newWithChunkMode(results []*documents.Document, normCalc func(string, int) 
 }
 
 func initSegmentBase(mem []byte, footer *footer,
-	fieldsMap map[string]uint16, fieldsInv []string,
-	fieldsDocs, fieldsFreqs map[uint16]uint64,
+	fieldsMap map[string]uint8, fieldsInv []string,
+	fieldsDocs, fieldsFreqs map[uint8]uint64,
 	dictLocs []uint64) (*Segment, error) {
 	sb := &Segment{
 		data:           segment.NewDataBytes(mem),
@@ -100,8 +100,8 @@ func initSegmentBase(mem []byte, footer *footer,
 		fieldDocs:      fieldsDocs,
 		fieldFreqs:     fieldsFreqs,
 		dictLocs:       dictLocs,
-		fieldDvReaders: make(map[uint16]*docValueReader),
-		fieldFSTs:      make(map[uint16]*vellum.FST),
+		fieldDvReaders: make(map[uint8]*docValueReader),
+		fieldFSTs:      make(map[uint8]*vellum.FST),
 	}
 	sb.updateSize()
 
@@ -129,7 +129,7 @@ type interim struct {
 	// FieldsIdxMapper adds 1 to field id to avoid zero value issues
 	// Maps field names to the index pointed at FieldsInv
 	//  name -> field id + 1
-	FieldsIdxMapper map[string]uint16
+	FieldsIdxMapper map[string]uint8
 
 	// FieldsNames is the inverse of FieldsMap
 	// Ordered list of fields
@@ -138,11 +138,11 @@ type interim struct {
 
 	// FieldDocs tracks how many documents have at least one value
 	// for each field
-	FieldDocs map[uint16]uint64
+	FieldDocs map[uint8]uint64
 
 	// FieldTokenCounters tracks how many total tokens there are in a field
 	// across all documents
-	FieldTokenCounters map[uint16]uint64
+	FieldTokenCounters map[uint8]uint64
 
 	// Term dictionaries for each field
 	// field id -> term -> postings list id + 1
@@ -252,16 +252,16 @@ type interimFreqNorm struct {
 }
 
 type interimLoc struct {
-	FieldId  uint16
+	FieldId  uint8
 	Position uint64
 	Start    uint64
 	End      uint64
 }
 
 func (s *interim) convert() (*footer, []uint64, error) {
-	s.FieldsIdxMapper = map[string]uint16{}
-	s.FieldDocs = map[uint16]uint64{}
-	s.FieldTokenCounters = map[uint16]uint64{}
+	s.FieldsIdxMapper = map[string]uint8{}
+	s.FieldDocs = map[uint8]uint64{}
+	s.FieldTokenCounters = map[uint8]uint64{}
 
 	// FIXME review if this is still necessary
 	// YES, integration tests fail when removed
@@ -276,7 +276,7 @@ func (s *interim) convert() (*footer, []uint64, error) {
 	slices.Sort(s.FieldsNames[1:]) // keep _id as first field
 
 	for fieldID, fieldName := range s.FieldsNames {
-		s.FieldsIdxMapper[fieldName] = uint16(fieldID + 1)
+		s.FieldsIdxMapper[fieldName] = uint8(fieldID + 1)
 	}
 
 	if cap(s.IncludeDocValues) >= len(s.FieldsNames) {
@@ -323,22 +323,25 @@ func (s *interim) convert() (*footer, []uint64, error) {
 	}, dictOffsets, nil
 }
 
-func (s *interim) getOrDefineField(fieldName string) uint16 {
+func (s *interim) getOrDefineField(fieldName string) uint8 {
 	fieldIDPlus1, exists := s.FieldsIdxMapper[fieldName]
-	if !exists {
-		fieldIDPlus1 = uint16(len(s.FieldsNames) + 1)
-		s.FieldsIdxMapper[fieldName] = fieldIDPlus1
-		s.FieldsNames = append(s.FieldsNames, fieldName)
+	if exists {
 
-		s.TermDicts = append(s.TermDicts, make(map[uint64]uint64))
+		return fieldIDPlus1 - 1
+	}
 
-		n := len(s.DictKeys)
-		if n < cap(s.DictKeys) {
-			s.DictKeys = s.DictKeys[:n+1]
-			s.DictKeys[n] = s.DictKeys[n][:0]
-		} else {
-			s.DictKeys = append(s.DictKeys, []Term(nil))
-		}
+	fieldIDPlus1 = uint8(len(s.FieldsNames)) + 1
+	s.FieldsIdxMapper[fieldName] = fieldIDPlus1
+	s.FieldsNames = append(s.FieldsNames, fieldName)
+
+	s.TermDicts = append(s.TermDicts, make(map[uint64]uint64))
+
+	n := len(s.DictKeys)
+	if n < cap(s.DictKeys) {
+		s.DictKeys = s.DictKeys[:n+1]
+		s.DictKeys[n] = s.DictKeys[n][:0]
+	} else {
+		s.DictKeys = append(s.DictKeys, []Term(nil))
 	}
 
 	return fieldIDPlus1 - 1
@@ -468,7 +471,7 @@ func (s *interim) processDocument(
 	fieldTFs []analysis.TokenFrequencies,
 ) {
 	for _, field := range result.Fields {
-		fieldID := uint16(s.getOrDefineField(field.NameString))
+		fieldID := uint8(s.getOrDefineField(field.NameString))
 		fieldLens[fieldID] += field.AnalyzedLengthValue
 
 		if existingFreqs := fieldTFs[fieldID]; existingFreqs == nil {
@@ -515,9 +518,9 @@ func (s *interim) processDocument(
 				locs := s.Locs[pid]
 
 				for _, loc := range tf.Locations {
-					var locf = uint16(fieldID)
+					var locf = uint8(fieldID)
 					if loc.FieldVal != "" {
-						locf = uint16(s.getOrDefineField(loc.FieldVal))
+						locf = uint8(s.getOrDefineField(loc.FieldVal))
 					}
 					locs = append(locs, interimLoc{
 						FieldId:  locf,
@@ -547,7 +550,7 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 	docStoredOffsets := make([]uint64, len(s.documents))
 
 	// keyed by fieldID, for the current doc in the loop
-	docStoredFields := map[uint16]interimStoredField{}
+	docStoredFields := map[uint8]interimStoredField{}
 
 	for docNum, result := range s.documents {
 		for fieldID := range docStoredFields { // reset for next doc
@@ -575,7 +578,7 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 
 		// handle fields
 		for fieldID := range s.FieldsNames {
-			isf, exists := docStoredFields[uint16(fieldID)]
+			isf, exists := docStoredFields[uint8(fieldID)]
 			if exists {
 				curr, data, err = encodeStoredFieldValues(
 					fieldID, isf.vals,
