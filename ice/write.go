@@ -154,7 +154,7 @@ func writeRoaringWithLen(r *roaring.Bitmap, w io.Writer,
 	return tw, nil
 }
 
-func persistFields(fieldsInv []string, fieldDocs, fieldFreqs map[uint8]uint64,
+func persistFields(fieldsInv []string, fieldDocs, fieldFreqs map[uint16]uint64,
 	w *countHashWriter, dictLocs []uint64) (uint64, error) {
 	var rv uint64
 	var fieldsOffsets []uint64
@@ -177,7 +177,7 @@ func persistFields(fieldsInv []string, fieldDocs, fieldFreqs map[uint8]uint64,
 
 		// write out the number of docs using this field
 		// and the number of total tokens
-		err = writeUvarints(w, fieldDocs[uint8(fieldID)], fieldFreqs[uint8(fieldID)])
+		err = writeUvarints(w, fieldDocs[uint16(fieldID)], fieldFreqs[uint16(fieldID)])
 		if err != nil {
 			return 0, err
 		}

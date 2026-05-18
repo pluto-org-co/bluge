@@ -37,19 +37,19 @@ type Segment struct {
 	data   *segment.Data
 	footer *footer
 
-	fieldsMap  map[uint64]uint8 // fieldName -> fieldID+1
-	fieldsInv  []string         // fieldID -> fieldName
-	fieldDocs  map[uint8]uint64 // fieldID -> # docs with value in field
-	fieldFreqs map[uint8]uint64 // fieldID -> # total tokens in field
+	fieldsMap  map[uint64]uint16 // fieldName -> fieldID+1
+	fieldsInv  []string          // fieldID -> fieldName
+	fieldDocs  map[uint16]uint64 // fieldID -> # docs with value in field
+	fieldFreqs map[uint16]uint64 // fieldID -> # total tokens in field
 
 	dictLocs       []uint64
-	fieldDvReaders map[uint8]*docValueReader // naive chunk cache per field
-	fieldDvNames   []string                  // field names cached in fieldDvReaders
+	fieldDvReaders map[uint16]*docValueReader // naive chunk cache per field
+	fieldDvNames   []string                   // field names cached in fieldDvReaders
 	size           uint64
 
 	// state loaded dynamically
 	m         sync.Mutex
-	fieldFSTs map[uint8]*vellum.FST
+	fieldFSTs map[uint16]*vellum.FST
 }
 
 func (s *Segment) WriteTo(w io.Writer, _ chan struct{}) (int64, error) {
@@ -334,7 +334,7 @@ func (s *Segment) loadDvReaders() error {
 			return err
 		}
 		if fieldDvReader != nil {
-			s.fieldDvReaders[uint8(fieldID)] = fieldDvReader
+			s.fieldDvReaders[uint16(fieldID)] = fieldDvReader
 			s.fieldDvNames = append(s.fieldDvNames, field)
 		}
 	}

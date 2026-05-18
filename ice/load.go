@@ -36,11 +36,11 @@ func load(data *segment.Data) (*Segment, error) {
 	rv := &Segment{
 		data:           data.Slice(0, data.Len()-footerLen),
 		footer:         footer,
-		fieldsMap:      make(map[uint64]uint8),
-		fieldDvReaders: make(map[uint8]*docValueReader),
-		fieldFSTs:      make(map[uint8]*vellum.FST),
-		fieldDocs:      make(map[uint8]uint64),
-		fieldFreqs:     make(map[uint8]uint64),
+		fieldsMap:      make(map[uint64]uint16),
+		fieldDvReaders: make(map[uint16]*docValueReader),
+		fieldFSTs:      make(map[uint16]*vellum.FST),
+		fieldDocs:      make(map[uint16]uint64),
+		fieldFreqs:     make(map[uint16]uint64),
 	}
 
 	// FIXME temporarily map to existing footer fields
@@ -121,9 +121,9 @@ func (s *Segment) loadFields() error {
 
 		name := string(nameData)
 		s.fieldsInv = append(s.fieldsInv, name)
-		s.fieldsMap[xxh3.HashString(name)] = uint8(fieldID + 1)
-		s.fieldDocs[uint8(fieldID)] = fieldDocVal
-		s.fieldFreqs[uint8(fieldID)] = fieldFreqVal
+		s.fieldsMap[xxh3.HashString(name)] = uint16(fieldID + 1)
+		s.fieldDocs[uint16(fieldID)] = fieldDocVal
+		s.fieldFreqs[uint16(fieldID)] = fieldFreqVal
 
 		fieldID++
 	}

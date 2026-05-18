@@ -29,7 +29,7 @@ import (
 type docNumTermsVisitor func(docNum uint64, terms []byte) error
 
 type docVisitState struct {
-	dvrs    map[uint8]*docValueReader
+	dvrs    map[uint16]*docValueReader
 	segment *Segment
 }
 
@@ -285,8 +285,8 @@ func (s *Segment) visitDocumentFieldTerms(localDocNum uint64, fields []string,
 
 	if dvs.dvrs == nil {
 		var ok bool
-		var fieldIDPlus1 uint8
-		dvs.dvrs = make(map[uint8]*docValueReader, len(fields))
+		var fieldIDPlus1 uint16
+		dvs.dvrs = make(map[uint16]*docValueReader, len(fields))
 		for _, field := range fields {
 			if fieldIDPlus1, ok = s.fieldsMap[xxh3.HashString(field)]; !ok {
 				continue
@@ -309,7 +309,7 @@ func (s *Segment) visitDocumentFieldTerms(localDocNum uint64, fields []string,
 	var dvr *docValueReader
 	for _, field := range fields {
 		var ok bool
-		var fieldIDPlus1 uint8
+		var fieldIDPlus1 uint16
 		if fieldIDPlus1, ok = s.fieldsMap[xxh3.HashString(field)]; !ok {
 			continue
 		}
