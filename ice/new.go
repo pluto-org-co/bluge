@@ -113,6 +113,8 @@ func initSegmentBase(mem []byte, footer *footer,
 	return sb, nil
 }
 
+type Term = []byte
+
 var interimPool = sync.Pool{New: func() any { return &interim{} }}
 
 // interim holds temporary working data used while converting from
@@ -149,7 +151,7 @@ type interim struct {
 
 	// Terms for each field, where terms are sorted ascending
 	//  field id -> []term
-	DictKeys [][]string
+	DictKeys [][]Term
 
 	// Fields whose IncludeDocValues is true
 	//  field id -> bool
@@ -286,7 +288,7 @@ func (s *interim) convert() (*footer, []uint64, error) {
 	s.prepareDicts()
 
 	for _, dict := range s.DictKeys {
-		slices.Sort(dict)
+		slices.SortFunc(dict, bytes.Compare)
 	}
 
 	s.processDocuments()
@@ -335,7 +337,7 @@ func (s *interim) getOrDefineField(fieldName string) uint16 {
 			s.DictKeys = s.DictKeys[:n+1]
 			s.DictKeys[n] = s.DictKeys[n][:0]
 		} else {
-			s.DictKeys = append(s.DictKeys, []string(nil))
+			s.DictKeys = append(s.DictKeys, []Term(nil))
 		}
 	}
 
@@ -418,19 +420,19 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 		for _, term := range field.AnalyzedTokenFreqs {
 			termKey := xxh3.Hash(term.TermVal)
 
-			pidPlus1, exists := dict[termKey]
+			postingListIdPlus1, exists := dict[termKey]
 			if !exists {
 				pidNext++
-				pidPlus1 = uint64(pidNext)
+				postingListIdPlus1 = uint64(pidNext)
 
-				dict[termKey] = pidPlus1
-				dictKeys = append(dictKeys, string(term.TermVal))
+				dict[termKey] = postingListIdPlus1
+				dictKeys = append(dictKeys, term.TermVal)
 
 				s.numTermsPerPostingsList = append(s.numTermsPerPostingsList, 0)
 				s.numLocsPerPostingsList = append(s.numLocsPerPostingsList, 0)
 			}
 
-			pid := pidPlus1 - 1
+			pid := postingListIdPlus1 - 1
 
 			s.numTermsPerPostingsList[pid]++
 
@@ -671,7 +673,7 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 func (s *interim) writeDictsField(
 	docTermMap [][]byte,
 	fieldID int,
-	terms []string, // Terms are the words extracted from a field
+	terms []Term, // Terms are the words extracted from a field
 	tfEncoder, locEncoder *chunkedIntCoder,
 	buf []byte,
 	dictOffsets, fdvOffsetsStart, fdvOffsetsEnd []uint64,
@@ -766,11 +768,11 @@ func (s *interim) writeDictsField(
 func (s *interim) writeDictsTermField(
 	docTermMap [][]byte,
 	dict map[uint64]uint64,
-	term string,
+	term Term,
 	tfEncoder, locEncoder *chunkedIntCoder,
 	buf []byte,
 ) (err error) {
-	pid := dict[xxh3.HashString(term)] - 1
+	pid := dict[xxh3.Hash(term)] - 1
 
 	postingsBS := s.Postings[pid]
 
