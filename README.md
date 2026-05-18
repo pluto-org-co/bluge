@@ -10,13 +10,83 @@ modern text indexing in go - [blugelabs.com](https://www.blugelabs.com/)
 
 This is a mono-repo fork of [bluge](https://github.com/blugelabs/bluge) maintained by [Pluto](https://github.com/pluto-org-co), optimized for high-throughput offline indexing workloads.
 
-**Indexing performance:** ~75% faster than upstream on the full offline indexing pipeline (`WriterOffline` -- parallel document analysis, segment creation, and multi-pass merge), measured by indexing 1 million documents with 4 keyword fields each (15s → 5.9s).
+### What changed
 
-This fork is optimized for multi-core server hardware and trades CPU utilization for indexing throughput -- peak CPU usage during batch indexing is expected and intentional.
+The upstream library was architecturally modeled after Java OOP patterns — a separate `bluge_segment_api` package defining speculative interfaces with a single implementation, getter/setter methods on all field types, and pervasive interface boxing throughout the write path. In Go, this pattern has concrete costs: every interface call is an indirect dispatch the compiler cannot inline, every boxed value is a heap allocation the GC must track, and the compiler's escape analysis is blind to concrete types hidden behind interfaces.
 
-Upstream bluge is a stable, well-maintained library. This fork exists to consolidate internal patches and performance work in one place -- it is not intended as a general-purpose replacement.
+This fork addresses those problems at the root:
 
-![Bluge benchmark optimization history](docs/optimization-chart-18-05-2026.png)
+- **Mono-repo consolidation** — `bluge`, `bluge_segment_api`, and all internal packages collapsed into a single module, enabling cross-package inlining and atomic refactoring
+- **`bluge_segment_api` removed entirely** — the speculative interface layer had one implementation and zero external implementors; it was pure overhead
+- **All field types made concrete** — `KeywordField`, `TextField`, `NumericField` and all others are now concrete structs with public fields, no interface receivers, no getters or setters
+- **Offline writer redesigned** — `OfflineWriter` now accepts `segmentSize` and `workers` parameters and exposes a streaming `Insert` API alongside the batch `Batch` API, replacing the original all-or-nothing batch model
+
+### Performance
+
+Benchmark: 1,000,000 documents × 4 keyword fields each (`_id`, `name`, `index`, `reversed-name`), `BenchmarkOfflineWriter`, Intel i9-10900K, linux/amd64, `go test -bench -benchmem -count 5`.
+
+#### BenchmarkOfflineWriter
+
+| | upstream | this fork | delta |
+|---|---|---|---|
+| time | 15,746 ms | 4,497 ms | **−71% / 3.5× faster** |
+| memory | 10,948 MB | 7,010 MB | **−36%** |
+| allocs/op | 216,480,276 | 120,655,268 | **−44%** |
+
+#### OfflineWriter vs Writer (1M documents)
+
+| variant | time | memory | allocs/op |
+|---|---|---|---|
+| `Writer` | ~9,000 ms | 6,197 MB | 83.0M |
+| `OfflineWriter` | ~4,900 ms | 7,010 MB | 120.7M |
+
+`OfflineWriter` is ~45% faster than `Writer` for bulk ingestion at the cost of higher peak memory — it buffers segments in memory before flushing rather than streaming incrementally. For batch indexing workloads where you control when the process runs, `OfflineWriter` is the correct choice. For live indexing with concurrent reads, use `Writer`.
+
+#### How the gains were achieved
+
+| change | time impact | alloc impact |
+|---|---|---|
+| Write path optimization + `segmentSize`/`workers` exposure | −64% | −18% |
+| `bluge_segment_api` removal + concrete types | −12% | −20% |
+| Public fields, incremental cleanup | ~flat | −6% |
+| **total** | **−71%** | **−44%** |
+
+The allocation reduction is the most meaningful number — it is hardware-independent and noise-resistant. 96 million fewer allocations per operation means proportionally less GC pressure under sustained indexing load.
+
+### New APIs
+
+```go
+// segmentSize controls how many documents are buffered per segment before flush
+// workers controls how many segments are built in parallel
+writer, err := bluge.OpenOfflineWriter(config, 50_000, 10)
+
+// streaming insert — no need to pre-build a batch
+err = writer.Insert(doc)
+
+// or batch insert as before
+err = writer.Batch(batch)
+
+// FieldDefinition pattern — zero overhead vs direct field construction
+info, fields := bluge.FieldsFromDefinitions(
+    bluge.NewKeywordFieldDefinition("name", "hello"),
+    bluge.NewKeywordFieldDefinition("status", "active"),
+)
+doc := bluge.NewDocumentWithFields(id, info, fields...)
+
+// managed ID variant
+info, fields := bluge.FieldsFromDefinitionsWithId(id,
+    bluge.NewKeywordFieldDefinition("name", "hello"),
+)
+doc := bluge.NewDocumentWithFieldsManagedId(info, fields...)
+```
+
+### Scope and intent
+
+This fork is optimized for multi-core server hardware and trades peak memory for indexing throughput — sustained high CPU usage during batch indexing is expected and intentional.
+
+The upstream library had its last commit in 2021. This fork exists to consolidate internal patches, remove accumulated abstraction debt, and restore the library to production fitness for high-volume indexing workloads. It is not intended as a general-purpose drop-in replacement — the public API has changed in breaking ways (field types are no longer interface values, getters are gone).
+
+The read path, search path, and segment merge path have not yet been profiled or optimized. Current gains are entirely on the write path.
 
 ## License
 
