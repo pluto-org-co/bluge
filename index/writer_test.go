@@ -19,11 +19,12 @@ import (
 	"math"
 	"os"
 	"reflect"
-	"sort"
+	"slices"
 	"strconv"
 	"sync"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -37,18 +38,8 @@ func CreateConfig(name string) (config Config, cleanup func() error) {
 		WithNormCalc(func(_ string, numTerms int) float32 {
 			return math.Float32frombits(uint32(numTerms))
 		}).
-		WithVirtualField(NewFakeField("", "", false, false, false))
+		WithVirtualField(documents.NewKeywordField("", ""))
 	return rv, func() error { return os.RemoveAll(path) }
-}
-
-type testIdentifier string
-
-func (i testIdentifier) Field() string {
-	return "_id"
-}
-
-func (i testIdentifier) Term() []byte {
-	return []byte(i)
 }
 
 func TestIndexOpenReopen(t *testing.T) {
@@ -82,13 +73,12 @@ func TestIndexOpenReopen(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// insert a doc
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -111,7 +101,6 @@ func TestIndexOpenReopen(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now close it
 	err = idx.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -122,7 +111,6 @@ func TestIndexOpenReopen(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// check the doc count again after reopening it
 	reader, err = idx.Reader()
 	if err != nil {
 		t.Fatal(err)
@@ -139,7 +127,6 @@ func TestIndexOpenReopen(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now close it
 	err = idx.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -177,13 +164,12 @@ func TestIndexOpenReopenWithInsert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// insert a doc
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -206,32 +192,28 @@ func TestIndexOpenReopenWithInsert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now close it
 	err = idx.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// try to open the index and insert data
 	idx, err = OpenWriter(cfg)
 	if err != nil {
 		t.Fatalf("error opening index: %v", err)
 	}
 
-	// insert a doc
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test2", false, false, true),
-	}
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test2").
+			Aggregatable())
+	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	// check the doc count again after reopening it
 	reader, err = idx.Reader()
 	if err != nil {
 		t.Fatal(err)
@@ -248,7 +230,6 @@ func TestIndexOpenReopenWithInsert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now close it
 	err = idx.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -292,12 +273,12 @@ func TestIndexInsert(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -358,24 +339,24 @@ func TestIndexInsertThenDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	doc2 := &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc2 := documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc2.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc2)
+	b2.Update(documents.Identifier("2"), doc2)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -399,7 +380,7 @@ func TestIndexInsertThenDelete(t *testing.T) {
 	}
 
 	b3 := NewBatch()
-	b3.Delete(testIdentifier("1"))
+	b3.Delete(documents.Identifier("1"))
 	err = idx.Batch(b3)
 	if err != nil {
 		t.Errorf("Error deleting entry from index: %v", err)
@@ -422,13 +403,12 @@ func TestIndexInsertThenDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// now close it
 	err = idx.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	idx, err = OpenWriter(cfg) // reopen
+	idx, err = OpenWriter(cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -450,7 +430,7 @@ func TestIndexInsertThenDelete(t *testing.T) {
 	}
 
 	b4 := NewBatch()
-	b4.Delete(testIdentifier("2"))
+	b4.Delete(documents.Identifier("2"))
 	err = idx.Batch(b4)
 	if err != nil {
 		t.Errorf("Error deleting entry from index: %v", err)
@@ -495,37 +475,35 @@ func TestIndexInsertThenUpdate(t *testing.T) {
 		}
 	}()
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	// this update should overwrite one term, and introduce one new one
-	doc = &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test fail", false, false, true),
-	}
+	doc = documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test fail").
+			Aggregatable())
+	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("1"), doc)
+	b2.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error deleting entry from index: %v", err)
 	}
 
-	// now do another update that should remove one of the terms
-	doc = &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "fail", false, false, true),
-	}
+	doc = documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "fail").
+			Aggregatable())
+	doc.Analyze()
 	b3 := NewBatch()
-	b3.Update(testIdentifier("1"), doc)
+	b3.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b3)
 	if err != nil {
 		t.Errorf("Error deleting entry from index: %v", err)
@@ -570,36 +548,36 @@ func TestIndexInsertMultiple(t *testing.T) {
 
 	var expectedCount uint64
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	doc = &FakeDocument{
-		NewFakeField("_id", "3", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc = documents.NewDocument("3").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b3 := NewBatch()
-	b3.Update(testIdentifier("3"), doc)
+	b3.Update(documents.Identifier("3"), doc)
 	err = idx.Batch(b3)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -660,12 +638,13 @@ func TestIndexInsertWithStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", true, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			StoreValue().
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -748,49 +727,42 @@ func TestIndexBatch(t *testing.T) {
 
 	var expectedCount uint64
 
-	// first create 2 docs the old fashioned way
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test2", false, false, true),
-	}
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test2").
+			Aggregatable())
+	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	// now create a batch which does 3 things
-	// insert new doc
-	// update existing doc
-	// delete existing doc
-	// net document count change 0
-
 	batch := NewBatch()
-	doc = &FakeDocument{
-		NewFakeField("_id", "3", true, false, false),
-		NewFakeField("name", "test3", false, false, true),
-	}
-	batch.Update(testIdentifier("3"), doc)
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test2updated", false, false, true),
-	}
-	batch.Update(testIdentifier("2"), doc)
-	batch.Delete(testIdentifier("1"))
+	doc = documents.NewDocument("3").
+		AddField(documents.NewTextField("name", "test3").
+			Aggregatable())
+	doc.Analyze()
+	batch.Update(documents.Identifier("3"), doc)
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test2updated").
+			Aggregatable())
+	doc.Analyze()
+	batch.Update(documents.Identifier("2"), doc)
+	batch.Delete(documents.Identifier("1"))
 
 	err = idx.Batch(batch)
 	if err != nil {
@@ -845,7 +817,7 @@ func TestIndexBatch(t *testing.T) {
 		t.Fatalf("error getting postings")
 	}
 
-	sort.Strings(docIDs)
+	slices.Sort(docIDs)
 	expectedIDs := []string{"2", "3"}
 	if !reflect.DeepEqual(expectedIDs, docIDs) {
 		t.Errorf("expected ids: %v, got ids: %v", expectedIDs, docIDs)
@@ -872,16 +844,15 @@ func TestIndexBatchWithCallbacks(t *testing.T) {
 		}
 	}()
 
-	// Check that callback function works
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	batch := NewBatch()
-	doc := &FakeDocument{
-		NewFakeField("_id", "3", true, false, false),
-		NewFakeField("name", "test3", false, false, true),
-	}
-	batch.Update(testIdentifier("3"), doc)
+	doc := documents.NewDocument("3").
+		AddField(documents.NewTextField("name", "test3").
+			Aggregatable())
+	doc.Analyze()
+	batch.Update(documents.Identifier("3"), doc)
 	batch.SetPersistedCallback(func(e error) {
 		wg.Done()
 	})
@@ -892,7 +863,6 @@ func TestIndexBatchWithCallbacks(t *testing.T) {
 	}
 
 	wg.Wait()
-	// test has no assertion but will timeout if callback doesn't fire
 }
 
 func TestIndexUpdateComposites(t *testing.T) {
@@ -915,28 +885,33 @@ func TestIndexUpdateComposites(t *testing.T) {
 		}
 	}()
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", true, false, true),
-		NewFakeField("title", "mister", true, false, true),
-	}
-	doc.FakeComposite("_all", nil)
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewTextField("title", "mister").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 
-	// now lets update it
-	doc = &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "testupdated", true, false, true),
-		NewFakeField("title", "misterupdated", true, false, true),
-	}
-	doc.FakeComposite("_all", nil)
+	doc = documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "testupdated").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewTextField("title", "misterupdated").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("1"), doc)
+	b2.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -997,14 +972,19 @@ func TestIndexTermReaderCompositeFields(t *testing.T) {
 		}
 	}()
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", true, true, true),
-		NewFakeField("title", "mister", true, true, true),
-	}
-	doc.FakeComposite("_all", nil)
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewTextField("title", "mister").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1055,7 +1035,7 @@ func TestIndexTermReaderCompositeFields(t *testing.T) {
 		t.Fatalf("error getting postings")
 	}
 
-	sort.Strings(docIDs)
+	slices.Sort(docIDs)
 	expectedIDs := []string{"1"}
 	if !reflect.DeepEqual(expectedIDs, docIDs) {
 		t.Errorf("expected ids: %v, got ids: %v", expectedIDs, docIDs)
@@ -1082,13 +1062,18 @@ func TestIndexDocumentVisitFieldTerms(t *testing.T) {
 		}
 	}()
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", true, true, true),
-		NewFakeField("title", "mister", true, true, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewTextField("title", "mister").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1151,17 +1136,17 @@ func TestConcurrentUpdate(t *testing.T) {
 		}
 	}()
 
-	// do some concurrent updates
 	var wg sync.WaitGroup
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
 		go func(i int) {
-			doc := &FakeDocument{
-				NewFakeField("_id", "1", true, false, false),
-				NewFakeField(strconv.Itoa(i), strconv.Itoa(i), true, false, true),
-			}
+			doc := documents.NewDocument("1").
+				AddField(documents.NewTextField(strconv.Itoa(i), strconv.Itoa(i)).
+					StoreValue().
+					Aggregatable())
+			doc.Analyze()
 			b := NewBatch()
-			b.Update(testIdentifier("1"), doc)
+			b.Update(documents.Identifier("1"), doc)
 			err2 := idx.Batch(b)
 			if err2 != nil {
 				t.Errorf("Error updating index: %v", err2)
@@ -1171,7 +1156,6 @@ func TestConcurrentUpdate(t *testing.T) {
 	}
 	wg.Wait()
 
-	// now load the name field and see what we get
 	r, err := idx.Reader()
 	if err != nil {
 		t.Fatal(err)
@@ -1226,13 +1210,13 @@ func TestLargeField(t *testing.T) {
 		largeFieldValue = append(largeFieldValue, bleveWikiArticle1K...)
 	}
 
-	d := &FakeDocument{
-		NewFakeField("_id", "large", true, false, false),
-		NewFakeField("desc", string(largeFieldValue), true, false, true),
-	}
-
+	d := documents.NewDocument("large").
+		AddField(documents.NewTextField("desc", string(largeFieldValue)).
+			StoreValue().
+			Aggregatable())
+	d.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), d)
+	b.Update(documents.Identifier("1"), d)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Fatal(err)
@@ -1282,14 +1266,18 @@ func TestIndexDocumentVisitFieldTermsWithMultipleDocs(t *testing.T) {
 		}
 	}()
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", true, true, true),
-		NewFakeField("title", "mister", true, true, true),
-	}
-
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewTextField("title", "mister").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1327,13 +1315,18 @@ func TestIndexDocumentVisitFieldTermsWithMultipleDocs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc2 := &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test2", true, true, true),
-		NewFakeField("title", "mister2", true, true, true),
-	}
+	doc2 := documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test2").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewTextField("title", "mister2").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable())
+	doc2.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc2)
+	b2.Update(documents.Identifier("2"), doc2)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1370,13 +1363,18 @@ func TestIndexDocumentVisitFieldTermsWithMultipleDocs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc3 := &FakeDocument{
-		NewFakeField("_id", "3", true, false, false),
-		NewFakeField("name3", "test3", true, true, true),
-		NewFakeField("title3", "mister3", true, true, true),
-	}
+	doc3 := documents.NewDocument("3").
+		AddField(documents.NewTextField("name3", "test3").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewTextField("title3", "mister3").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable())
+	doc3.Analyze()
 	b3 := NewBatch()
-	b3.Update(testIdentifier("3"), doc3)
+	b3.Update(documents.Identifier("3"), doc3)
 	err = idx.Batch(b3)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1457,17 +1455,22 @@ func TestIndexDocumentVisitFieldTermsWithMultipleFieldOptions(t *testing.T) {
 		}
 	}()
 
-	// mix of field options, this exercises the run time/ on the fly un inverting of
-	// doc values for custom options enabled field like designation, dept.
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-		NewFakeField("title", "mister", false, false, true),
-		NewFakeField("designation", "engineer", true, true, true),
-		NewFakeField("dept", "bleve", true, true, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable()).
+		AddField(documents.NewTextField("title", "mister").
+			Aggregatable()).
+		AddField(documents.NewTextField("designation", "engineer").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewTextField("dept", "bleve").
+			StoreValue().
+			SearchTermPositions().
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1508,7 +1511,6 @@ func TestIndexDocumentVisitFieldTermsWithMultipleFieldOptions(t *testing.T) {
 }
 
 func TestAllFieldWithDifferentTermVectorsEnabled(t *testing.T) {
-	// Based on https://github.com/blevesearch/bleve/issues/895 from xeizmendi
 	cfg, cleanup := CreateConfig("TestAllFieldWithDifferentTermVectorsEnabled")
 	defer func() {
 		err := cleanup()
@@ -1528,15 +1530,16 @@ func TestAllFieldWithDifferentTermVectorsEnabled(t *testing.T) {
 		}
 	}()
 
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("keyword", "something", false, false, true),
-		NewFakeField("text", "A sentence that includes something within.", false, true, true),
-	}
-	doc.FakeComposite("_all", nil)
-
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("keyword", "something").
+			Aggregatable()).
+		AddField(documents.NewTextField("text", "A sentence that includes something within.").
+			SearchTermPositions().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -1563,27 +1566,27 @@ func TestIndexSeekBackwardsStats(t *testing.T) {
 		}
 	}()
 
-	// insert a doc
 	batch := NewBatch()
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "cat", true, false, true),
-	}
-	doc.FakeComposite("_all", nil)
-	batch.Update(testIdentifier("1"), doc)
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "cat").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
+	batch.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)
 	}
 
-	// insert another doc
 	batch.Reset()
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "cat", true, false, true),
-	}
-	doc.FakeComposite("_all", nil)
-	batch.Update(testIdentifier("2"), doc)
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "cat").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
+	batch.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)
@@ -1615,7 +1618,6 @@ func TestIndexSeekBackwardsStats(t *testing.T) {
 		t.Fatalf("error getting second tfd: %v", err)
 	}
 
-	// seek backwards to the first
 	_, err = tfr.Advance(tfdFirst.Number())
 	if err != nil {
 		t.Fatalf("error adancing backwards: %v", err)

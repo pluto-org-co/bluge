@@ -15,25 +15,37 @@
 package ice
 
 import (
+	"fmt"
 	"path/filepath"
 	"reflect"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/blevesearch/vellum/levenshtein"
 )
 
 func buildTestSegmentForDict() (*Segment, error) {
-	doc := &FakeDocument{
-		NewFakeField("_id", "a", true, false, false),
-		NewFakeField("desc", "apple ball cat dog egg fish bat", true, true, false),
+	doc := documents.NewDocument("a").
+		AddField(documents.
+			NewTextField("desc", "apple ball cat dog egg fish bat").
+			StoreValue().
+			SearchTermPositions())
+
+	doc.Analyze() // ← try calling this explicitly first
+
+	// debug: walk the fields
+	for _, f := range doc.Fields {
+		fmt.Printf("field: %s\n", f.NameString)
+		for _, t := range f.AnalyzedTokenFreqs {
+			fmt.Printf("  term: %s freq: %d\n", t.TermVal, t.Frequency)
+		}
 	}
 
-	results := []segment.Document{doc}
-
+	results := []*documents.Document{doc}
 	seg, _, err := newWithChunkMode(results, encodeNorm, 1024)
-	return seg.(*Segment), err
+	return seg, err
 }
 
 func TestDictionary(t *testing.T) {

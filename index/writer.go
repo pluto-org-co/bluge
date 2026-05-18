@@ -24,8 +24,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/ice"
-	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/RoaringBitmap/roaring"
 )
@@ -281,7 +281,7 @@ func (s *Writer) Batch(batch *Batch) (err error) {
 	return err
 }
 
-func (s *Writer) prepareSegment(newSegment *segmentWrapper, idTerms []segment.Term,
+func (s *Writer) prepareSegment(newSegment *segmentWrapper, idTerms []*analysis.TokenFreq,
 	internalOps map[string][]byte, persistedCallback func(error)) error {
 	// new introduction
 	introduction := &segmentIntroduction{

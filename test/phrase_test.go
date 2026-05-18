@@ -17,31 +17,32 @@ package test
 import (
 	"github.com/pluto-org-co/bluge"
 	"github.com/pluto-org-co/bluge/analysis/lang/en"
+	"github.com/pluto-org-co/bluge/documents"
 )
 
 func phraseLoad(writer *bluge.Writer) error {
 	enAnalyzer := en.NewAnalyzer()
 
-	err := writer.Insert(bluge.NewDocument("a").
-		AddField(bluge.NewTextField("body", "Twenty Thousand Leagues Under The Sea").
+	err := writer.Insert(documents.NewDocument("a").
+		AddField(documents.NewTextField("body", "Twenty Thousand Leagues Under The Sea").
 			SearchTermPositions().
 			StoreValue().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("b").
-		AddField(bluge.NewTextField("body", "bad call").
+	err = writer.Insert(documents.NewDocument("b").
+		AddField(documents.NewTextField("body", "bad call").
 			SearchTermPositions().
 			StoreValue().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewTextField("body", "defenseless receiver").
+		AddField(documents.NewTextField("body", "defenseless receiver").
 			SearchTermPositions().
 			StoreValue().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}

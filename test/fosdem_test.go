@@ -17,6 +17,7 @@ package test
 import (
 	"github.com/pluto-org-co/bluge"
 	"github.com/pluto-org-co/bluge/analysis/analyzer"
+	"github.com/pluto-org-co/bluge/documents"
 
 	"github.com/pluto-org-co/bluge/analysis/lang/en"
 )
@@ -24,72 +25,72 @@ import (
 func fosdemLoad(writer *bluge.Writer) error {
 	enAnalyzer := en.NewAnalyzer()
 
-	err := writer.Insert(bluge.NewDocument("3311@FOSDEM15@fosdem.org").
-		AddField(bluge.NewTextField("description",
+	err := writer.Insert(documents.NewDocument("3311@FOSDEM15@fosdem.org").
+		AddField(documents.NewTextField("description",
 			"From Prolog to Erlang to Haskell to Lisp to TLC and then back to Prolog I have journeyed, and I'd like to share some of the beautiful").
 			StoreValue().
 			SearchTermPositions().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewKeywordField("category", "Word").
+		AddField(documents.NewKeywordField("category", "Word").
 			StoreValue().
 			SearchTermPositions()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("3492@FOSDEM15@fosdem.org").
-		AddField(bluge.NewTextField("description",
+	err = writer.Insert(documents.NewDocument("3492@FOSDEM15@fosdem.org").
+		AddField(documents.NewTextField("description",
 			"different cats").
 			StoreValue().
 			SearchTermPositions().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewKeywordField("category", "Perl").
+		AddField(documents.NewKeywordField("category", "Perl").
 			StoreValue().
 			SearchTermPositions()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("3496@FOSDEM15@fosdem.org").
-		AddField(bluge.NewTextField("description",
+	err = writer.Insert(documents.NewDocument("3496@FOSDEM15@fosdem.org").
+		AddField(documents.NewTextField("description",
 			"many cats").
 			StoreValue().
 			SearchTermPositions().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewKeywordField("category", "Perl").
+		AddField(documents.NewKeywordField("category", "Perl").
 			StoreValue().
 			SearchTermPositions()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("3505@FOSDEM15@fosdem.org").
-		AddField(bluge.NewTextField("description",
+	err = writer.Insert(documents.NewDocument("3505@FOSDEM15@fosdem.org").
+		AddField(documents.NewTextField("description",
 			"From Prolog to Erlang to Haskell to Lisp to TLC and then back to Prolog I have journeyed, and I'd like to share some of the beautiful").
 			StoreValue().
 			SearchTermPositions().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewKeywordField("category", "Perl").
+		AddField(documents.NewKeywordField("category", "Perl").
 			StoreValue().
 			SearchTermPositions()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("3507@FOSDEM15@fosdem.org").
-		AddField(bluge.NewTextField("description",
+	err = writer.Insert(documents.NewDocument("3507@FOSDEM15@fosdem.org").
+		AddField(documents.NewTextField("description",
 			"From Prolog to Erlang to Haskell to Gel to TLC and then back to Prolog I have journeyed, and I'd like to share some of the beautifull").
 			StoreValue().
 			SearchTermPositions().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewKeywordField("category", "Perl").
+		AddField(documents.NewKeywordField("category", "Perl").
 			StoreValue().
 			SearchTermPositions()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}

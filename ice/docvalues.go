@@ -23,6 +23,7 @@ import (
 
 	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/zeebo/xxh3"
 )
 
 type docNumTermsVisitor func(docNum uint64, terms []byte) error
@@ -287,7 +288,7 @@ func (s *Segment) visitDocumentFieldTerms(localDocNum uint64, fields []string,
 		var fieldIDPlus1 uint16
 		dvs.dvrs = make(map[uint16]*docValueReader, len(fields))
 		for _, field := range fields {
-			if fieldIDPlus1, ok = s.fieldsMap[field]; !ok {
+			if fieldIDPlus1, ok = s.fieldsMap[xxh3.HashString(field)]; !ok {
 				continue
 			}
 			fieldID := fieldIDPlus1 - 1
@@ -309,7 +310,7 @@ func (s *Segment) visitDocumentFieldTerms(localDocNum uint64, fields []string,
 	for _, field := range fields {
 		var ok bool
 		var fieldIDPlus1 uint16
-		if fieldIDPlus1, ok = s.fieldsMap[field]; !ok {
+		if fieldIDPlus1, ok = s.fieldsMap[xxh3.HashString(field)]; !ok {
 			continue
 		}
 		fieldID := fieldIDPlus1 - 1

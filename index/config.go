@@ -17,8 +17,7 @@ package index
 import (
 	"math"
 
-	"github.com/pluto-org-co/bluge/segment"
-
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/index/mergeplan"
 )
 
@@ -33,8 +32,6 @@ type Config struct {
 	DeletionPolicyFunc func() DeletionPolicy
 	DirectoryFunc      func() Directory
 	NormCalc           func(string, int) float32
-
-	MergeBufferSize int
 
 	// Optimizations
 	OptimizeConjunction          bool
@@ -67,7 +64,7 @@ type Config struct {
 
 	ValidateSnapshotCRC bool
 
-	virtualFields map[string][]segment.Field
+	virtualFields map[string][]*documents.Field
 }
 
 func (config Config) WithPersisterNapTimeMSec(napTime int) Config {
@@ -75,8 +72,8 @@ func (config Config) WithPersisterNapTimeMSec(napTime int) Config {
 	return config
 }
 
-func (config Config) WithVirtualField(field segment.Field) Config {
-	config.virtualFields[field.Name()] = append(config.virtualFields[field.Name()], field)
+func (config Config) WithVirtualField(field *documents.Field) Config {
+	config.virtualFields[field.NameString] = append(config.virtualFields[field.NameString], field)
 	return config
 }
 
@@ -134,8 +131,6 @@ func defaultConfig() Config {
 			return NewKeepNLatestDeletionPolicy(1)
 		},
 
-		MergeBufferSize: 1024 * 1024,
-
 		// Optimizations enabled
 		OptimizeConjunction:          true,
 		OptimizeConjunctionUnadorned: true,
@@ -171,7 +166,7 @@ func defaultConfig() Config {
 		// The index will behave as if all documents in this index were
 		// indexed with these fields, even though nothing is
 		// physically persisted about them in the index.
-		virtualFields: map[string][]segment.Field{},
+		virtualFields: map[string][]*documents.Field{},
 
 		NumAnalysisWorkers: 4,
 		AnalysisChan:       make(chan func()),

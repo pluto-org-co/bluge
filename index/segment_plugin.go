@@ -18,11 +18,11 @@ import (
 	"io"
 	"sync"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/ice"
-	"github.com/pluto-org-co/bluge/segment"
 )
 
-func (s *Writer) newSegment(results []segment.Document) (*segmentWrapper, uint64, error) {
+func (s *Writer) newSegment(results []*documents.Document) (*segmentWrapper, uint64, error) {
 	seg, count, err := ice.New(results, s.config.NormCalc)
 	return &segmentWrapper{
 		Segment:    seg,
@@ -31,7 +31,7 @@ func (s *Writer) newSegment(results []segment.Document) (*segmentWrapper, uint64
 }
 
 type segmentWrapper struct {
-	segment.Segment
+	*ice.Segment
 	refCounter
 	persisted bool
 }

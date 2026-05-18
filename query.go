@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search/similarity"
 
 	"github.com/pluto-org-co/bluge/analysis"
@@ -544,14 +545,14 @@ func (q *GeoBoundingBoxQuery) Searcher(i search.Reader, options search.SearcherO
 		leftSearcher, err := searcher.NewGeoBoundingBoxSearcher(i,
 			minLon, q.bottomRight[1], q.bottomRight[0], q.topLeft[1],
 			field, q.boost.Value(), q.scorer, similarity.NewCompositeSumScorer(),
-			options, true, geoPrecisionStep)
+			options, true, documents.GeoPrecisionStep)
 		if err != nil {
 			return nil, err
 		}
 		rightSearcher, err := searcher.NewGeoBoundingBoxSearcher(i,
 			q.topLeft[0], q.bottomRight[1], maxLon, q.topLeft[1],
 			field, q.boost.Value(), q.scorer, similarity.NewCompositeSumScorer(),
-			options, true, geoPrecisionStep)
+			options, true, documents.GeoPrecisionStep)
 		if err != nil {
 			_ = leftSearcher.Close()
 			return nil, err
@@ -563,7 +564,7 @@ func (q *GeoBoundingBoxQuery) Searcher(i search.Reader, options search.SearcherO
 
 	return searcher.NewGeoBoundingBoxSearcher(i, q.topLeft[0], q.bottomRight[1], q.bottomRight[0], q.topLeft[1],
 		field, q.boost.Value(), q.scorer, similarity.NewCompositeSumScorer(),
-		options, true, geoPrecisionStep)
+		options, true, documents.GeoPrecisionStep)
 }
 
 func (q *GeoBoundingBoxQuery) Validate() error {
@@ -631,7 +632,7 @@ func (q *GeoDistanceQuery) Searcher(i search.Reader,
 	}
 
 	return searcher.NewGeoPointDistanceSearcher(i, q.location[0], q.location[1], dist,
-		field, q.boost.Value(), q.scorer, similarity.NewCompositeSumScorer(), options, geoPrecisionStep)
+		field, q.boost.Value(), q.scorer, similarity.NewCompositeSumScorer(), options, documents.GeoPrecisionStep)
 }
 
 func (q *GeoDistanceQuery) Validate() error {
@@ -683,7 +684,7 @@ func (q *GeoBoundingPolygonQuery) Searcher(i search.Reader,
 	}
 
 	return searcher.NewGeoBoundedPolygonSearcher(i, q.points, field, q.boost.Value(),
-		q.scorer, similarity.NewCompositeSumScorer(), options, geoPrecisionStep)
+		q.scorer, similarity.NewCompositeSumScorer(), options, documents.GeoPrecisionStep)
 }
 
 func (q *GeoBoundingPolygonQuery) Validate() error {

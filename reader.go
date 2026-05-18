@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/index"
 
 	"github.com/pluto-org-co/bluge/segment"
@@ -86,7 +87,7 @@ func (r *Reader) Search(ctx context.Context, req SearchRequest) (search.Document
 	return dmItr, nil
 }
 
-func (r *Reader) DictionaryIterator(field string, automaton segment.Automaton, start, end []byte) (segment.DictionaryIterator, error) {
+func (r *Reader) DictionaryIterator(field string, automaton vellum.Automaton, start, end []byte) (segment.DictionaryIterator, error) {
 	return r.reader.DictionaryIterator(field, automaton, start, end)
 }
 

@@ -17,6 +17,7 @@ package bluge
 import (
 	"reflect"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search"
 )
 
@@ -33,7 +34,7 @@ func init() {
 	documentMatchEmptySize = dm.Size()
 	var sc search.Context
 	searchContextEmptySize = sc.Size()
-	var f Field
+	var f documents.Field
 	reflectStaticSizeBaseField = int(reflect.TypeOf(f).Size())
 	var slice []int
 	sizeOfSlice = int(reflect.TypeOf(slice).Size())

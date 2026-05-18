@@ -20,10 +20,11 @@ import (
 
 	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/zeebo/xxh3"
 )
 
 // Open returns an impl of a segment
-func Load(data *segment.Data) (segment.Segment, error) {
+func Load(data *segment.Data) (*Segment, error) {
 	return load(data)
 }
 
@@ -35,7 +36,7 @@ func load(data *segment.Data) (*Segment, error) {
 	rv := &Segment{
 		data:           data.Slice(0, data.Len()-footerLen),
 		footer:         footer,
-		fieldsMap:      make(map[string]uint16),
+		fieldsMap:      make(map[uint64]uint16),
 		fieldDvReaders: make(map[uint16]*docValueReader),
 		fieldFSTs:      make(map[uint16]*vellum.FST),
 		fieldDocs:      make(map[uint16]uint64),
@@ -120,7 +121,7 @@ func (s *Segment) loadFields() error {
 
 		name := string(nameData)
 		s.fieldsInv = append(s.fieldsInv, name)
-		s.fieldsMap[name] = uint16(fieldID + 1)
+		s.fieldsMap[xxh3.HashString(name)] = uint16(fieldID + 1)
 		s.fieldDocs[uint16(fieldID)] = fieldDocVal
 		s.fieldFreqs[uint16(fieldID)] = fieldFreqVal
 

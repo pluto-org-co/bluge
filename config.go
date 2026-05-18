@@ -18,6 +18,7 @@ import (
 	"io"
 	"log"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/index"
 
 	"github.com/pluto-org-co/bluge/search"
@@ -44,7 +45,7 @@ type Config struct {
 // the index will behave as if all documents in this index were
 // indexed with these field/terms, even though nothing is
 // physically persisted about them in the index.
-func (config Config) WithVirtualField(field *Field) Config {
+func (config Config) WithVirtualField(field *documents.Field) Config {
 	_ = field.Analyze(0)
 	config.indexConfig = config.indexConfig.WithVirtualField(field)
 	return config
@@ -93,7 +94,7 @@ func defaultConfig(indexConfig index.Config) Config {
 		PerFieldSimilarity:    map[string]search.Similarity{},
 	}
 
-	allDocsFields := NewKeywordField("", "")
+	allDocsFields := documents.NewKeywordField("", "")
 	allDocsFields.Analyze(0)
 
 	rv.indexConfig = indexConfig.

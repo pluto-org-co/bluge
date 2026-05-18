@@ -19,11 +19,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pluto-org-co/bluge"
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search/aggregations"
 
 	"github.com/pluto-org-co/bluge/search"
-
-	"github.com/pluto-org-co/bluge"
 )
 
 func aggregationsLoad(writer *bluge.Writer) error {
@@ -31,16 +31,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("a").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("a").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "book").
+		AddField(documents.NewTextField("type", "book").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 2).
+		AddField(documents.NewNumericField("rating", 2).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -49,16 +49,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("b").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("b").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "book").
+		AddField(documents.NewTextField("type", "book").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 7).
+		AddField(documents.NewNumericField("rating", 7).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -67,16 +67,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("c").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("c").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "book").
+		AddField(documents.NewTextField("type", "book").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 1).
+		AddField(documents.NewNumericField("rating", 1).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -85,16 +85,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("d").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("d").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "book").
+		AddField(documents.NewTextField("type", "book").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 9).
+		AddField(documents.NewNumericField("rating", 9).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -103,16 +103,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("e").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("e").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "book").
+		AddField(documents.NewTextField("type", "book").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 5).
+		AddField(documents.NewNumericField("rating", 5).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -121,16 +121,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("f").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("f").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "movie").
+		AddField(documents.NewTextField("type", "movie").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 3).
+		AddField(documents.NewNumericField("rating", 3).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -139,16 +139,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("g").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("g").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "movie").
+		AddField(documents.NewTextField("type", "movie").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 9).
+		AddField(documents.NewNumericField("rating", 9).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -157,16 +157,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("h").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("h").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "movie").
+		AddField(documents.NewTextField("type", "movie").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 9).
+		AddField(documents.NewNumericField("rating", 9).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -175,16 +175,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("h").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("h").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "movie").
+		AddField(documents.NewTextField("type", "movie").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 1).
+		AddField(documents.NewNumericField("rating", 1).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -193,16 +193,16 @@ func aggregationsLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("i").
-		AddField(bluge.NewTextField("category", "inventory").
+	err = writer.Insert(documents.NewDocument("i").
+		AddField(documents.NewTextField("category", "inventory").
 			Aggregatable()).
-		AddField(bluge.NewTextField("type", "game").
+		AddField(documents.NewTextField("type", "game").
 			Aggregatable()).
-		AddField(bluge.NewDateTimeField("updated", updated).
+		AddField(documents.NewDateTimeField("updated", updated).
 			Aggregatable()).
-		AddField(bluge.NewNumericField("rating", 9).
+		AddField(documents.NewNumericField("rating", 9).
 			Aggregatable()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}

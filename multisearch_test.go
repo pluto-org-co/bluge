@@ -18,6 +18,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/testsuite"
 )
 
@@ -30,8 +31,8 @@ func TestMultiSearch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc := NewDocument("a").
-		AddField(NewKeywordField("name", "index-a"))
+	doc := documents.NewDocument("a").
+		AddField(documents.NewKeywordField("name", "index-a"))
 
 	err = indexWriter1.Update(doc.ID(), doc)
 	if err != nil {
@@ -51,8 +52,8 @@ func TestMultiSearch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	doc2 := NewDocument("b").
-		AddField(NewKeywordField("name", "index-b"))
+	doc2 := documents.NewDocument("b").
+		AddField(documents.NewKeywordField("name", "index-b"))
 
 	err = indexWriter2.Update(doc.ID(), doc2)
 	if err != nil {

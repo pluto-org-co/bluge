@@ -16,6 +16,7 @@ package index
 
 import (
 	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -31,8 +32,8 @@ type segmentSnapshot struct {
 	creator string
 }
 
-func (s *segmentSnapshot) Segment() segment.Segment {
-	return s.segment
+func (s *segmentSnapshot) Segment() *ice.Segment {
+	return s.segment.Segment
 }
 
 func (s *segmentSnapshot) Deleted() *roaring.Bitmap {

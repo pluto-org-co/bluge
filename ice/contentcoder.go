@@ -22,7 +22,8 @@ import (
 	"github.com/klauspost/compress/snappy"
 )
 
-var termSeparator byte = 0xff
+const termSeparator byte = 0xff
+
 var termSeparatorSplitSlice = []byte{termSeparator}
 
 type chunkedContentCoder struct {

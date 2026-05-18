@@ -1,0 +1,159 @@
+
+<style>
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem}
+.metric{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:.9rem 1rem;text-align:center}
+.mlabel{font-size:11px;color:var(--color-text-secondary);margin:0 0 4px}
+.mval{font-size:22px;font-weight:500;margin:0;color:#1D9E75}
+.msub{font-size:11px;color:var(--color-text-secondary);margin:4px 0 0}
+.divider{border:none;border-top:.5px solid var(--color-border-tertiary);margin:1.25rem 0}
+.sec{font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.06em;text-transform:uppercase;margin:0 0 .75rem}
+.legend{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);margin-bottom:12px}
+.ldot{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:4px;vertical-align:middle}
+</style>
+
+<h2 class="sr-only">Bluge optimization journey: time, memory, and allocations across all benchmark runs from upstream to latest</h2>
+
+<div style="padding:1.5rem 0 0">
+
+<div class="grid3">
+  <div class="metric">
+    <p class="mlabel">speed vs upstream</p>
+    <p class="mval">3.5×</p>
+    <p class="msub">4,497 ms vs 15,746 ms</p>
+  </div>
+  <div class="metric">
+    <p class="mlabel">memory saved</p>
+    <p class="mval">−36%</p>
+    <p class="msub">7,010 MB vs 10,948 MB</p>
+  </div>
+  <div class="metric">
+    <p class="mlabel">allocs saved</p>
+    <p class="mval">−44%</p>
+    <p class="msub">120.7M vs 216.5M</p>
+  </div>
+</div>
+
+<hr class="divider">
+
+<p class="sec">Execution time (ms) — lower is better</p>
+<div class="legend">
+  <span><span class="ldot" style="background:#B4B2A9"></span>upstream baseline</span>
+  <span><span class="ldot" style="background:#5DCAA5;border:2px solid #1D9E75"></span>your fork</span>
+</div>
+<div style="position:relative;width:100%;height:320px">
+  <canvas id="timeChart" role="img" aria-label="Line chart showing execution time dropping from 15746ms at upstream to around 4500ms across optimization iterations">Upstream: 15746ms. Fork v1: 5642ms. OOP removal: 4934ms. 5-run avg 1: 5214ms. 5-run avg 2: 5029ms. Latest laptop: 4497ms.</canvas>
+</div>
+
+<hr class="divider">
+
+<p class="sec">Memory per operation (MB) — lower is better</p>
+<div style="position:relative;width:100%;height:260px">
+  <canvas id="memChart" role="img" aria-label="Line chart showing memory dropping from 10948MB at upstream to around 7010MB across optimization iterations">Upstream: 10948MB. Fork v1: 9414MB. OOP removal: 8536MB. Plateau: 8084MB. 5-run avg: 7844MB. Latest: 7010MB.</canvas>
+</div>
+
+<hr class="divider">
+
+<p class="sec">Allocations per operation (millions) — lower is better</p>
+<div style="position:relative;width:100%;height:260px">
+  <canvas id="allocChart" role="img" aria-label="Line chart showing allocations dropping from 216.5M at upstream to 120.7M across optimization iterations">Upstream: 216.5M. Fork v1: 176.6M. OOP removal: 140.7M. Plateau: 136.7M. 5-run avg: 132.6M. Latest: 120.7M.</canvas>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const labels = [
+  'upstream',
+  'fork v1\n(write path)',
+  'fork v2\n(OOP removal)',
+  'public fields\n+ cleanup',
+  '5-run avg #1\n(honest baseline)',
+  '5-run avg #2\n(incremental)',
+  'latest\n(laptop)'
+];
+
+const upstream = '#B4B2A9';
+const fork = '#1D9E75';
+const refLine = '#D3D1C7';
+const tc = '#888780';
+const gc = 'rgba(136,135,128,0.12)';
+
+const sharedOpts = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' ' + ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() } } },
+  scales:{
+    x:{ grid:{color:gc}, ticks:{color:tc, font:{size:10}, maxRotation:0} },
+    y:{ grid:{color:gc}, ticks:{color:tc, font:{size:11}} }
+  }
+};
+
+new Chart(document.getElementById('timeChart'),{
+  type:'line',
+  data:{
+    labels,
+    datasets:[
+      {
+        label:'upstream ref',
+        data:[15746,15746,15746,15746,15746,15746,15746],
+        borderColor: refLine, borderDash:[4,4], borderWidth:1.5,
+        pointRadius:0, fill:false, tension:0
+      },
+      {
+        label:'ms',
+        data:[15746,5642,4934,4902,5214,5029,4497],
+        borderColor: fork, backgroundColor: '#9FE1CB44',
+        borderWidth:2, pointBackgroundColor: fork,
+        pointRadius:4, fill:true, tension:0.3
+      }
+    ]
+  },
+  options:{...sharedOpts, scales:{...sharedOpts.scales, y:{...sharedOpts.scales.y, ticks:{...sharedOpts.scales.y.ticks, callback:v=>v.toLocaleString()+' ms'}}}}
+});
+
+new Chart(document.getElementById('memChart'),{
+  type:'line',
+  data:{
+    labels,
+    datasets:[
+      {
+        label:'upstream ref',
+        data:[10948,10948,10948,10948,10948,10948,10948],
+        borderColor: refLine, borderDash:[4,4], borderWidth:1.5,
+        pointRadius:0, fill:false, tension:0
+      },
+      {
+        label:'MB',
+        data:[10948,9414,8536,8084,7844,7843,7010],
+        borderColor: fork, backgroundColor: '#9FE1CB44',
+        borderWidth:2, pointBackgroundColor: fork,
+        pointRadius:4, fill:true, tension:0.3
+      }
+    ]
+  },
+  options:{...sharedOpts, scales:{...sharedOpts.scales, y:{...sharedOpts.scales.y, ticks:{...sharedOpts.scales.y.ticks, callback:v=>Math.round(v).toLocaleString()+' MB'}}}}
+});
+
+new Chart(document.getElementById('allocChart'),{
+  type:'line',
+  data:{
+    labels,
+    datasets:[
+      {
+        label:'upstream ref',
+        data:[216.5,216.5,216.5,216.5,216.5,216.5,216.5],
+        borderColor: refLine, borderDash:[4,4], borderWidth:1.5,
+        pointRadius:0, fill:false, tension:0
+      },
+      {
+        label:'M allocs',
+        data:[216.5,176.6,140.7,136.7,132.6,132.6,120.7],
+        borderColor: fork, backgroundColor: '#9FE1CB44',
+        borderWidth:2, pointBackgroundColor: fork,
+        pointRadius:4, fill:true, tension:0.3
+      }
+    ]
+  },
+  options:{...sharedOpts, scales:{...sharedOpts.scales, y:{...sharedOpts.scales.y, ticks:{...sharedOpts.scales.y.ticks, callback:v=>v.toFixed(0)+'M'}}}}
+});
+</script>

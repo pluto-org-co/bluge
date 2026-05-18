@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sync/atomic"
 
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -25,9 +26,9 @@ type postingsIterator struct {
 	term               []byte
 	field              string
 	snapshot           *Snapshot
-	dicts              []segment.Dictionary
-	postings           []segment.PostingsList
-	iterators          []segment.PostingsIterator
+	dicts              []*ice.Dictionary
+	postings           []*ice.PostingsList
+	iterators          []*ice.PostingsIterator
 	segmentOffset      int
 	includeFreq        bool
 	includeNorm        bool

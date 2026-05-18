@@ -18,11 +18,12 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -66,7 +67,7 @@ func TestMerge(t *testing.T) {
 		}
 	}()
 
-	segsToMerge := make([]segment.Segment, 2)
+	segsToMerge := make([]*Segment, 2)
 	segsToMerge[0] = seg
 	segsToMerge[1] = segment2
 
@@ -129,7 +130,7 @@ func testMergeWithEmptySegments(t *testing.T, before bool, numEmptySegments int)
 		}
 	}()
 
-	var segsToMerge []segment.Segment
+	var segsToMerge []*Segment
 
 	if before {
 		segsToMerge = append(segsToMerge, seg)
@@ -191,11 +192,11 @@ func testMergeWithEmptySegments(t *testing.T, before bool, numEmptySegments int)
 }
 
 func createAndPersistEmptySegment(t *testing.T, path string) {
-	emptySegment, _, err := newWithChunkMode([]segment.Document{}, encodeNorm, 1024)
+	emptySegment, _, err := newWithChunkMode([]*documents.Document{}, encodeNorm, 1024)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = persistToFile(emptySegment.(*Segment), path)
+	err = persistToFile(emptySegment, path)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -213,7 +214,7 @@ func testMergeWithSelf(t *testing.T, segCur *Segment, expectedCount uint64) {
 
 		segPath := filepath.Join(path, fname)
 
-		segsToMerge := make([]segment.Segment, 1)
+		segsToMerge := make([]*Segment, 1)
 		segsToMerge[0] = segCur
 
 		_, err := mergeSegments(segsToMerge, []*roaring.Bitmap{nil, nil}, segPath)
@@ -261,8 +262,8 @@ func compareSegments(a, b *Segment) string {
 
 	afields := append([]string(nil), a.Fields()...)
 	bfields := append([]string(nil), b.Fields()...)
-	sort.Strings(afields)
-	sort.Strings(bfields)
+	slices.Sort(afields)
+	slices.Sort(bfields)
 	if !reflect.DeepEqual(afields, bfields) {
 		return "fields"
 	}
@@ -290,9 +291,9 @@ func compareSegmentsField(a, b *Segment, fieldName string, rv []string) (errors 
 		return nil, fmt.Sprintf("bdict err: %v", err), true
 	}
 
-	if adict.(*Dictionary).fst.Len() != bdict.(*Dictionary).fst.Len() {
+	if adict.fst.Len() != bdict.fst.Len() {
 		rv = append(rv, fmt.Sprintf("field %s, dict fst Len()'s  different: %v %v",
-			fieldName, adict.(*Dictionary).fst.Len(), bdict.(*Dictionary).fst.Len()))
+			fieldName, adict.fst.Len(), bdict.fst.Len()))
 	}
 
 	aitr := adict.Iterator(nil, nil, nil)
@@ -302,7 +303,7 @@ func compareSegmentsField(a, b *Segment, fieldName string, rv []string) (errors 
 }
 
 func compareSegmentsDictionaryIterators(a, b *Segment, fieldName string, rv []string,
-	aitr, bitr segment.DictionaryIterator, adict, bdict segment.Dictionary) []string {
+	aitr, bitr segment.DictionaryIterator, adict, bdict *Dictionary) []string {
 	for {
 		anext, aerr := aitr.Next()
 		bnext, berr := bitr.Next()
@@ -327,14 +328,14 @@ func compareSegmentsDictionaryIterators(a, b *Segment, fieldName string, rv []st
 }
 
 func compareSegmentsDictionaryEntry(a, b *Segment, fieldName string, rv []string,
-	anext, bnext segment.DictionaryEntry, adict, bdict segment.Dictionary) []string {
+	anext, bnext segment.DictionaryEntry, adict, bdict *Dictionary) []string {
 	for _, next := range []segment.DictionaryEntry{anext, bnext} {
 		if next == nil {
 			continue
 		}
 
-		aplist, aerr := adict.(*Dictionary).postingsList([]byte(next.Term()), nil, nil)
-		bplist, berr := bdict.(*Dictionary).postingsList([]byte(next.Term()), nil, nil)
+		aplist, aerr := adict.postingsList([]byte(next.Term()), nil, nil)
+		bplist, berr := bdict.postingsList([]byte(next.Term()), nil, nil)
 		if aerr != berr {
 			rv = append(rv, fmt.Sprintf("field %s, term: %s, postingsList() errors different: %v %v",
 				fieldName, next.Term(), aerr, berr))
@@ -377,8 +378,13 @@ func compareSegmentsDictionaryEntry(a, b *Segment, fieldName string, rv []string
 	return rv
 }
 
-func compareSegmentPostingIterator(a, b *Segment, fieldName string, rv []string, apitr, bpitr segment.PostingsIterator,
-	next segment.DictionaryEntry) []string {
+func compareSegmentPostingIterator(
+	a, b *Segment,
+	fieldName string,
+	rv []string,
+	apitr, bpitr *PostingsIterator,
+	next segment.DictionaryEntry,
+) []string {
 	for {
 		apitrn, aerr := apitr.Next()
 		bpitrn, berr := bpitr.Next()
@@ -536,7 +542,7 @@ func testMergeAndDrop(t *testing.T, docsToDrop []*roaring.Bitmap) {
 		}
 	}()
 
-	segsToMerge := make([]segment.Segment, 2)
+	segsToMerge := make([]*Segment, 2)
 	segsToMerge[0] = seg
 	segsToMerge[1] = segment2
 
@@ -601,7 +607,7 @@ func testMergeWithUpdates(t *testing.T, segmentDocIds [][]string, docsToDrop []*
 	path, cleanup := setupTestDir(t)
 	defer cleanup()
 
-	var segsToMerge []segment.Segment
+	var segsToMerge []*Segment
 
 	// convert segmentDocIds to segsToMerge
 	for i, docIds := range segmentDocIds {
@@ -631,7 +637,7 @@ func testMergeWithUpdates(t *testing.T, segmentDocIds [][]string, docsToDrop []*
 	testMergeAndDropSegments(t, segsToMerge, docsToDrop, expectedNumDocs)
 }
 
-func testMergeAndDropSegments(t *testing.T, segsToMerge []segment.Segment, docsToDrop []*roaring.Bitmap, expectedNumDocs uint64) {
+func testMergeAndDropSegments(t *testing.T, segsToMerge []*Segment, docsToDrop []*roaring.Bitmap, expectedNumDocs uint64) {
 	path, cleanup := setupTestDir(t)
 	defer cleanup()
 
@@ -667,28 +673,67 @@ func buildTestSegmentMulti2() (*Segment, uint64, error) {
 }
 
 func buildTestSegmentMultiHelper(docIds []string) (*Segment, uint64, error) {
-	doc := &FakeDocument{
-		NewFakeField("_id", docIds[0], true, false, false),
-		NewFakeField("name", "mat", true, true, false),
-		NewFakeField("desc", "some thing", true, true, false),
-		NewFakeField("tag", "cold", true, true, false),
-		NewFakeField("tag", "dark", true, true, false),
-	}
-	doc.FakeComposite("_all", []string{"_id"})
+	doc := documents.NewDocument(docIds[0]).
+		AddField(documents.NewTextField("name", "mat").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("desc", "some thing").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "cold").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "dark").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
-	doc2 := &FakeDocument{
-		NewFakeField("_id", docIds[1], true, false, false),
-		NewFakeField("name", "joa", true, true, false),
-		NewFakeField("desc", "some thing", true, true, false),
-		NewFakeField("tag", "cold", true, true, false),
-		NewFakeField("tag", "dark", true, true, false),
-	}
-	doc2.FakeComposite("_all", []string{"_id"})
+	doc2 := documents.NewDocument(docIds[0]).
+		AddField(documents.NewTextField("name", "joa").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("desc", "some thing").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "cold").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewTextField("tag", "dark").
+			Aggregatable().
+			Sortable().
+			HighlightMatches().
+			SearchTermPositions().
+			StoreValue()).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"}))
 
-	results := []segment.Document{doc, doc2}
+	doc.Analyze()  // ← try calling this explicitly first
+	doc2.Analyze() // ← try calling this explicitly first
+
+	results := []*documents.Document{doc, doc2}
 
 	seg, size, err := newWithChunkMode(results, encodeNorm, 1024)
-	return seg.(*Segment), size, err
+	return seg, size, err
 }
 
 func TestMergeBytesWritten(t *testing.T) {
@@ -731,7 +776,7 @@ func TestMergeBytesWritten(t *testing.T) {
 		}
 	}()
 
-	segsToMerge := make([]segment.Segment, 2)
+	segsToMerge := make([]*Segment, 2)
 	segsToMerge[0] = seg
 	segsToMerge[1] = segment2
 

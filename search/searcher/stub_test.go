@@ -16,8 +16,10 @@ package searcher
 
 import (
 	"fmt"
-	"sort"
+	"slices"
 
+	"github.com/blevesearch/vellum"
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/search/similarity"
 
@@ -34,7 +36,7 @@ type thingLoc struct {
 type thingFreq struct {
 	term string
 	locs []*thingLoc
-	freq int
+	freq uint64
 }
 
 type thing struct {
@@ -60,7 +62,7 @@ func (s stubDict) Close() error {
 
 type stubIndexReader struct {
 	inv       map[string]stubDict
-	doc       map[uint64]segment.Document
+	doc       map[uint64]*documents.Document
 	docExtInt map[string]uint64
 	count     uint64
 	uninv     map[uint64]map[string][]string
@@ -72,7 +74,7 @@ type stubIndexReader struct {
 func newStubIndexReader() *stubIndexReader {
 	return &stubIndexReader{
 		inv:        make(map[string]stubDict),
-		doc:        make(map[uint64]segment.Document),
+		doc:        make(map[uint64]*documents.Document),
 		docExtInt:  make(map[string]uint64),
 		uninv:      make(map[uint64]map[string][]string),
 		fieldDocs:  make(map[string]uint64),
@@ -89,7 +91,7 @@ func (s *stubIndexReader) field(f string) stubDict {
 	return fd
 }
 
-func (s *stubIndexReader) add(d segment.Document) {
+func (s *stubIndexReader) add(d *documents.Document) {
 	docNum := s.count
 	s.count++
 
@@ -102,15 +104,15 @@ func (s *stubIndexReader) add(d segment.Document) {
 
 	// process fields
 	fieldsSeen := map[string]struct{}{}
-	d.EachField(func(field segment.Field) {
+	for _, field := range d.Fields {
 		if field.Index() {
-			fieldLength := field.Length()
-			fieldsSeen[field.Name()] = struct{}{}
-			s.fieldFreqs[field.Name()] += uint64(fieldLength)
-			fd := s.field(field.Name())
-			field.EachTerm(func(term segment.FieldTerm) {
-				termStr := string(term.Term())
-				if field.Name() == "_id" {
+			fieldLength := field.AnalyzedLengthValue
+			fieldsSeen[field.NameString] = struct{}{}
+			s.fieldFreqs[field.NameString] += uint64(fieldLength)
+			fd := s.field(field.NameString)
+			for _, term := range field.AnalyzedTokenFreqs {
+				termStr := string(term.TermVal)
+				if field.NameString == "_id" {
 					docID = termStr
 				}
 				newThing := &thing{
@@ -118,25 +120,25 @@ func (s *stubIndexReader) add(d segment.Document) {
 					length: fieldLength,
 					freq: &thingFreq{
 						term: termStr,
-						freq: term.Frequency(),
+						freq: term.Frequency,
 					},
 				}
-				term.EachLocation(func(location segment.Location) {
+				for _, location := range term.Locations {
 					newThing.freq.locs = append(newThing.freq.locs, &thingLoc{
 						fieldVal:    location.Field(),
 						startVal:    location.Start(),
 						endVal:      location.End(),
 						positionVal: location.Pos(),
 					})
-				})
+				}
 				fd[termStr] = append(fd[termStr], newThing)
 
 				if field.IndexDocValues() {
-					s.uninv[docNum][field.Name()] = append(s.uninv[docNum][field.Name()], termStr)
+					s.uninv[docNum][field.NameString] = append(s.uninv[docNum][field.NameString], termStr)
 				}
-			})
+			}
 		}
-	})
+	}
 	// record fields seen by this doc
 	for k := range fieldsSeen {
 		s.fieldDocs[k]++
@@ -262,7 +264,7 @@ func newStubDictItr(sd stubDict) *stubDictItr {
 	for k := range sd {
 		keys = append(keys, k)
 	}
-	sort.Strings(keys)
+	slices.Sort(keys)
 	return &stubDictItr{
 		sd:   sd,
 		keys: keys,
@@ -298,7 +300,7 @@ func (sd *stubDictItr) Close() error {
 	return nil
 }
 
-func (s *stubIndexReader) DictionaryIterator(field string, a segment.Automaton, startTerm, endTerm []byte) (segment.DictionaryIterator, error) {
+func (s *stubIndexReader) DictionaryIterator(field string, a vellum.Automaton, startTerm, endTerm []byte) (segment.DictionaryIterator, error) {
 	fd := s.field(field)
 	sdi := newStubDictItr(fd)
 
@@ -309,7 +311,7 @@ func (s *stubIndexReader) DictionaryIterator(field string, a segment.Automaton, 
 			updatedKeys = append(updatedKeys, k)
 		}
 	}
-	sort.Strings(updatedKeys)
+	slices.Sort(updatedKeys)
 
 	// if no automaton, stop now
 	if a == nil {
@@ -328,7 +330,7 @@ func (s *stubIndexReader) DictionaryIterator(field string, a segment.Automaton, 
 	return sdi, nil
 }
 
-func automatonAccepts(a segment.Automaton, val string) bool {
+func automatonAccepts(a vellum.Automaton, val string) bool {
 	valBytes := []byte(val)
 	var i int
 	curr := a.Start()
@@ -345,9 +347,9 @@ func automatonAccepts(a segment.Automaton, val string) bool {
 
 func (s *stubIndexReader) VisitStoredFields(number uint64, visitor segment.StoredFieldVisitor) error {
 	if doc, ok := s.doc[number]; ok {
-		doc.EachField(func(field segment.Field) {
-			visitor(field.Name(), field.Value())
-		})
+		for _, field := range doc.Fields {
+			visitor(field.NameString, field.RawBytes)
+		}
 	}
 	return fmt.Errorf("no such doc numbered: %d", number)
 }
@@ -424,7 +426,7 @@ func (s *stubIndexReader) Fields() ([]string, error) {
 	for k := range s.inv {
 		fnames = append(fnames, k)
 	}
-	sort.Strings(fnames)
+	slices.Sort(fnames)
 	return fnames, nil
 }
 

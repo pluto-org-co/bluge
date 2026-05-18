@@ -30,12 +30,6 @@ func init() {
 	reflectStaticSizeIndexSnapshotDocIDReader = int(reflect.TypeOf(pia).Size())
 	var is any = Snapshot{}
 	reflectStaticSizeIndexSnapshot = int(reflect.TypeOf(is).Size())
-	var pib unadornedPostingsIteratorBitmap
-	reflectStaticSizeUnadornedPostingsIteratorBitmap = int(reflect.TypeOf(pib).Size())
-	var pi1h unadornedPostingsIterator1Hit
-	reflectStaticSizeUnadornedPostingsIterator1Hit = int(reflect.TypeOf(pi1h).Size())
-	var up unadornedPosting
-	reflectStaticSizeUnadornedPosting = int(reflect.TypeOf(up).Size())
 }
 
 var sizeOfInt int

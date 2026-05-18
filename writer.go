@@ -17,7 +17,8 @@ package bluge
 import (
 	"fmt"
 
-	"github.com/pluto-org-co/bluge/segment"
+	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/documents"
 
 	"github.com/pluto-org-co/bluge/index"
 )
@@ -41,20 +42,20 @@ func OpenWriter(config Config) (*Writer, error) {
 	return rv, nil
 }
 
-func (w *Writer) Insert(doc segment.Document) error {
-	b := NewBatch()
+func (w *Writer) Insert(doc *documents.Document) error {
+	b := index.NewBatch()
 	b.Insert(doc)
 	return w.Batch(b)
 }
 
-func (w *Writer) Update(id segment.Term, doc segment.Document) error {
-	b := NewBatch()
+func (w *Writer) Update(id *analysis.TokenFreq, doc *documents.Document) error {
+	b := index.NewBatch()
 	b.Update(id, doc)
 	return w.Batch(b)
 }
 
-func (w *Writer) Delete(id segment.Term) error {
-	b := NewBatch()
+func (w *Writer) Delete(id *analysis.TokenFreq) error {
+	b := index.NewBatch()
 	b.Delete(id)
 	return w.Batch(b)
 }

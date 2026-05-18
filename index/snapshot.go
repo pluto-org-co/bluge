@@ -26,11 +26,13 @@ import (
 	"sync/atomic"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/blevesearch/vellum"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
 type asyncSegmentResult struct {
-	dict    segment.Dictionary
+	dict    *ice.Dictionary
 	dictItr segment.DictionaryIterator
 
 	index int
@@ -101,7 +103,7 @@ func (i *Snapshot) updateSize() {
 }
 
 func (i *Snapshot) newDictionary(field string,
-	makeItr func(i segment.Dictionary) segment.DictionaryIterator,
+	makeItr func(i *ice.Dictionary) segment.DictionaryIterator,
 	randomLookup bool) (*dictionary, error) {
 	results := make(chan *asyncSegmentResult)
 	for _, seg := range i.segment {
@@ -164,9 +166,9 @@ func (i *Snapshot) DictionaryLookup(field string) (segment.DictionaryLookup, err
 	return i.newDictionary(field, nil, true)
 }
 
-func (i *Snapshot) DictionaryIterator(field string, automaton segment.Automaton, start, end []byte) (
+func (i *Snapshot) DictionaryIterator(field string, automaton vellum.Automaton, start, end []byte) (
 	segment.DictionaryIterator, error) {
-	return i.newDictionary(field, func(i segment.Dictionary) segment.DictionaryIterator {
+	return i.newDictionary(field, func(i *ice.Dictionary) segment.DictionaryIterator {
 		return i.Iterator(automaton, start, end)
 	}, false)
 }
@@ -214,7 +216,7 @@ func (i *Snapshot) CollectionStats(field string) (segment.CollectionStats, error
 	// first handle case where this is a virtual field
 	if vFields, ok := i.parent.config.virtualFields[field]; ok {
 		for _, vField := range vFields {
-			if field == vField.Name() {
+			if field == vField.NameString {
 				totalDocCount, _ := i.Count()
 				return &collectionStats{
 					totalDocCount:    totalDocCount,
@@ -297,7 +299,7 @@ func (i *Snapshot) VisitStoredFields(number uint64, visitor segment.StoredFieldV
 	for _, vFields := range i.parent.config.virtualFields {
 		for _, vField := range vFields {
 			if vField.Store() {
-				cont := visitor(vField.Name(), vField.Value())
+				cont := visitor(vField.NameString, vField.RawBytes)
 				if !cont {
 					return nil
 				}
@@ -325,15 +327,20 @@ func (i *Snapshot) segmentIndexAndLocalDocNumFromGlobal(docNum uint64) (segmentI
 
 func (i *Snapshot) PostingsIterator(term []byte, field string, includeFreq,
 	includeNorm, includeTermVectors bool) (segment.PostingsIterator, error) {
+	// nil term means "all documents"
+	if term == nil {
+		return i.postingsIteratorAll(field)
+	}
+
 	if vFields, ok := i.parent.config.virtualFields[field]; ok {
 		for _, vField := range vFields {
 			if vField.Index() {
 				var match bool
-				vField.EachTerm(func(vFieldTerm segment.FieldTerm) {
-					if bytes.Equal(vFieldTerm.Term(), term) {
+				for _, vFieldTerm := range vField.AnalyzedTokenFreqs {
+					if bytes.Equal(vFieldTerm.TermVal, term) {
 						match = true
 					}
-				})
+				}
 				if match {
 					return i.postingsIteratorAll(string(term))
 				}
@@ -347,10 +354,10 @@ func (i *Snapshot) PostingsIterator(term []byte, field string, includeFreq,
 	rv.field = field
 	rv.snapshot = i
 	if rv.postings == nil {
-		rv.postings = make([]segment.PostingsList, len(i.segment))
+		rv.postings = make([]*ice.PostingsList, len(i.segment))
 	}
 	if rv.iterators == nil {
-		rv.iterators = make([]segment.PostingsIterator, len(i.segment))
+		rv.iterators = make([]*ice.PostingsIterator, len(i.segment))
 	}
 	rv.segmentOffset = 0
 	rv.includeFreq = includeFreq
@@ -360,7 +367,7 @@ func (i *Snapshot) PostingsIterator(term []byte, field string, includeFreq,
 	rv.currID = 0
 
 	if rv.dicts == nil {
-		rv.dicts = make([]segment.Dictionary, len(i.segment))
+		rv.dicts = make([]*ice.Dictionary, len(i.segment))
 		for i, seg := range i.segment {
 			dict, err := seg.segment.Dictionary(field)
 			if err != nil {
@@ -434,7 +441,7 @@ func (i *Snapshot) unadornedPostingsIterator(
 		term:               term,
 		field:              field,
 		snapshot:           i,
-		iterators:          make([]segment.PostingsIterator, len(i.segment)),
+		iterators:          make([]*ice.PostingsIterator, len(i.segment)),
 		segmentOffset:      0,
 		includeFreq:        false,
 		includeNorm:        false,
@@ -759,9 +766,9 @@ func (dvr *documentValueReader) VisitDocumentValues(number uint64,
 		if vFields, ok := dvr.i.parent.config.virtualFields[field]; ok {
 			for _, vField := range vFields {
 				vField := vField
-				vField.EachTerm(func(term segment.FieldTerm) {
-					visitor(vField.Name(), term.Term())
-				})
+				for _, term := range vField.AnalyzedTokenFreqs {
+					visitor(vField.NameString, term.TermVal)
+				}
 			}
 		}
 	}

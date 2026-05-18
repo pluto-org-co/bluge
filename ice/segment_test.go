@@ -19,7 +19,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/pluto-org-co/bluge/segment"
+	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/documents"
 
 	"github.com/RoaringBitmap/roaring"
 )
@@ -98,7 +99,7 @@ func expectNumberOfStoredFields(t *testing.T, seg *Segment, docNum uint64, expec
 	}
 }
 
-func expectFieldInSegment(t *testing.T, seg *Segment, field string) segment.Dictionary {
+func expectFieldInSegment(t *testing.T, seg *Segment, field string) *Dictionary {
 	dict, err := seg.Dictionary(field)
 	if err != nil {
 		t.Fatal(err)
@@ -109,7 +110,7 @@ func expectFieldInSegment(t *testing.T, seg *Segment, field string) segment.Dict
 	return dict
 }
 
-func expectTermInDictionary(t *testing.T, dict segment.Dictionary, term string) segment.PostingsIterator {
+func expectTermInDictionary(t *testing.T, dict *Dictionary, term string) *PostingsIterator {
 	postingsList, err := dict.PostingsList([]byte(term), nil, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -117,7 +118,7 @@ func expectTermInDictionary(t *testing.T, dict segment.Dictionary, term string) 
 	if postingsList == nil {
 		t.Fatal("got nil postings list, expected non-nil")
 	}
-	var postingsItr segment.PostingsIterator
+	var postingsItr *PostingsIterator
 	postingsItr, err = postingsList.Iterator(true, true, true, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -128,7 +129,7 @@ func expectTermInDictionary(t *testing.T, dict segment.Dictionary, term string) 
 	return postingsItr
 }
 
-func checkField(t *testing.T, postingsItr segment.PostingsIterator, expectField string, expectDecodedNorm int,
+func checkField(t *testing.T, postingsItr *PostingsIterator, expectField string, expectDecodedNorm int,
 	expectLocations, checkStartEndPos bool) {
 	count := 0
 	nextPosting, err := postingsItr.Next()
@@ -179,16 +180,6 @@ func checkField(t *testing.T, postingsItr segment.PostingsIterator, expectField 
 	}
 }
 
-type testIdentifier string
-
-func (i testIdentifier) Field() string {
-	return "_id"
-}
-
-func (i testIdentifier) Term() []byte {
-	return []byte(i)
-}
-
 func TestOpenMulti(t *testing.T) {
 	path, cleanup := setupTestDir(t)
 	defer cleanup()
@@ -227,7 +218,7 @@ func TestOpenMulti(t *testing.T) {
 	}
 
 	// get docnum of a
-	exclude, err := seg.DocsMatchingTerms([]segment.Term{testIdentifier("a")})
+	exclude, err := seg.DocsMatchingTerms([]*analysis.TokenFreq{documents.Identifier("a")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -309,7 +300,7 @@ func TestOpenMultiWithTwoChunks(t *testing.T) {
 	}
 
 	// get docnum of a
-	exclude, err := seg.DocsMatchingTerms([]segment.Term{testIdentifier("a")})
+	exclude, err := seg.DocsMatchingTerms([]*analysis.TokenFreq{documents.Identifier("a")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -499,7 +490,7 @@ func TestMergedSegmentDocsWithNonOverlappingFields(t *testing.T) {
 		}
 	}()
 
-	segsToMerge := make([]segment.Segment, 2)
+	segsToMerge := make([]*Segment, 2)
 	segsToMerge[0] = segment1
 	segsToMerge[1] = segment2
 

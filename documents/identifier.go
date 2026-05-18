@@ -12,24 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package segment
+package documents
 
-type Automaton interface {
+import "github.com/pluto-org-co/bluge/analysis"
 
-	// Start returns the start state
-	Start() int
+const IdFieldName = "_id"
 
-	// IsMatch returns true if and only if the state is a match
-	IsMatch(int) bool
-
-	// CanMatch returns true if and only if it is possible to reach a match
-	// in zero or more steps
-	CanMatch(int) bool
-
-	// WillAlwaysMatch returns true if and only if the current state matches
-	// and will always match no matter what steps are taken
-	WillAlwaysMatch(int) bool
-
-	// Accept returns the next state given the input to the specified state
-	Accept(int, byte) int
+func Identifier[T ~string | ~[]byte](id T) (freq *analysis.TokenFreq) {
+	return &analysis.TokenFreq{
+		Field:   IdFieldName,
+		TermVal: []byte(id),
+	}
 }

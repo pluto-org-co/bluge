@@ -17,6 +17,9 @@ package analysis
 import (
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/zeebo/xxh3"
 )
 
 func TestTokenFrequency(t *testing.T) {
@@ -35,7 +38,7 @@ func TestTokenFrequency(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -49,7 +52,7 @@ func TestTokenFrequency(t *testing.T) {
 					EndVal:      11,
 				},
 			},
-			frequency: 2,
+			Frequency: 2,
 		},
 	}
 	result, _ := TokenFrequency(tokens, true, 0)
@@ -60,7 +63,7 @@ func TestTokenFrequency(t *testing.T) {
 
 func TestTokenFrequenciesMergeAll(t *testing.T) {
 	tf1 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -77,7 +80,7 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 		},
 	}
 	tf2 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -94,7 +97,7 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -129,9 +132,11 @@ func TestTokenFrequenciesMergeAll(t *testing.T) {
 }
 
 func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
+	assertions := assert.New(t)
+
 	tf1 := TokenFrequencies{}
 	tf2 := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -148,7 +153,7 @@ func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
 		},
 	}
 	expectedResult := TokenFrequencies{
-		"water": &TokenFreq{
+		xxh3.HashString("water"): &TokenFreq{
 			TermVal: []byte("water"),
 			Locations: []*TokenLocation{
 				{
@@ -167,7 +172,8 @@ func TestTokenFrequenciesMergeAllLeftEmpty(t *testing.T) {
 		},
 	}
 	tf1.MergeAll("tf2", tf2)
-	if !reflect.DeepEqual(tf1, expectedResult) {
-		t.Errorf("expected %#v, got %#v", expectedResult, tf1)
+
+	if !assertions.EqualValues(expectedResult, tf1, "values doesn't match") {
+		return
 	}
 }

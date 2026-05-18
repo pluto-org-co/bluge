@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -238,7 +239,7 @@ func (s *Writer) persistSnapshot(merges chan *segmentMerge, persists chan *persi
 func (s *Writer) persistSnapshotMaybeMerge(merges chan *segmentMerge, persists chan *persistIntroduction, snapshot *Snapshot) (
 	bool, error) {
 	// collect the in-memory zap segments (SegmentBase instances)
-	var sbs []segment.Segment
+	var sbs []*ice.Segment
 	var sbsDrops []*roaring.Bitmap
 	var sbsIndexes []int
 

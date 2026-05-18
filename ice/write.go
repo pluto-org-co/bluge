@@ -54,10 +54,12 @@ func encodeStoredFieldValues(fieldID int,
 	return curr, data, nil
 }
 
-func writePostings(postings *roaring.Bitmap, tfEncoder, locEncoder *chunkedIntCoder,
+func writePostings(
+	postings *roaring.Bitmap,
+	tfEncoder, locEncoder *chunkedIntCoder,
 	use1HitEncoding func(uint64) (bool, uint64, uint64),
-	w *countHashWriter, bufMaxVarintLen64 []byte) (
-	offset uint64, err error) {
+	w *countHashWriter, bufMaxVarintLen64 []byte,
+) (offset uint64, err error) {
 	termCardinality := postings.GetCardinality()
 	if termCardinality <= 0 {
 		return 0, nil

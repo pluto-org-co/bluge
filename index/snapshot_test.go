@@ -18,6 +18,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -42,25 +43,27 @@ func TestIndexReader(t *testing.T) {
 	}()
 
 	var expectedCount uint64
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test test test", false, false, true),
-		NewFakeField("desc", "eat more rice", false, true, true),
-	}
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test test test").
+			Aggregatable()).
+		AddField(documents.NewTextField("desc", "eat more rice").
+			SearchTermPositions().
+			Aggregatable())
+	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -232,25 +235,27 @@ func TestIndexDocIdReader(t *testing.T) {
 	}()
 
 	var expectedCount uint64
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test", false, false, true),
-	}
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test").
+			Aggregatable())
+	doc.Analyze()
 	b := NewBatch()
-	b.Update(testIdentifier("1"), doc)
+	b.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(b)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
 	}
 	expectedCount++
 
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test test test", false, false, true),
-		NewFakeField("desc", "eat more rice", false, true, true),
-	}
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test test test").
+			Aggregatable()).
+		AddField(documents.NewTextField("desc", "eat more rice").
+			SearchTermPositions().
+			Aggregatable())
+	doc.Analyze()
 	b2 := NewBatch()
-	b2.Update(testIdentifier("2"), doc)
+	b2.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(b2)
 	if err != nil {
 		t.Errorf("Error updating index: %v", err)
@@ -288,12 +293,12 @@ func TestIndexDocIdReader(t *testing.T) {
 	var secondNumber uint64
 	for tfd != nil {
 		count++
+		if count == 2 {
+			secondNumber = tfd.Number()
+		}
 		tfd, err = postingsIterator.Next()
 		if err != nil {
 			t.Error(err)
-		}
-		if secondNumber == 0 {
-			secondNumber = tfd.Number()
 		}
 	}
 	if count != expectedCount {
@@ -315,6 +320,9 @@ func TestIndexDocIdReader(t *testing.T) {
 	tfd, err = postingsIterator2.Advance(secondNumber)
 	if err != nil {
 		t.Error(err)
+	}
+	if tfd == nil {
+		t.Fatalf("expected to find number %d, got nil", secondNumber)
 	}
 	if tfd.Number() != secondNumber {
 		t.Errorf("expected to find number %d, got %d", secondNumber, tfd.Number())

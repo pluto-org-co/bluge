@@ -35,14 +35,8 @@ type Dictionary struct {
 var emptyDictionary = &Dictionary{}
 
 // PostingsList returns the postings list for the specified term
-func (d *Dictionary) PostingsList(term []byte, except *roaring.Bitmap,
-	prealloc segment.PostingsList) (segment.PostingsList, error) {
-	var preallocPL *PostingsList
-	pl, ok := prealloc.(*PostingsList)
-	if ok && pl != nil {
-		preallocPL = pl
-	}
-	return d.postingsList(term, except, preallocPL)
+func (d *Dictionary) PostingsList(term []byte, except *roaring.Bitmap, prealloc *PostingsList) (*PostingsList, error) {
+	return d.postingsList(term, except, prealloc)
 }
 
 func (d *Dictionary) postingsList(term []byte, except *roaring.Bitmap, rv *PostingsList) (*PostingsList, error) {
@@ -109,7 +103,7 @@ func (d *Dictionary) Close() error {
 
 // Iterator returns an iterator which only visits terms
 // having the the vellum automaton and start/end key range
-func (d *Dictionary) Iterator(a segment.Automaton,
+func (d *Dictionary) Iterator(a vellum.Automaton,
 	startKeyInclusive, endKeyExclusive []byte) segment.DictionaryIterator {
 	if d.fst != nil {
 		rv := &DictionaryIterator{

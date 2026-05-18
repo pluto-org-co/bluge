@@ -16,79 +16,80 @@ package test
 
 import (
 	"github.com/pluto-org-co/bluge"
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/numeric/geo"
 	"github.com/pluto-org-co/bluge/search"
 )
 
 func geoLoad(writer *bluge.Writer) error {
-	err := writer.Insert(bluge.NewDocument("amoeba_brewery").
-		AddField(bluge.NewKeywordField("name", "amoeba brewery")).
-		AddField(bluge.NewGeoPointField("geo", 77.60490, 12.97467)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err := writer.Insert(documents.NewDocument("amoeba_brewery").
+		AddField(documents.NewKeywordField("name", "amoeba brewery")).
+		AddField(documents.NewGeoPointField("geo", 77.60490, 12.97467)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("brewpub_on_the_green").
-		AddField(bluge.NewKeywordField("name", "Brewpub-on-the-Green")).
-		AddField(bluge.NewGeoPointField("geo", -121.989, 37.5483)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err = writer.Insert(documents.NewDocument("brewpub_on_the_green").
+		AddField(documents.NewKeywordField("name", "Brewpub-on-the-Green")).
+		AddField(documents.NewGeoPointField("geo", -121.989, 37.5483)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("capital_city_brewing_company").
-		AddField(bluge.NewKeywordField("name", "Capital City Brewing Company")).
-		AddField(bluge.NewGeoPointField("geo", -77.0272, 38.8999)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err = writer.Insert(documents.NewDocument("capital_city_brewing_company").
+		AddField(documents.NewKeywordField("name", "Capital City Brewing Company")).
+		AddField(documents.NewGeoPointField("geo", -77.0272, 38.8999)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("communiti_brewery").
-		AddField(bluge.NewKeywordField("name", "communiti brewery")).
-		AddField(bluge.NewGeoPointField("geo", 77.608237, 12.97237)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err = writer.Insert(documents.NewDocument("communiti_brewery").
+		AddField(documents.NewKeywordField("name", "communiti brewery")).
+		AddField(documents.NewGeoPointField("geo", 77.608237, 12.97237)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("firehouse_grill_brewery").
-		AddField(bluge.NewKeywordField("name", "Firehouse Grill & Brewery")).
-		AddField(bluge.NewGeoPointField("geo", -122.03, 37.3775)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err = writer.Insert(documents.NewDocument("firehouse_grill_brewery").
+		AddField(documents.NewKeywordField("name", "Firehouse Grill & Brewery")).
+		AddField(documents.NewGeoPointField("geo", -122.03, 37.3775)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("hook_ladder_brewing_company").
-		AddField(bluge.NewKeywordField("name", "Hook & Ladder Brewing Company")).
-		AddField(bluge.NewGeoPointField("geo", -77.0237, 38.9911)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err = writer.Insert(documents.NewDocument("hook_ladder_brewing_company").
+		AddField(documents.NewKeywordField("name", "Hook & Ladder Brewing Company")).
+		AddField(documents.NewGeoPointField("geo", -77.0237, 38.9911)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("jack_s_brewing").
-		AddField(bluge.NewKeywordField("name", "Jack's Brewing")).
-		AddField(bluge.NewGeoPointField("geo", -121.988, 37.5441)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err = writer.Insert(documents.NewDocument("jack_s_brewing").
+		AddField(documents.NewKeywordField("name", "Jack's Brewing")).
+		AddField(documents.NewGeoPointField("geo", -121.988, 37.5441)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("social_brewery").
-		AddField(bluge.NewKeywordField("name", "social brewery")).
-		AddField(bluge.NewGeoPointField("geo", 77.6042133, 12.9736946)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err = writer.Insert(documents.NewDocument("social_brewery").
+		AddField(documents.NewKeywordField("name", "social brewery")).
+		AddField(documents.NewGeoPointField("geo", 77.6042133, 12.9736946)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
 
-	err = writer.Insert(bluge.NewDocument("sweet_water_tavern_and_brewery").
-		AddField(bluge.NewKeywordField("name", "Sweet Water Tavern and Brewery")).
-		AddField(bluge.NewGeoPointField("geo", -77.4097, 39.0324)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+	err = writer.Insert(documents.NewDocument("sweet_water_tavern_and_brewery").
+		AddField(documents.NewKeywordField("name", "Sweet Water Tavern and Brewery")).
+		AddField(documents.NewGeoPointField("geo", -77.4097, 39.0324)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}

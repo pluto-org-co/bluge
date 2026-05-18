@@ -17,9 +17,10 @@ package test
 import (
 	"time"
 
+	"github.com/pluto-org-co/bluge"
+	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/search/highlight"
 
-	"github.com/pluto-org-co/bluge"
 	"github.com/pluto-org-co/bluge/analysis/lang/en"
 )
 
@@ -36,21 +37,21 @@ func init() {
 func basicLoad(writer *bluge.Writer) error {
 	enAnalyzer := en.NewAnalyzer()
 
-	err := writer.Insert(bluge.NewDocument("a").
-		AddField(bluge.NewTextField("name", "marty").
+	err := writer.Insert(documents.NewDocument("a").
+		AddField(documents.NewTextField("name", "marty").
 			SearchTermPositions().
 			StoreValue().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewNumericField("age", 19)).
-		AddField(bluge.NewTextField("title", "mista").
+		AddField(documents.NewNumericField("age", 19)).
+		AddField(documents.NewTextField("title", "mista").
 			StoreValue()).
-		AddField(bluge.NewKeywordField("tags", "gopher").
+		AddField(documents.NewKeywordField("tags", "gopher").
 			StoreValue().
 			SearchTermPositions()).
-		AddField(bluge.NewKeywordField("tags", "belieber").
+		AddField(documents.NewKeywordField("tags", "belieber").
 			StoreValue().
 			SearchTermPositions()).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -59,16 +60,16 @@ func basicLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("b").
-		AddField(bluge.NewTextField("name", "steve has <a> long & complicated name").
+	err = writer.Insert(documents.NewDocument("b").
+		AddField(documents.NewTextField("name", "steve has <a> long & complicated name").
 			SearchTermPositions().
 			StoreValue().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewNumericField("age", 27)).
-		AddField(bluge.NewTextField("title", "missess").
+		AddField(documents.NewNumericField("age", 27)).
+		AddField(documents.NewTextField("title", "missess").
 			StoreValue()).
-		AddField(bluge.NewDateTimeField("birthday", birthday)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewDateTimeField("birthday", birthday)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -77,16 +78,16 @@ func basicLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("c").
-		AddField(bluge.NewTextField("name", "bob walks home").
+	err = writer.Insert(documents.NewDocument("c").
+		AddField(documents.NewTextField("name", "bob walks home").
 			SearchTermPositions().
 			StoreValue().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewNumericField("age", 64)).
-		AddField(bluge.NewTextField("title", "masta").
+		AddField(documents.NewNumericField("age", 64)).
+		AddField(documents.NewTextField("title", "masta").
 			StoreValue()).
-		AddField(bluge.NewDateTimeField("birthday", birthday)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewDateTimeField("birthday", birthday)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}
@@ -95,16 +96,16 @@ func basicLoad(writer *bluge.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writer.Insert(bluge.NewDocument("d").
-		AddField(bluge.NewTextField("name", "bobbleheaded wings top the phone").
+	err = writer.Insert(documents.NewDocument("d").
+		AddField(documents.NewTextField("name", "bobbleheaded wings top the phone").
 			SearchTermPositions().
 			StoreValue().
 			WithAnalyzer(enAnalyzer)).
-		AddField(bluge.NewNumericField("age", 72)).
-		AddField(bluge.NewTextField("title", "mizz").
+		AddField(documents.NewNumericField("age", 72)).
+		AddField(documents.NewTextField("title", "mizz").
 			StoreValue()).
-		AddField(bluge.NewDateTimeField("birthday", birthday)).
-		AddField(bluge.NewCompositeFieldExcluding("_all", []string{"_id"})))
+		AddField(documents.NewDateTimeField("birthday", birthday)).
+		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
 	}

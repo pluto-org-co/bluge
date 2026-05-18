@@ -18,6 +18,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+
+	"github.com/pluto-org-co/bluge/documents"
 )
 
 func TestObsoleteSegmentMergeIntroduction(t *testing.T) {
@@ -68,24 +70,26 @@ func TestObsoleteSegmentMergeIntroduction(t *testing.T) {
 
 	// first introduce two documents over two batches.
 	batch := NewBatch()
-	doc := &FakeDocument{
-		NewFakeField("_id", "1", true, false, false),
-		NewFakeField("name", "test3", true, false, true),
-	}
-	doc.FakeComposite("_all", nil)
-	batch.Update(testIdentifier("1"), doc)
+	doc := documents.NewDocument("1").
+		AddField(documents.NewTextField("name", "test3").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
+	batch.Update(documents.Identifier("1"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)
 	}
 
 	batch.Reset()
-	doc = &FakeDocument{
-		NewFakeField("_id", "2", true, false, false),
-		NewFakeField("name", "test2updated", true, false, true),
-	}
-	doc.FakeComposite("_all", nil)
-	batch.Update(testIdentifier("2"), doc)
+	doc = documents.NewDocument("2").
+		AddField(documents.NewTextField("name", "test2updated").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
+	batch.Update(documents.Identifier("2"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)
@@ -97,14 +101,15 @@ func TestObsoleteSegmentMergeIntroduction(t *testing.T) {
 	// execute another batch which obsoletes the contents of the new merged
 	// segment awaiting introduction.
 	batch.Reset()
-	batch.Delete(testIdentifier("1"))
-	batch.Delete(testIdentifier("2"))
-	doc = &FakeDocument{
-		NewFakeField("_id", "3", true, false, false),
-		NewFakeField("name", "test3updated", true, false, true),
-	}
-	doc.FakeComposite("_all", nil)
-	batch.Update(testIdentifier("3"), doc)
+	batch.Delete(documents.Identifier("1"))
+	batch.Delete(documents.Identifier("2"))
+	doc = documents.NewDocument("3").
+		AddField(documents.NewTextField("name", "test3updated").
+			StoreValue().
+			Aggregatable()).
+		AddField(documents.NewCompositeFieldExcluding("_all", nil))
+	doc.Analyze()
+	batch.Update(documents.Identifier("3"), doc)
 	err = idx.Batch(batch)
 	if err != nil {
 		t.Error(err)

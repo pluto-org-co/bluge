@@ -18,16 +18,24 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/pluto-org-co/bluge/documents"
+	"github.com/pluto-org-co/bluge/numeric/geo"
 	"github.com/pluto-org-co/bluge/search/similarity"
 
-	"github.com/pluto-org-co/bluge/segment"
-
 	"github.com/pluto-org-co/bluge/numeric"
-	"github.com/pluto-org-co/bluge/numeric/geo"
 	"github.com/pluto-org-co/bluge/search"
 )
 
 const testGeoPrecisionStep uint = 9
+
+func newGeoDoc(id string, lon, lat float64) *documents.Document {
+	doc := documents.NewDocument(id).
+		AddField(documents.NewGeoPointField("loc", lon, lat).
+			StoreValue().
+			Aggregatable())
+	doc.Analyze()
+	return doc
+}
 
 func TestGeoBoundingBox(t *testing.T) {
 	indexReader := setupGeo()
@@ -106,47 +114,17 @@ func testGeoBoundingBoxSearch(i search.Reader, minLon, minLat, maxLon, maxLat fl
 }
 
 func setupGeo() *stubIndexReader {
-	docs := []segment.Document{
-		&FakeDocument{
-			NewFakeField("_id", "a", true, false, false, nil),
-			NewFakeGeoField("loc", 0.0015, 0.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "b", true, false, false, nil),
-			NewFakeGeoField("loc", 1.0015, 1.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "c", true, false, false, nil),
-			NewFakeGeoField("loc", 2.0015, 2.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "d", true, false, false, nil),
-			NewFakeGeoField("loc", 3.0015, 3.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "e", true, false, false, nil),
-			NewFakeGeoField("loc", 4.0015, 4.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "f", true, false, false, nil),
-			NewFakeGeoField("loc", 5.0015, 5.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "g", true, false, false, nil),
-			NewFakeGeoField("loc", 6.0015, 6.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "h", true, false, false, nil),
-			NewFakeGeoField("loc", 7.0015, 7.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "i", true, false, false, nil),
-			NewFakeGeoField("loc", 8.0015, 8.0015),
-		},
-		&FakeDocument{
-			NewFakeField("_id", "j", true, false, false, nil),
-			NewFakeGeoField("loc", 9.0015, 9.0015),
-		},
+	docs := []*documents.Document{
+		newGeoDoc("a", 0.0015, 0.0015),
+		newGeoDoc("b", 1.0015, 1.0015),
+		newGeoDoc("c", 2.0015, 2.0015),
+		newGeoDoc("d", 3.0015, 3.0015),
+		newGeoDoc("e", 4.0015, 4.0015),
+		newGeoDoc("f", 5.0015, 5.0015),
+		newGeoDoc("g", 6.0015, 6.0015),
+		newGeoDoc("h", 7.0015, 7.0015),
+		newGeoDoc("i", 8.0015, 8.0015),
+		newGeoDoc("j", 9.0015, 9.0015),
 	}
 
 	geoTestStubIndexReader := newStubIndexReader()

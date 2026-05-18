@@ -16,7 +16,6 @@ package ice
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -25,7 +24,9 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
 	"github.com/klauspost/compress/snappy"
+	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/zeebo/xxh3"
 )
 
 const Version uint32 = 1
@@ -36,7 +37,7 @@ type Segment struct {
 	data   *segment.Data
 	footer *footer
 
-	fieldsMap  map[string]uint16 // fieldName -> fieldID+1
+	fieldsMap  map[uint64]uint16 // fieldName -> fieldID+1
 	fieldsInv  []string          // fieldID -> fieldName
 	fieldDocs  map[uint16]uint64 // fieldID -> # docs with value in field
 	fieldFreqs map[uint16]uint64 // fieldID -> # total tokens in field
@@ -90,8 +91,8 @@ func (s *Segment) updateSize() {
 		s.data.Size()
 
 	// fieldsMap
-	for k := range s.fieldsMap {
-		sizeInBytes += (len(k) + sizeOfString) + sizeOfUint16
+	for _, v := range s.fieldsInv {
+		sizeInBytes += (len(v) + sizeOfString) + sizeOfUint16
 	}
 
 	// fieldsInv, dictLocs
@@ -112,7 +113,7 @@ func (s *Segment) updateSize() {
 }
 
 // DictionaryReader returns the term dictionary for the specified field
-func (s *Segment) Dictionary(field string) (segment.Dictionary, error) {
+func (s *Segment) Dictionary(field string) (*Dictionary, error) {
 	dict, err := s.dictionary(field)
 	if err == nil && dict == nil {
 		return emptyDictionary, nil
@@ -121,7 +122,7 @@ func (s *Segment) Dictionary(field string) (segment.Dictionary, error) {
 }
 
 func (s *Segment) dictionary(field string) (rv *Dictionary, err error) {
-	fieldIDPlus1 := s.fieldsMap[field]
+	fieldIDPlus1 := s.fieldsMap[xxh3.HashString(field)]
 	if fieldIDPlus1 > 0 {
 		rv = &Dictionary{
 			sb:      s,
@@ -169,8 +170,7 @@ func (s *Segment) dictionary(field string) (rv *Dictionary, err error) {
 // visitDocumentCtx holds data structures that are reusable across
 // multiple VisitStoredFields() calls to avoid memory allocations
 type visitDocumentCtx struct {
-	buf    []byte
-	reader bytes.Reader
+	uncompressedBuffer []byte
 }
 
 var visitDocumentCtxPool = sync.Pool{
@@ -188,47 +188,46 @@ func (s *Segment) VisitStoredFields(num uint64, visitor segment.StoredFieldVisit
 	return s.visitDocument(vdc, num, visitor)
 }
 
-func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64,
-	visitor segment.StoredFieldVisitor) error {
+func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segment.StoredFieldVisitor) error {
 	// first make sure this is a valid number in this segment
-	if num < s.footer.numDocs {
-		meta, compressed, err := s.getDocStoredMetaAndCompressed(num)
-		if err != nil {
-			return err
-		}
-
-		vdc.reader.Reset(meta)
-
-		uncompressed, err := snappy.Decode(vdc.buf[:cap(vdc.buf)], compressed)
-		if err != nil {
-			return err
-		}
-
-		var keepGoing = true
-		for keepGoing {
-			field, err := binary.ReadUvarint(&vdc.reader)
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				return err
-			}
-			offset, err := binary.ReadUvarint(&vdc.reader)
-			if err != nil {
-				return err
-			}
-			l, err := binary.ReadUvarint(&vdc.reader)
-			if err != nil {
-				return err
-			}
-
-			value := uncompressed[offset : offset+l]
-			keepGoing = visitor(s.fieldsInv[field], value)
-		}
-
-		vdc.buf = uncompressed
+	if num >= s.footer.numDocs {
+		return nil
 	}
-	return nil
+
+	metadata, compressed, err := s.getDocStoredMetaAndCompressed(num)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve document stored metadata and compressed contents: %w", err)
+	}
+
+	vdc.uncompressedBuffer, err = snappy.Decode(vdc.uncompressedBuffer[:cap(vdc.uncompressedBuffer)], compressed)
+	if err != nil {
+		return fmt.Errorf("failed to decocompress buffer: %w", err)
+	}
+
+	for {
+		fieldIdx, fieldSize := binary.Uvarint(metadata)
+		if fieldSize == 0 { // Equivalent to io.EOF
+			return nil
+		} else if fieldSize < 0 {
+			return io.ErrUnexpectedEOF
+		}
+		metadata = metadata[fieldSize:]
+		offset, offsetSize := binary.Uvarint(metadata)
+		if offsetSize <= 0 {
+			return io.ErrUnexpectedEOF
+		}
+		metadata = metadata[offsetSize:]
+		length, lengthSize := binary.Uvarint(metadata)
+		if lengthSize <= 0 {
+			return io.ErrUnexpectedEOF
+		}
+		metadata = metadata[lengthSize:]
+
+		value := vdc.uncompressedBuffer[offset : offset+length]
+		if !visitor(s.fieldsInv[fieldIdx], value) {
+			return nil
+		}
+	}
 }
 
 // Count returns the number of documents in this segment.
@@ -236,7 +235,7 @@ func (s *Segment) Count() uint64 {
 	return s.footer.numDocs
 }
 
-func (s *Segment) DocsMatchingTerms(terms []segment.Term) (*roaring.Bitmap, error) {
+func (s *Segment) DocsMatchingTerms(terms []*analysis.TokenFreq) (*roaring.Bitmap, error) {
 	rv := roaring.New()
 
 	if len(s.fieldsMap) > 0 {
@@ -247,9 +246,9 @@ func (s *Segment) DocsMatchingTerms(terms []segment.Term) (*roaring.Bitmap, erro
 		var lastField string
 		var dict *Dictionary
 		for i, term := range terms {
-			thisField := term.Field()
+			thisField := term.Field
 			if thisField != lastField {
-				dict, err = s.dictionary(term.Field())
+				dict, err = s.dictionary(term.Field)
 				if err != nil {
 					return nil, err
 				}
@@ -257,7 +256,7 @@ func (s *Segment) DocsMatchingTerms(terms []segment.Term) (*roaring.Bitmap, erro
 			}
 			term := terms[i]
 			postingsList := emptyPostingsList
-			postingsList, err = dict.postingsList(term.Term(), nil, postingsList)
+			postingsList, err = dict.postingsList(term.TermVal, nil, postingsList)
 			if err != nil {
 				return nil, err
 			}
