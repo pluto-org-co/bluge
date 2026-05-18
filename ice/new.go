@@ -151,7 +151,7 @@ type interim struct {
 
 	// Terms for each field, where terms are sorted ascending
 	//  field id -> []term
-	DictKeys [][]Term
+	DictKeys [][]*Term
 
 	// Fields whose IncludeDocValues is true
 	//  field id -> bool
@@ -288,7 +288,7 @@ func (s *interim) convert() (*footer, []uint64, error) {
 	s.prepareDicts()
 
 	for _, dict := range s.DictKeys {
-		slices.SortFunc(dict, bytes.Compare)
+		slices.SortFunc(dict, func(a, b *Term) int { return bytes.Compare(*a, *b) })
 	}
 
 	s.processDocuments()
@@ -341,7 +341,7 @@ func (s *interim) getOrDefineField(fieldName string) uint8 {
 		s.DictKeys = s.DictKeys[:n+1]
 		s.DictKeys[n] = s.DictKeys[n][:0]
 	} else {
-		s.DictKeys = append(s.DictKeys, []Term(nil))
+		s.DictKeys = append(s.DictKeys, make([]*Term, 0, 100))
 	}
 
 	return fieldIDPlus1 - 1
@@ -429,7 +429,7 @@ func (s *interim) prepareDictsForDocument(result *documents.Document, pidNext, t
 				postingListIdPlus1 = uint64(pidNext)
 
 				dict[termKey] = postingListIdPlus1
-				dictKeys = append(dictKeys, term.TermVal)
+				dictKeys = append(dictKeys, &term.TermVal)
 
 				s.numTermsPerPostingsList = append(s.numTermsPerPostingsList, 0)
 				s.numLocsPerPostingsList = append(s.numLocsPerPostingsList, 0)
@@ -676,7 +676,7 @@ func (s *interim) writeDicts() (fdvIndexOffset uint64, dictOffsets []uint64, err
 func (s *interim) writeDictsField(
 	docTermMap [][]byte,
 	fieldID int,
-	terms []Term, // Terms are the words extracted from a field
+	terms []*Term, // Terms are the words extracted from a field
 	tfEncoder, locEncoder *chunkedIntCoder,
 	buf []byte,
 	dictOffsets, fdvOffsetsStart, fdvOffsetsEnd []uint64,
@@ -693,7 +693,7 @@ func (s *interim) writeDictsField(
 	termDict := s.TermDicts[fieldID]
 
 	for _, term := range terms { // terms are already sorted
-		err := s.writeDictsTermField(docTermMap, termDict, term, tfEncoder, locEncoder, buf)
+		err := s.writeDictsTermField(docTermMap, termDict, *term, tfEncoder, locEncoder, buf)
 		if err != nil {
 			return fmt.Errorf("failed to write dicts term fields: %w", err)
 		}
