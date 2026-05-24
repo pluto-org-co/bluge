@@ -17,62 +17,72 @@ package ice
 import (
 	"bytes"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestChunkedContentCoder(t *testing.T) {
-	tests := []struct {
-		maxDocNum uint64
-		chunkSize uint64
-		docNums   []uint64
-		vals      [][]byte
-		expected  []byte
-	}{
+	type Test struct {
+		Name      string
+		MaxDocNum uint64
+		ChunkSize uint64
+		DocNums   []uint64
+		Values    [][]byte
+		Expect    []byte
+	}
+	tests := []*Test{
 		{
-			maxDocNum: 0,
-			chunkSize: 1,
-			docNums:   []uint64{0},
-			vals:      [][]byte{[]byte("bluge")},
-			// 1 chunk, chunk-0 length 11(b), value
-			expected: []byte{0x1, 0x0, 0x5, 0x5, 0x10, 'b', 'l', 'u', 'g', 'e',
-				0xa,
+			Name:      "Single word 'bluge'",
+			MaxDocNum: 0,
+			ChunkSize: 1,
+			DocNums:   []uint64{0},
+			Values:    [][]byte{[]byte("bluge")},
+			Expect: []byte{0x1, 0x0, 0x5, 0x62, 0x6c, 0x75, 0x67, 0x65,
+				0x8,
 				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1,
 				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1},
 		},
 		{
-			maxDocNum: 1,
-			chunkSize: 1,
-			docNums:   []uint64{0, 1},
-			vals: [][]byte{
+			Name:      "Double worded",
+			MaxDocNum: 1,
+			ChunkSize: 1,
+			DocNums:   []uint64{0, 1},
+			Values: [][]byte{
 				[]byte("upside"),
 				[]byte("scorch"),
 			},
-
-			expected: []byte{0x1, 0x0, 0x6, 0x6, 0x14, 0x75, 0x70, 0x73, 0x69, 0x64,
-				0x65, 0x1, 0x1, 0x6, 0x6, 0x14, 0x73, 0x63, 0x6f, 0x72, 0x63, 0x68,
-				0xb, 0x16,
+			Expect: []byte{0x1, 0x0, 0x6, 0x75, 0x70, 0x73, 0x69, 0x64,
+				0x65, 0x1, 0x1, 0x6, 0x73, 0x63, 0x6f, 0x72,
+				0x63, 0x68, 0x9, 0x12,
 				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2,
 				0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x2},
 		},
 	}
 
 	for _, test := range tests {
-		var actual bytes.Buffer
-		cic := newChunkedContentCoder(test.chunkSize, test.maxDocNum, &actual, false)
-		for i, docNum := range test.docNums {
-			err := cic.Add(docNum, test.vals[i])
-			if err != nil {
-				t.Fatalf("error adding to intcoder: %v", err)
-			}
-		}
-		_ = cic.Close()
-		_, err := cic.Write()
-		if err != nil {
-			t.Fatalf("error writing: %v", err)
-		}
+		t.Run(test.Name, func(t *testing.T) {
+			assertions := assert.New(t)
 
-		if !bytes.Equal(test.expected, actual.Bytes()) {
-			t.Errorf("got:%s, expected:%s", actual.String(), string(test.expected))
-		}
+			var buffer bytes.Buffer
+			cic := newChunkedContentCoder(test.ChunkSize, test.MaxDocNum, &buffer, false)
+			for i, docNum := range test.DocNums {
+				err := cic.Add(docNum, test.Values[i])
+				if !assertions.Nil(err, "error adding to intcoder") {
+					return
+				}
+			}
+
+			cic.Close()
+			_, err := cic.Write()
+			if !assertions.Nil(err, "failed to write cic") {
+				return
+			}
+
+			if !assertions.Equal(test.Expect, buffer.Bytes(), "expecting a different value") {
+				return
+			}
+		})
+
 	}
 }
 

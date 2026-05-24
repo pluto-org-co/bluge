@@ -16,7 +16,7 @@ package ice
 
 import "encoding/binary"
 
-func (s *Segment) getDocStoredMetaAndCompressed(docNum uint64) (metadata, compressedData []byte, err error) {
+func (s *Segment) getDocStoredMetaAndRawData(docNum uint64) (metadata, compressedData []byte, err error) {
 	_, storedOffset, n, metaLen, dataLen, err := s.getDocStoredOffsets(docNum)
 	if err != nil {
 		return nil, nil, err

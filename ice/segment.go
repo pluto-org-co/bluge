@@ -23,7 +23,6 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
-	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
@@ -170,7 +169,7 @@ func (s *Segment) dictionary(field string) (rv *Dictionary, err error) {
 // visitDocumentCtx holds data structures that are reusable across
 // multiple VisitStoredFields() calls to avoid memory allocations
 type visitDocumentCtx struct {
-	uncompressedBuffer []byte
+	rawData []byte
 }
 
 var visitDocumentCtxPool = sync.Pool{
@@ -188,20 +187,16 @@ func (s *Segment) VisitStoredFields(num uint64, visitor segment.StoredFieldVisit
 	return s.visitDocument(vdc, num, visitor)
 }
 
-func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segment.StoredFieldVisitor) error {
+func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segment.StoredFieldVisitor) (err error) {
 	// first make sure this is a valid number in this segment
 	if num >= s.footer.numDocs {
 		return nil
 	}
 
-	metadata, compressed, err := s.getDocStoredMetaAndCompressed(num)
+	var metadata []byte
+	metadata, vdc.rawData, err = s.getDocStoredMetaAndRawData(num)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve document stored metadata and compressed contents: %w", err)
-	}
-
-	vdc.uncompressedBuffer, err = snappy.Decode(vdc.uncompressedBuffer[:cap(vdc.uncompressedBuffer)], compressed)
-	if err != nil {
-		return fmt.Errorf("failed to decocompress buffer: %w", err)
 	}
 
 	for {
@@ -223,7 +218,7 @@ func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segme
 		}
 		metadata = metadata[lengthSize:]
 
-		value := vdc.uncompressedBuffer[offset : offset+length]
+		value := vdc.rawData[offset : offset+length]
 		if !visitor(s.fieldsInv[fieldIdx], value) {
 			return nil
 		}

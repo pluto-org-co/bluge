@@ -18,8 +18,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"io"
-
-	"github.com/klauspost/compress/snappy"
 )
 
 const termSeparator byte = 0xff
@@ -39,8 +37,6 @@ type chunkedContentCoder struct {
 	chunkBuf     bytes.Buffer
 
 	chunkMeta []metaData
-
-	compressed []byte // temp buf for snappy compression
 }
 
 // metaData represents the data information inside a
@@ -117,11 +113,9 @@ func (c *chunkedContentCoder) flushContents() error {
 	// write the metadata to final data
 	metaData := c.chunkMetaBuf.Bytes()
 	c.final = append(c.final, c.chunkMetaBuf.Bytes()...)
-	// write the compressed data to the final data
-	c.compressed = snappy.Encode(c.compressed[:cap(c.compressed)], c.chunkBuf.Bytes())
-	c.final = append(c.final, c.compressed...)
+	c.final = append(c.final, c.chunkBuf.Bytes()...)
 
-	c.chunkLens[c.currChunk] = uint64(len(c.compressed) + len(metaData))
+	c.chunkLens[c.currChunk] = uint64(c.chunkBuf.Len() + len(metaData))
 
 	if c.progressiveWrite {
 		_, err := c.w.Write(c.final)

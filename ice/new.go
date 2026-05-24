@@ -24,7 +24,6 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
-	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
@@ -545,8 +544,8 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 		return s.metaBuf.Write(varBuf[:wb])
 	}
 
-	data, compressed := s.tmp0[:0], s.tmp1[:0]
-	defer func() { s.tmp0, s.tmp1 = data, compressed }()
+	data := s.tmp0[:0]
+	defer func() { s.tmp0 = data }()
 
 	// keyed by docNum
 	docStoredOffsets := make([]uint64, len(s.documents))
@@ -593,13 +592,11 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 
 		metaBytes := s.metaBuf.Bytes()
 
-		compressed = snappy.Encode(compressed[:cap(compressed)], data)
-
 		docStoredOffsets[docNum] = uint64(s.w.Count())
 
 		err = writeUvarints(s.w,
 			uint64(len(metaBytes)),
-			uint64(len(compressed)))
+			uint64(len(data)))
 		if err != nil {
 			return 0, err
 		}
@@ -609,7 +606,7 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 			return 0, err
 		}
 
-		_, err = s.w.Write(compressed)
+		_, err = s.w.Write(data)
 		if err != nil {
 			return 0, err
 		}

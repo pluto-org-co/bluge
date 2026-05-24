@@ -25,7 +25,6 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
-	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
 )
@@ -609,7 +608,7 @@ func mergeStoredAndRemap(
 ) (storedIndexOffset uint64, newDocNums [][]uint64, err error) {
 	var newDocNum uint64
 
-	var data, compressed []byte
+	var data []byte
 	var metaBuf bytes.Buffer
 	varBuf := make([]byte, binary.MaxVarintLen64)
 	metaEncode := func(val uint64) (int, error) {
@@ -655,7 +654,7 @@ func mergeStoredAndRemap(
 
 		var err2 error
 		newDocNum, err2 = mergeStoredAndRemapSegment(seg, dropsI, segNewDocNums, newDocNum, &metaBuf, data,
-			fieldsInv, vals, vdc, fieldsMap, metaEncode, compressed, docNumOffsets, w)
+			fieldsInv, vals, vdc, fieldsMap, metaEncode, docNumOffsets, w)
 		if err2 != nil {
 			return 0, nil, err2
 		}
@@ -679,10 +678,21 @@ func mergeStoredAndRemap(
 	return storedIndexOffset, newDocNums, nil
 }
 
-func mergeStoredAndRemapSegment(seg *Segment, dropsI *roaring.Bitmap, segNewDocNums []uint64, newDocNum uint64,
-	metaBuf *bytes.Buffer, data []byte, fieldsInv []string, vals [][][]byte, vdc *visitDocumentCtx,
-	fieldsMap map[string]uint16, metaEncode func(val uint64) (int, error), compressed []byte, docNumOffsets []uint64,
-	w *countHashWriter) (uint64, error) {
+func mergeStoredAndRemapSegment(
+	seg *Segment,
+	dropsI *roaring.Bitmap,
+	segNewDocNums []uint64,
+	newDocNum uint64,
+	metaBuf *bytes.Buffer,
+	data []byte,
+	fieldsInv []string,
+	vals [][][]byte,
+	vdc *visitDocumentCtx,
+	fieldsMap map[string]uint16,
+	metaEncode func(val uint64) (int, error),
+	docNumOffsets []uint64,
+	w *countHashWriter,
+) (uint64, error) {
 	// for each doc num
 	for docNum := range seg.footer.numDocs {
 		// TODO: roaring's API limits docNums to 32-bits?
@@ -724,15 +734,13 @@ func mergeStoredAndRemapSegment(seg *Segment, dropsI *roaring.Bitmap, segNewDocN
 
 		metaBytes := metaBuf.Bytes()
 
-		compressed = snappy.Encode(compressed[:cap(compressed)], data)
-
 		// record where we're about to start writing
 		docNumOffsets[newDocNum] = uint64(w.Count())
 
-		// write out the meta len and compressed data len
+		// write out the meta len and data len
 		err = writeUvarints(w,
 			uint64(len(metaBytes)),
-			uint64(len(compressed)))
+			uint64(len(data)))
 		if err != nil {
 			return 0, err
 		}
@@ -741,8 +749,8 @@ func mergeStoredAndRemapSegment(seg *Segment, dropsI *roaring.Bitmap, segNewDocN
 		if err != nil {
 			return 0, err
 		}
-		// now write the compressed data
-		_, err = w.Write(compressed)
+		// now write the data
+		_, err = w.Write(data)
 		if err != nil {
 			return 0, err
 		}

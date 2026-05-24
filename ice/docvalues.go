@@ -21,7 +21,6 @@ import (
 	"math"
 	"sort"
 
-	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
 )
@@ -40,7 +39,6 @@ type docValueReader struct {
 	dvDataLoc      uint64
 	curChunkHeader []metaData
 	curChunkData   []byte // compressed data cache
-	uncompressed   []byte // temp buf for snappy decompression
 }
 
 func (di *docValueReader) size() int {
@@ -62,7 +60,6 @@ func (di *docValueReader) cloneInto(rv *docValueReader) *docValueReader {
 	rv.dvDataLoc = di.dvDataLoc
 	rv.curChunkHeader = rv.curChunkHeader[:0]
 	rv.curChunkData = nil
-	rv.uncompressed = rv.uncompressed[:0]
 
 	return rv
 }
@@ -140,7 +137,6 @@ func (di *docValueReader) loadDvChunk(chunkNumber uint64, s *Segment) error {
 		di.curChunkHeader = di.curChunkHeader[:0]
 		di.curChunkData = nil
 		di.curChunkNum = chunkNumber
-		di.uncompressed = di.uncompressed[:0]
 		return nil
 	}
 
@@ -189,7 +185,6 @@ func (di *docValueReader) loadDvChunk(chunkNumber uint64, s *Segment) error {
 	}
 	di.curChunkData = curChunkData
 	di.curChunkNum = chunkNumber
-	di.uncompressed = di.uncompressed[:0]
 	return nil
 }
 
@@ -203,16 +198,9 @@ func (di *docValueReader) iterateAllDocValues(s *Segment, visitor docNumTermsVis
 			continue
 		}
 
-		// uncompress the already loaded data
-		uncompressed, err := snappy.Decode(di.uncompressed[:cap(di.uncompressed)], di.curChunkData)
-		if err != nil {
-			return err
-		}
-		di.uncompressed = uncompressed
-
 		start := uint64(0)
 		for _, entry := range di.curChunkHeader {
-			err = visitor(entry.DocNum, uncompressed[start:entry.DocDvOffset])
+			err = visitor(entry.DocNum, di.curChunkData[start:entry.DocDvOffset])
 			if err != nil {
 				return err
 			}
@@ -224,38 +212,23 @@ func (di *docValueReader) iterateAllDocValues(s *Segment, visitor docNumTermsVis
 	return nil
 }
 
-func (di *docValueReader) visitDocValues(docNum uint64,
-	visitor segment.DocumentValueVisitor) error {
+func (di *docValueReader) visitDocValues(docNum uint64, visitor segment.DocumentValueVisitor) (err error) {
 	// binary search the term locations for the docNum
 	start, end := di.getDocValueLocs(docNum)
 	if start == math.MaxUint64 || end == math.MaxUint64 || start == end {
 		return nil
 	}
 
-	var uncompressed []byte
-	var err error
-	// use the uncompressed copy if available
-	if len(di.uncompressed) > 0 {
-		uncompressed = di.uncompressed
-	} else {
-		// uncompress the already loaded data
-		uncompressed, err = snappy.Decode(di.uncompressed[:cap(di.uncompressed)], di.curChunkData)
-		if err != nil {
-			return err
-		}
-		di.uncompressed = uncompressed
-	}
-
 	// pick the terms for the given docNum
-	uncompressed = uncompressed[start:end]
+	data := di.curChunkData[start:end]
 	for {
-		i := bytes.Index(uncompressed, termSeparatorSplitSlice)
+		i := bytes.Index(data, termSeparatorSplitSlice)
 		if i < 0 {
 			break
 		}
 
-		visitor(di.field, uncompressed[0:i])
-		uncompressed = uncompressed[i+1:]
+		visitor(di.field, data[0:i])
+		data = data[i+1:]
 	}
 
 	return nil
