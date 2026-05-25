@@ -127,17 +127,11 @@ func numUvarintBytes(x uint64) (n int) {
 
 // writes out the length of the roaring bitmap in bytes as varint
 // then writes out the roaring bitmap itself
-func writeRoaringWithLen(r *roaring.Bitmap, w io.Writer,
-	reuseBufVarint []byte) (int, error) {
-	buf, err := r.ToBytes()
-	if err != nil {
-		return 0, err
-	}
-
+func writeRoaringWithLen(r *roaring.Bitmap, w *countHashWriter, reuseBufVarint []byte) (int, error) {
 	var tw int
 
 	// write out the length
-	n := binary.PutUvarint(reuseBufVarint, uint64(len(buf)))
+	n := binary.PutUvarint(reuseBufVarint, r.GetSerializedSizeInBytes())
 	nw, err := w.Write(reuseBufVarint[:n])
 	tw += nw
 	if err != nil {
@@ -145,8 +139,8 @@ func writeRoaringWithLen(r *roaring.Bitmap, w io.Writer,
 	}
 
 	// write out the roaring bytes
-	nw, err = w.Write(buf)
-	tw += nw
+	nwi, err := r.WriteTo(w)
+	tw += int(nwi)
 	if err != nil {
 		return tw, err
 	}
