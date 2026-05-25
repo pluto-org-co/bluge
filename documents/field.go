@@ -116,15 +116,15 @@ func (b *Field) HighlightMatches() *Field {
 }
 
 func (b *Field) baseAnalayze(typ analysis.TokenType) analysis.TokenStream {
-	var tokens analysis.TokenStream
-	tokens = append(tokens, &analysis.Token{
-		Start:        0,
-		End:          len(b.RawBytes),
-		Term:         b.RawBytes,
-		PositionIncr: 1,
-		Type:         typ,
-	})
-	return tokens
+	return analysis.TokenStream{
+		&analysis.Token{
+			Start:        0,
+			End:          len(b.RawBytes),
+			Term:         b.RawBytes,
+			PositionIncr: 1,
+			Type:         typ,
+		},
+	}
 }
 
 func (b *Field) WithAnalyzer(fieldAnalyzer Analyzer) *Field {
