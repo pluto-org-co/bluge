@@ -483,7 +483,7 @@ func (s *interim) processDocument(
 
 		existingFreqs := fieldTFs[fieldID]
 		if existingFreqs == nil {
-			existingFreqs = make(analysis.TokenFrequencies)
+			existingFreqs = make(analysis.TokenFrequencies, len(field.AnalyzedTokenFreqs))
 			fieldTFs[fieldID] = existingFreqs
 		}
 
