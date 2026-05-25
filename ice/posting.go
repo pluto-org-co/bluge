@@ -286,12 +286,11 @@ func (p *PostingsList) read(postingsOffset uint64, d *Dictionary) error {
 	if err != nil {
 		return err
 	}
-	roaringBytes := roaringData
 
 	if p.postings == nil {
 		p.postings = roaring.NewBitmap()
 	}
-	_, err = p.postings.FromBuffer(roaringBytes)
+	_, err = p.postings.FromBuffer(roaringData)
 	if err != nil {
 		return fmt.Errorf("error loading roaring bitmap: %v", err)
 	}
