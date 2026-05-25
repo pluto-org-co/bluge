@@ -481,20 +481,21 @@ func (s *interim) processDocument(
 		fieldID := uint16(s.getOrDefineField(field.NameString))
 		fieldLens[fieldID] += field.AnalyzedLengthValue
 
-		if existingFreqs := fieldTFs[fieldID]; existingFreqs == nil {
-			fieldTFs[fieldID] = make(analysis.TokenFrequencies)
+		existingFreqs := fieldTFs[fieldID]
+		if existingFreqs == nil {
+			existingFreqs = make(analysis.TokenFrequencies)
+			fieldTFs[fieldID] = existingFreqs
 		}
 
-		existingFreqs := fieldTFs[fieldID]
 		for _, term := range field.AnalyzedTokenFreqs {
-			tfk := xxh3.Hash(term.TermVal)
+			termKey := xxh3.Hash(term.TermVal)
 
-			existingTf, exists := existingFreqs[tfk]
+			existingTokenFreq, exists := existingFreqs[termKey]
 			if exists {
-				existingTf.Locations = append(existingTf.Locations, term.Locations...)
-				existingTf.Frequency += term.Frequency
+				existingTokenFreq.Locations = append(existingTokenFreq.Locations, term.Locations...)
+				existingTokenFreq.Frequency += term.Frequency
 			} else {
-				existingFreqs[tfk] = term
+				existingFreqs[termKey] = term
 			}
 		}
 	}
@@ -857,8 +858,7 @@ func (s *interim) writeDictsTermField(
 	locEncoder.Close()
 
 	var postingsOffset uint64
-	postingsOffset, err =
-		writePostings(postingsBS, tfEncoder, locEncoder, nil, s.w, buf)
+	postingsOffset, err = writePostings(postingsBS, tfEncoder, locEncoder, nil, s.w, buf)
 	if err != nil {
 		return err
 	}
