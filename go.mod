@@ -12,7 +12,7 @@ require (
 	github.com/blevesearch/snowballstem v0.9.0
 	github.com/blevesearch/vellum v1.2.0
 	github.com/caio/go-tdigest v3.1.0+incompatible
-	github.com/klauspost/compress v1.18.6
+	github.com/minio/minlz v1.1.1
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.9.0
 	github.com/zeebo/xxh3 v1.1.0
@@ -25,6 +25,7 @@ require (
 	github.com/dgryski/go-metro v0.0.0-20250106013310-edb8663e5e33 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kamstrup/intmap v0.5.2 // indirect
+	github.com/klauspost/compress v1.18.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/leesper/go_rng v0.0.0-20190531154944-a612b043e353 // indirect

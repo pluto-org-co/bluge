@@ -19,7 +19,7 @@ import (
 	"encoding/binary"
 	"io"
 
-	"github.com/klauspost/compress/snappy"
+	"github.com/minio/minlz"
 )
 
 const termSeparator byte = 0xff
@@ -40,7 +40,7 @@ type chunkedContentCoder struct {
 
 	chunkMeta []metaData
 
-	compressed []byte // temp buf for snappy compression
+	compressed []byte // temp buf for minlz compression
 }
 
 // metaData represents the data information inside a
@@ -118,7 +118,7 @@ func (c *chunkedContentCoder) flushContents() error {
 	metaData := c.chunkMetaBuf.Bytes()
 	c.final = append(c.final, c.chunkMetaBuf.Bytes()...)
 	// write the compressed data to the final data
-	c.compressed = snappy.Encode(c.compressed[:cap(c.compressed)], c.chunkBuf.Bytes())
+	c.compressed, _ = minlz.Encode(c.compressed[:cap(c.compressed)], c.chunkBuf.Bytes(), minlz.LevelFastest)
 	c.final = append(c.final, c.compressed...)
 
 	c.chunkLens[c.currChunk] = uint64(len(c.compressed) + len(metaData))

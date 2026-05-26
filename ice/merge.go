@@ -25,7 +25,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
-	"github.com/klauspost/compress/snappy"
+	"github.com/minio/minlz"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
 )
@@ -724,7 +724,7 @@ func mergeStoredAndRemapSegment(seg *Segment, dropsI *roaring.Bitmap, segNewDocN
 
 		metaBytes := metaBuf.Bytes()
 
-		compressed = snappy.Encode(compressed[:cap(compressed)], data)
+		compressed, _ = minlz.Encode(compressed[:cap(compressed)], data, minlz.LevelFastest)
 
 		// record where we're about to start writing
 		docNumOffsets[newDocNum] = uint64(w.Count())

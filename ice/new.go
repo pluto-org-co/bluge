@@ -24,7 +24,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
-	"github.com/klauspost/compress/snappy"
+	"github.com/minio/minlz"
 	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
@@ -593,7 +593,7 @@ func (s *interim) writeStoredFields() (storedIndexOffset uint64, err error) {
 
 		metaBytes := s.metaBuf.Bytes()
 
-		compressed = snappy.Encode(compressed[:cap(compressed)], data)
+		compressed, _ = minlz.Encode(compressed[:cap(compressed)], data, minlz.LevelFastest)
 
 		docStoredOffsets[docNum] = uint64(s.w.Count())
 

@@ -23,7 +23,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/blevesearch/vellum"
-	"github.com/klauspost/compress/snappy"
+	"github.com/minio/minlz"
 	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
@@ -199,7 +199,7 @@ func (s *Segment) visitDocument(vdc *visitDocumentCtx, num uint64, visitor segme
 		return fmt.Errorf("failed to retrieve document stored metadata and compressed contents: %w", err)
 	}
 
-	vdc.uncompressedBuffer, err = snappy.Decode(vdc.uncompressedBuffer[:cap(vdc.uncompressedBuffer)], compressed)
+	vdc.uncompressedBuffer, err = minlz.Decode(vdc.uncompressedBuffer[:cap(vdc.uncompressedBuffer)], compressed)
 	if err != nil {
 		return fmt.Errorf("failed to decocompress buffer: %w", err)
 	}

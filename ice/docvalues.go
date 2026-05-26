@@ -21,7 +21,7 @@ import (
 	"math"
 	"sort"
 
-	"github.com/klauspost/compress/snappy"
+	"github.com/minio/minlz"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
 )
@@ -40,7 +40,7 @@ type docValueReader struct {
 	dvDataLoc      uint64
 	curChunkHeader []metaData
 	curChunkData   []byte // compressed data cache
-	uncompressed   []byte // temp buf for snappy decompression
+	uncompressed   []byte // temp buf for minlz decompression
 }
 
 func (di *docValueReader) size() int {
@@ -204,7 +204,7 @@ func (di *docValueReader) iterateAllDocValues(s *Segment, visitor docNumTermsVis
 		}
 
 		// uncompress the already loaded data
-		uncompressed, err := snappy.Decode(di.uncompressed[:cap(di.uncompressed)], di.curChunkData)
+		uncompressed, err := minlz.Decode(di.uncompressed[:cap(di.uncompressed)], di.curChunkData)
 		if err != nil {
 			return err
 		}
@@ -239,7 +239,7 @@ func (di *docValueReader) visitDocValues(docNum uint64,
 		uncompressed = di.uncompressed
 	} else {
 		// uncompress the already loaded data
-		uncompressed, err = snappy.Decode(di.uncompressed[:cap(di.uncompressed)], di.curChunkData)
+		uncompressed, err = minlz.Decode(di.uncompressed[:cap(di.uncompressed)], di.curChunkData)
 		if err != nil {
 			return err
 		}
