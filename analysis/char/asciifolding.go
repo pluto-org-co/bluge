@@ -20,13 +20,7 @@ package char
 // Worst-case length required if all runes fold to 4 runes
 const maxRuneExpansion = 4
 
-type ASCIIFoldingFilter struct{}
-
-func NewASCIIFoldingFilter() *ASCIIFoldingFilter {
-	return &ASCIIFoldingFilter{}
-}
-
-func (s *ASCIIFoldingFilter) Filter(input []byte) []byte {
+func ASCIIFoldingFilter(input []byte) []byte {
 	if len(input) == 0 {
 		return input
 	}

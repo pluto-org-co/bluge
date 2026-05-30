@@ -57,9 +57,8 @@ func TestAsciiFoldingFilter(t *testing.T) {
 
 	for _, test := range tests {
 		test := test
-		filter := NewASCIIFoldingFilter()
 		t.Run(fmt.Sprintf("on %s", test.input), func(t *testing.T) {
-			output := filter.Filter(test.input)
+			output := ASCIIFoldingFilter(test.input)
 			if !reflect.DeepEqual(output, test.output) {
 				t.Errorf("\nExpected:\n`%s`\ngot:\n`%s`\n", string(test.output), string(output))
 			}
