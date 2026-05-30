@@ -27,11 +27,8 @@ var fieldsCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fields := seg.Fields()
 		for i, field := range fields {
-			cs, err := seg.CollectionStats(field)
-			if err != nil {
-				return fmt.Errorf("error getting field collection stats: %v", err)
-			}
-			fmt.Printf("%d %s %d %d\n", i, field, cs.DocumentCount(), cs.SumTotalTermFrequency())
+			cs := seg.CollectionStats(field)
+			fmt.Printf("%d %s %d %d\n", i, field, cs.DocumentCount, cs.SumTotalTermFrequency)
 		}
 		return nil
 	},

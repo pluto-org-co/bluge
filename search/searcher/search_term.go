@@ -53,11 +53,8 @@ func (t *termStatsWrapper) DocumentFrequency() uint64 {
 func newTermSearcherFromReader(indexReader search.Reader, reader segment.PostingsIterator,
 	term []byte, field string, boost float64, scorer search.Scorer, options search.SearcherOptions) (*TermSearcher, error) {
 	if scorer == nil {
-		collStats, err := indexReader.CollectionStats(field)
-		if err != nil {
-			return nil, err
-		}
-		scorer = options.SimilarityForField(field).Scorer(boost, collStats, &termStatsWrapper{docFreq: reader.Count()})
+		collStats := indexReader.CollectionStats(field)
+		scorer = options.SimilarityForField(field).Scorer(boost, &collStats, &termStatsWrapper{docFreq: reader.Count()})
 	}
 	return &TermSearcher{
 		indexReader: indexReader,

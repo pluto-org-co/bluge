@@ -25,6 +25,7 @@ import (
 	"github.com/blevesearch/vellum"
 	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/pool"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
 )
@@ -235,8 +236,11 @@ func (s *Segment) Count() uint64 {
 	return s.footer.numDocs
 }
 
+// Thread unsafe threat with caution
+var UnsafeRoaringBitmapsPool = pool.New[roaring.Bitmap](20)
+
 func (s *Segment) DocsMatchingTerms(terms []*analysis.TokenFreq) (*roaring.Bitmap, error) {
-	rv := roaring.New()
+	rv := UnsafeRoaringBitmapsPool.Get()
 
 	if len(s.fieldsMap) > 0 {
 		// we expect the common case to be the same field for all
@@ -255,7 +259,7 @@ func (s *Segment) DocsMatchingTerms(terms []*analysis.TokenFreq) (*roaring.Bitma
 				lastField = thisField
 			}
 			term := terms[i]
-			postingsList := emptyPostingsList
+			postingsList := EmptyPostingsList
 			postingsList, err = dict.postingsList(term.TermVal, nil, postingsList)
 			if err != nil {
 				return nil, err

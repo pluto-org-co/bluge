@@ -14,24 +14,6 @@
 
 package segment
 
-type CollectionStats interface {
-
-	// TotalDocumentCount returns the number of documents, regardless of whether or not
-	// they have any terms for this field
-	TotalDocumentCount() uint64
-
-	// DocumentCount returns the number of documents with at least one term for this field
-	DocumentCount() uint64
-
-	// SumTotalTermFrequency returns to total number of tokens across all documents
-	SumTotalTermFrequency() uint64
-
-	// SumDocumentFrequency returns the sum of all posting list entries for this field
-	// SumDocumentFrequency() int
-
-	Merge(CollectionStats)
-}
-
 type TermStats interface {
 
 	// DocumentFrequency returns the number of documents using this term

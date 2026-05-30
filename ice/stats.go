@@ -15,41 +15,28 @@
 package ice
 
 import (
-	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
 )
 
 type CollectionStats struct {
-	totalDocCount    uint64
-	docCount         uint64
-	sumTotalTermFreq uint64
+	TotalDocumentCount    uint64
+	DocumentCount         uint64
+	SumTotalTermFrequency uint64
 }
 
-func (c *CollectionStats) TotalDocumentCount() uint64 {
-	return c.totalDocCount
+func (c *CollectionStats) Merge(other *CollectionStats) {
+	c.TotalDocumentCount += other.TotalDocumentCount
+	c.DocumentCount += other.DocumentCount
+	c.SumTotalTermFrequency += other.SumTotalTermFrequency
 }
 
-func (c *CollectionStats) DocumentCount() uint64 {
-	return c.docCount
-}
-
-func (c *CollectionStats) SumTotalTermFrequency() uint64 {
-	return c.sumTotalTermFreq
-}
-
-func (c *CollectionStats) Merge(other segment.CollectionStats) {
-	c.totalDocCount += other.TotalDocumentCount()
-	c.docCount += other.DocumentCount()
-	c.sumTotalTermFreq += other.SumTotalTermFrequency()
-}
-
-func (s *Segment) CollectionStats(field string) (segment.CollectionStats, error) {
-	var rv = &CollectionStats{}
-	fieldIDPlus1 := s.fieldsMap[xxh3.HashString(field)]
-	if fieldIDPlus1 > 0 {
-		rv.totalDocCount = s.footer.numDocs
-		rv.docCount = s.fieldDocs[fieldIDPlus1-1]
-		rv.sumTotalTermFreq = s.fieldFreqs[fieldIDPlus1-1]
+func (s *Segment) CollectionStats(field string) (stats CollectionStats) {
+	if fieldIDPlus1 := s.fieldsMap[xxh3.HashString(field)]; fieldIDPlus1 > 0 {
+		return CollectionStats{
+			TotalDocumentCount:    s.footer.numDocs,
+			DocumentCount:         s.fieldDocs[fieldIDPlus1-1],
+			SumTotalTermFrequency: s.fieldFreqs[fieldIDPlus1-1],
+		}
 	}
-	return rv, nil
+	return CollectionStats{}
 }

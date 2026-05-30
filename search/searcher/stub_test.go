@@ -20,6 +20,7 @@ import (
 
 	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/documents"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/search/similarity"
 
@@ -354,36 +355,12 @@ func (s *stubIndexReader) VisitStoredFields(number uint64, visitor segment.Store
 	return fmt.Errorf("no such doc numbered: %d", number)
 }
 
-type CollectionStats struct {
-	totalDocCount    uint64
-	docCount         uint64
-	sumTotalTermFreq uint64
-}
-
-func (c *CollectionStats) TotalDocumentCount() uint64 {
-	return c.totalDocCount
-}
-
-func (c *CollectionStats) DocumentCount() uint64 {
-	return c.docCount
-}
-
-func (c *CollectionStats) SumTotalTermFrequency() uint64 {
-	return c.sumTotalTermFreq
-}
-
-func (c *CollectionStats) Merge(other segment.CollectionStats) {
-	c.totalDocCount += other.TotalDocumentCount()
-	c.docCount += other.DocumentCount()
-	c.sumTotalTermFreq += other.SumTotalTermFrequency()
-}
-
-func (s *stubIndexReader) CollectionStats(field string) (segment.CollectionStats, error) {
-	return &CollectionStats{
-		totalDocCount:    s.count,
-		docCount:         s.fieldDocs[field],
-		sumTotalTermFreq: s.fieldFreqs[field],
-	}, nil
+func (s *stubIndexReader) CollectionStats(field string) (stats ice.CollectionStats) {
+	return ice.CollectionStats{
+		TotalDocumentCount:    s.count,
+		DocumentCount:         s.fieldDocs[field],
+		SumTotalTermFrequency: s.fieldFreqs[field],
+	}
 }
 
 func (s *stubIndexReader) DictionaryLookup(field string) (segment.DictionaryLookup, error) {

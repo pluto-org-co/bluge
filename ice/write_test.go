@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"github.com/RoaringBitmap/roaring"
+	"github.com/pluto-org-co/bluge/pool"
 )
 
 func TestRoaringSizes(t *testing.T) {
@@ -47,8 +48,9 @@ func TestRoaringSizes(t *testing.T) {
 		{[]uint32{0, 1, 2, 30000000}, 32, 21},
 	}
 
+	roaringPool := pool.New[roaring.Bitmap](20)
 	for _, test := range tests {
-		bm := roaring.New()
+		bm := roaringPool.Get()
 		for _, val := range test.vals {
 			bm.Add(val)
 		}

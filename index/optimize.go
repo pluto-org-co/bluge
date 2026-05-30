@@ -20,6 +20,7 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/pluto-org-co/bluge/ice"
+	"github.com/pluto-org-co/bluge/pool"
 	"github.com/pluto-org-co/bluge/segment"
 )
 
@@ -318,6 +319,7 @@ func (o *optimizeDisjunctionUnadorned) Finish() (rv segment.PostingsIterator, er
 	var docNums []uint32            // Collected docNum's from 1-hit posting lists.
 	var actualBMs []*roaring.Bitmap // Collected from regular posting lists.
 
+	roaringPool := pool.New[roaring.Bitmap](20)
 	for i := range o.snapshot.segment {
 		docNums = docNums[:0]
 		actualBMs = actualBMs[:0]
@@ -346,7 +348,7 @@ func (o *optimizeDisjunctionUnadorned) Finish() (rv segment.PostingsIterator, er
 		}
 
 		if bm == nil {
-			bm = roaring.New()
+			bm = roaringPool.Get()
 		}
 
 		bm.AddMany(docNums)

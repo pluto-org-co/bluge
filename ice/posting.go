@@ -114,7 +114,7 @@ type PostingsList struct {
 }
 
 // represents an immutable, empty postings list
-var emptyPostingsList = &PostingsList{}
+var EmptyPostingsList = &PostingsList{}
 
 func (p *PostingsList) Size() int {
 	sizeInBytes := reflectStaticSizePostingsList + sizeOfPtr
@@ -150,85 +150,85 @@ func (p *PostingsList) Iterator(includeFreq, includeNorm, includeLocs bool, prea
 	return p.iterator(includeFreq, includeNorm, includeLocs, prealloc)
 }
 
-func (p *PostingsList) iterator(includeFreq, includeNorm, includeLocs bool, rv *PostingsIterator) (*PostingsIterator, error) {
-	if rv == nil {
-		rv = &PostingsIterator{}
+func (p *PostingsList) iterator(includeFreq, includeNorm, includeLocs bool, it *PostingsIterator) (iterator *PostingsIterator, err error) {
+	if it == nil {
+		it = &PostingsIterator{}
 	} else {
-		freqNormReader := rv.freqNormReader
+		freqNormReader := it.freqNormReader
 		if freqNormReader != nil {
 			freqNormReader.reset()
 		}
 
-		locReader := rv.locReader
+		locReader := it.locReader
 		if locReader != nil {
 			locReader.reset()
 		}
 
-		nextLocs := rv.nextLocs[:0]
-		nextSegmentLocs := rv.nextSegmentLocs[:0]
+		nextLocs := it.nextLocs[:0]
+		nextSegmentLocs := it.nextSegmentLocs[:0]
 
-		buf := rv.buf
+		buf := it.buf
 
-		*rv = PostingsIterator{} // clear the struct
+		*it = PostingsIterator{} // clear the struct
 
-		rv.freqNormReader = freqNormReader
-		rv.locReader = locReader
+		it.freqNormReader = freqNormReader
+		it.locReader = locReader
 
-		rv.nextLocs = nextLocs
-		rv.nextSegmentLocs = nextSegmentLocs
+		it.nextLocs = nextLocs
+		it.nextSegmentLocs = nextSegmentLocs
 
-		rv.buf = buf
+		it.buf = buf
 	}
 
-	rv.postings = p
-	rv.includeFreqNorm = includeFreq || includeNorm || includeLocs
-	rv.includeLocs = includeLocs
+	it.postings = p
+	it.includeFreqNorm = includeFreq || includeNorm || includeLocs
+	it.includeLocs = includeLocs
 
 	if p.normBits1Hit != 0 {
 		// "1-hit" encoding
-		rv.docNum1Hit = p.docNum1Hit
-		rv.normBits1Hit = p.normBits1Hit
+		it.docNum1Hit = p.docNum1Hit
+		it.normBits1Hit = p.normBits1Hit
 
-		if p.except != nil && p.except.Contains(uint32(rv.docNum1Hit)) {
-			rv.docNum1Hit = docNum1HitFinished
+		if p.except != nil && p.except.Contains(uint32(it.docNum1Hit)) {
+			it.docNum1Hit = docNum1HitFinished
 		}
 
-		return rv, nil
+		return it, nil
 	}
 
 	// "general" encoding, check if empty
 	if p.postings == nil {
-		return rv, nil
+		return it, nil
 	}
 
 	// initialize freq chunk reader
-	if rv.includeFreqNorm {
+	if it.includeFreqNorm {
 		var err error
-		rv.freqNormReader, err = newChunkedIntDecoder(p.sb.data, p.freqOffset, rv.freqNormReader)
+		it.freqNormReader, err = newChunkedIntDecoder(p.sb.data, p.freqOffset, it.freqNormReader)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// initialize the loc chunk reader
-	if rv.includeLocs {
+	if it.includeLocs {
 		var err error
-		rv.locReader, err = newChunkedIntDecoder(p.sb.data, p.locOffset, rv.locReader)
+		it.locReader, err = newChunkedIntDecoder(p.sb.data, p.locOffset, it.locReader)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	rv.all = p.postings.Iterator()
+	it.all = p.postings.Iterator()
 	if p.except != nil {
-		rv.ActualBM = roaring.AndNot(p.postings, p.except)
-		rv.Actual = rv.ActualBM.Iterator()
+		it.ActualBM = roaring.AndNot(p.postings, p.except)
+		it.Actual = it.ActualBM.Iterator()
 	} else {
-		rv.ActualBM = p.postings
-		rv.Actual = rv.all // Optimize to use same iterator for all & Actual.
+		it.ActualBM = p.postings
+		it.Actual = it.all // Optimize to use same iterator for all & Actual.
 	}
 
-	return rv, nil
+	return it, nil
 }
 
 // Count returns the number of items on this postings list

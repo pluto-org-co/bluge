@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"math"
 
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/search"
@@ -52,11 +53,11 @@ func (b *BM25Similarity) Idf(docFreq, docCount uint64) float64 {
 	return math.Log(1.0 + (float64(docCount-docFreq)+0.5)/(float64(docFreq)+0.5))
 }
 
-func (b *BM25Similarity) IdfExplainTerm(collectionStats segment.CollectionStats, termStats segment.TermStats) *search.Explanation {
+func (b *BM25Similarity) IdfExplainTerm(collectionStats *ice.CollectionStats, termStats segment.TermStats) *search.Explanation {
 	docFreq := termStats.DocumentFrequency()
 	var docCount uint64
 	if collectionStats != nil {
-		docCount = collectionStats.DocumentCount()
+		docCount = collectionStats.DocumentCount
 	}
 	idf := b.Idf(docFreq, docCount)
 	return search.NewExplanation(idf, "idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:",
@@ -64,14 +65,14 @@ func (b *BM25Similarity) IdfExplainTerm(collectionStats segment.CollectionStats,
 		search.NewExplanation(float64(docCount), "N, total number of documents with field"))
 }
 
-func (b *BM25Similarity) AverageFieldLength(stats segment.CollectionStats) float64 {
+func (b *BM25Similarity) AverageFieldLength(stats *ice.CollectionStats) float64 {
 	if stats != nil {
-		return float64(stats.SumTotalTermFrequency()) / float64(stats.DocumentCount())
+		return float64(stats.SumTotalTermFrequency) / float64(stats.DocumentCount)
 	}
 	return 0
 }
 
-func (b *BM25Similarity) Scorer(boost float64, collectionStats segment.CollectionStats, termStats segment.TermStats) search.Scorer {
+func (b *BM25Similarity) Scorer(boost float64, collectionStats *ice.CollectionStats, termStats segment.TermStats) search.Scorer {
 	idf := b.IdfExplainTerm(collectionStats, termStats)
 	return NewBM25Scorer(boost, b.k1, b.b, b.AverageFieldLength(collectionStats), idf)
 }

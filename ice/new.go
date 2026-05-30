@@ -27,6 +27,7 @@ import (
 	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/documents"
+	"github.com/pluto-org-co/bluge/pool"
 	"github.com/pluto-org-co/bluge/segment"
 	"github.com/zeebo/xxh3"
 )
@@ -366,9 +367,11 @@ func (s *interim) prepareDicts() {
 	} else {
 		postings := make([]*roaring.Bitmap, numPostingsLists)
 		copy(postings, s.Postings[:cap(s.Postings)])
+
+		roaringPool := pool.New[roaring.Bitmap](20)
 		for i := range numPostingsLists {
 			if postings[i] == nil {
-				postings[i] = roaring.New()
+				postings[i] = roaringPool.Get()
 			}
 		}
 		s.Postings = postings

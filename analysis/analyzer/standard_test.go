@@ -21,12 +21,12 @@ import (
 )
 
 func BenchmarkStandardAnalyzer(b *testing.B) {
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		analyzer := NewStandardAnalyzer()
 
 		ts := analyzer.Analyze(wikiArticle)
 		freqs, _ := analysis.TokenFrequency(ts, true, 0)
-		if len(freqs) != 511 {
+		if len(freqs) != 578 {
 			b.Errorf("expected %d freqs, got %d", 578, len(freqs))
 		}
 	}

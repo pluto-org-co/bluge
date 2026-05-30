@@ -19,6 +19,7 @@ import (
 	"sort"
 
 	"github.com/blevesearch/vellum"
+	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
 
 	"github.com/pluto-org-co/bluge/analysis"
@@ -336,7 +337,7 @@ type Reader interface {
 
 	StoredFieldVisitable
 
-	CollectionStats(field string) (segment.CollectionStats, error)
+	CollectionStats(field string) (stats ice.CollectionStats)
 
 	// DictionaryLookup provides a way to quickly determine if a term is
 	// in the dictionary for the specified field.
@@ -359,7 +360,7 @@ type Reader interface {
 
 type Similarity interface {
 	ComputeNorm(numTerms int) float32
-	Scorer(boost float64, collectionStats segment.CollectionStats, termStats segment.TermStats) Scorer
+	Scorer(boost float64, collectionStats *ice.CollectionStats, termStats segment.TermStats) Scorer
 }
 
 type Scorer interface {
