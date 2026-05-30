@@ -17,7 +17,7 @@ package ice
 import (
 	"bytes"
 
-	"github.com/blevesearch/vellum"
+	"github.com/pluto-org-co/bluge/vellum"
 )
 
 // enumerator provides an ordered traversal of multiple vellum

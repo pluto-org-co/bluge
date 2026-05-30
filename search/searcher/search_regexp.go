@@ -17,8 +17,8 @@ package searcher
 import (
 	"regexp/syntax"
 
-	"github.com/blevesearch/vellum/regexp"
 	"github.com/pluto-org-co/bluge/search"
+	"github.com/pluto-org-co/bluge/vellum/regexp"
 )
 
 // NewRegexpStringSearcher is similar to NewRegexpSearcher, but

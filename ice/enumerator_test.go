@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/blevesearch/vellum"
+	"github.com/pluto-org-co/bluge/vellum"
 )
 
 type enumTest struct {

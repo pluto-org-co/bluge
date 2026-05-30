@@ -18,8 +18,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/pluto-org-co/bluge/vellum"
 	"github.com/zeebo/xxh3"
 )
 

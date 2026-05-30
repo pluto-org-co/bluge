@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"unicode/utf8"
 
-	"github.com/blevesearch/vellum"
-	"github.com/blevesearch/vellum/levenshtein"
 	"github.com/pluto-org-co/bluge/search"
+	"github.com/pluto-org-co/bluge/vellum"
+	"github.com/pluto-org-co/bluge/vellum/levenshtein"
 )
 
 // reusable, thread-safe levenshtein builders

@@ -22,11 +22,11 @@ import (
 	"sync"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/blevesearch/vellum"
 	"github.com/klauspost/compress/snappy"
 	"github.com/pluto-org-co/bluge/analysis"
 	"github.com/pluto-org-co/bluge/pool"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/pluto-org-co/bluge/vellum"
 	"github.com/zeebo/xxh3"
 )
 

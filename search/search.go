@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/pluto-org-co/bluge/vellum"
 
 	"github.com/pluto-org-co/bluge/analysis"
 )

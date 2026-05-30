@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/pluto-org-co/bluge/vellum"
 )
 
 // Dictionary is the representation of the term dictionary

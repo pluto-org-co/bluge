@@ -18,8 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/index"
+	"github.com/pluto-org-co/bluge/vellum"
 
 	"github.com/pluto-org-co/bluge/segment"
 

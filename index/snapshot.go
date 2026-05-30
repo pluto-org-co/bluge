@@ -26,9 +26,9 @@ import (
 	"sync/atomic"
 
 	"github.com/RoaringBitmap/roaring"
-	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/segment"
+	"github.com/pluto-org-co/bluge/vellum"
 )
 
 type asyncSegmentResult struct {

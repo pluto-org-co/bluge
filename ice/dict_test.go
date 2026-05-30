@@ -23,7 +23,7 @@ import (
 	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/segment"
 
-	"github.com/blevesearch/vellum/levenshtein"
+	"github.com/pluto-org-co/bluge/vellum/levenshtein"
 )
 
 func buildTestSegmentForDict() (*Segment, error) {

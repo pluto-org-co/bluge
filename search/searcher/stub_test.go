@@ -18,11 +18,11 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/blevesearch/vellum"
 	"github.com/pluto-org-co/bluge/documents"
 	"github.com/pluto-org-co/bluge/ice"
 	"github.com/pluto-org-co/bluge/search"
 	"github.com/pluto-org-co/bluge/search/similarity"
+	"github.com/pluto-org-co/bluge/vellum"
 
 	"github.com/pluto-org-co/bluge/segment"
 )
