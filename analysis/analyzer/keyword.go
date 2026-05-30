@@ -19,8 +19,6 @@ import (
 	"github.com/pluto-org-co/bluge/analysis/tokenizer"
 )
 
-func NewKeywordAnalyzer() *analysis.Analyzer {
-	return &analysis.Analyzer{
-		Tokenizer: tokenizer.NewSingleTokenTokenizer(),
-	}
+var DefaultKeywordAnalyzer = &analysis.Analyzer{
+	Tokenizer: tokenizer.NewSingleTokenTokenizer(),
 }

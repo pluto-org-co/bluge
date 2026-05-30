@@ -29,7 +29,7 @@ func Analyzer() *analysis.Analyzer {
 		},
 		Tokenizer: tokenizer.NewUnicodeTokenizer(),
 		TokenFilters: []analysis.TokenFilter{
-			token.NewLowerCaseFilter(),
+			token.DefaultLowerCaseFilter,
 			ar.NormalizeFilter(),
 			NormalizeFilter(),
 			StopWordsFilter(),

@@ -22,7 +22,7 @@ import (
 
 func BenchmarkStandardAnalyzer(b *testing.B) {
 	for b.Loop() {
-		analyzer := NewStandardAnalyzer()
+		analyzer := DefaultStandardAnalyzer
 
 		ts := analyzer.Analyze(wikiArticle)
 		freqs, _ := analysis.TokenFrequency(ts, true, 0)

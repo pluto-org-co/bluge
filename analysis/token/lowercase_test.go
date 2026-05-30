@@ -90,7 +90,7 @@ func TestLowerCaseFilter(t *testing.T) {
 		},
 	}
 
-	filter := NewLowerCaseFilter()
+	filter := DefaultLowerCaseFilter
 	ouputTokenStream := filter.Filter(inputTokenStream)
 	if !reflect.DeepEqual(ouputTokenStream, expectedTokenStream) {
 		t.Errorf("expected %#v got %#v", expectedTokenStream, ouputTokenStream)
@@ -170,7 +170,7 @@ func BenchmarkLowerCaseFilter(b *testing.B) {
 			Term: []byte("ȺȾCAT"),
 		},
 	}
-	filter := NewLowerCaseFilter()
+	filter := DefaultLowerCaseFilter
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

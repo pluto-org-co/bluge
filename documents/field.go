@@ -17,9 +17,8 @@ package documents
 import (
 	"time"
 
-	"github.com/pluto-org-co/bluge/analysis/analyzer"
-
 	"github.com/pluto-org-co/bluge/analysis"
+	"github.com/pluto-org-co/bluge/analysis/analyzer"
 	"github.com/pluto-org-co/bluge/numeric"
 	"github.com/pluto-org-co/bluge/numeric/geo"
 )
@@ -163,8 +162,6 @@ type Analyzer interface {
 	Analyze(input []byte) analysis.TokenStream
 }
 
-var standardAnalyzer = analyzer.NewStandardAnalyzer()
-
 func NewKeywordField(name, value string) (field *Field) {
 	field = new(Field)
 	newTextField(field, name, []byte(value), nil, 0)
@@ -179,13 +176,13 @@ func NewKeywordFieldBytes(name string, value []byte) (field *Field) {
 
 func NewTextField(name, value string) (field *Field) {
 	field = new(Field)
-	newTextField(field, name, []byte(value), standardAnalyzer, 0)
+	newTextField(field, name, []byte(value), analyzer.DefaultStandardAnalyzer, 0)
 	return field
 }
 
 func NewTextFieldBytes(name string, value []byte) (field *Field) {
 	field = new(Field)
-	newTextField(field, name, value, standardAnalyzer, 0)
+	newTextField(field, name, value, analyzer.DefaultStandardAnalyzer, 0)
 	return field
 }
 

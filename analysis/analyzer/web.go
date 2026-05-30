@@ -21,12 +21,10 @@ import (
 	"github.com/pluto-org-co/bluge/analysis/tokenizer"
 )
 
-func NewWebAnalyzer() *analysis.Analyzer {
-	return &analysis.Analyzer{
-		Tokenizer: tokenizer.NewWebTokenizer(),
-		TokenFilters: []analysis.TokenFilter{
-			token.NewLowerCaseFilter(),
-			en.StopWordsFilter(),
-		},
-	}
+var DefaultWebAnalyzer = &analysis.Analyzer{
+	Tokenizer: tokenizer.NewWebTokenizer(),
+	TokenFilters: []analysis.TokenFilter{
+		token.DefaultLowerCaseFilter,
+		en.StopWordsFilter(),
+	},
 }

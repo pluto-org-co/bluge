@@ -4,6 +4,7 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/pluto-org-co/bluge/analysis/analyzer"
 	"github.com/pluto-org-co/bluge/numeric"
 	"github.com/pluto-org-co/bluge/numeric/geo"
 )
@@ -35,7 +36,7 @@ func NewKeywordFieldDefinition[T ~string | ~[]byte](name string, value T) (def *
 }
 
 func NewTextFieldDefinition[T ~string | ~[]byte](name string, value T) (def *FieldDefinition) {
-	return &FieldDefinition{Name: name, Value: []byte(value), Analizer: standardAnalyzer, Kind: FieldDefinitionKindText}
+	return &FieldDefinition{Name: name, Value: []byte(value), Analizer: analyzer.DefaultStandardAnalyzer, Kind: FieldDefinitionKindText}
 }
 
 func NewKeywordFieldDefinitionWithAnalyzer[T ~string | ~[]byte](name string, value T, analyzer Analyzer) (def *FieldDefinition) {

@@ -34,7 +34,7 @@ func NewAnalyzer() *analysis.Analyzer {
 		Tokenizer: tokenizer.NewUnicodeTokenizer(),
 		TokenFilters: []analysis.TokenFilter{
 			NewPossessiveFilter(),
-			token.NewLowerCaseFilter(),
+			token.DefaultLowerCaseFilter,
 			StopWordsFilter(),
 			StemmerFilter(),
 		},

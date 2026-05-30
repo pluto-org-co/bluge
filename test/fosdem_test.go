@@ -100,7 +100,7 @@ func fosdemLoad(writer *bluge.Writer) error {
 
 func fosdemTests() []*RequestVerify {
 	enAnalyzer := en.NewAnalyzer()
-	keywordAnalyzer := analyzer.NewKeywordAnalyzer()
+	keywordAnalyzer := analyzer.DefaultKeywordAnalyzer
 	return []*RequestVerify{
 		{
 			Comment: "fosdem 1",

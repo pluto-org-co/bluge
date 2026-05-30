@@ -52,7 +52,7 @@ func TestNestedBooleanSearchers(t *testing.T) {
 	customAnalyzer := &analysis.Analyzer{
 		Tokenizer: tokenizer.NewWhitespaceTokenizer(),
 		TokenFilters: []analysis.TokenFilter{
-			token.NewLowerCaseFilter(),
+			token.DefaultLowerCaseFilter,
 			en.StopWordsFilter(),
 		},
 	}
@@ -60,7 +60,7 @@ func TestNestedBooleanSearchers(t *testing.T) {
 	singleLowercase := &analysis.Analyzer{
 		Tokenizer: tokenizer.NewSingleTokenTokenizer(),
 		TokenFilters: []analysis.TokenFilter{
-			token.NewLowerCaseFilter(),
+			token.DefaultLowerCaseFilter,
 		},
 	}
 

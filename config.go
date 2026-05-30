@@ -89,7 +89,7 @@ func defaultConfig(indexConfig index.Config) Config {
 	rv := Config{
 		Logger:                log.New(io.Discard, "bluge", log.LstdFlags),
 		DefaultSearchField:    "_all",
-		DefaultSearchAnalyzer: analyzer.NewStandardAnalyzer(),
+		DefaultSearchAnalyzer: analyzer.DefaultStandardAnalyzer,
 		DefaultSimilarity:     similarity.NewBM25Similarity(),
 		PerFieldSimilarity:    map[string]search.Similarity{},
 	}

@@ -26,9 +26,7 @@ import (
 
 type LowerCaseFilter struct{}
 
-func NewLowerCaseFilter() *LowerCaseFilter {
-	return &LowerCaseFilter{}
-}
+var DefaultLowerCaseFilter = &LowerCaseFilter{}
 
 func (f *LowerCaseFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {

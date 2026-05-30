@@ -25,7 +25,7 @@ func Analyzer() *analysis.Analyzer {
 	return &analysis.Analyzer{
 		Tokenizer: tokenizer.NewUnicodeTokenizer(),
 		TokenFilters: []analysis.TokenFilter{
-			token.NewLowerCaseFilter(),
+			token.DefaultLowerCaseFilter,
 			in.NormalizeFilter(),
 			NormalizeFilter(),
 			StopWordsFilter(),
