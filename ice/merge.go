@@ -230,11 +230,25 @@ func persistMergedRest(segments []*Segment, dropsIn []*roaring.Bitmap,
 	return dictLocs, fieldDocs, fieldFreqs, docValueOffset, nil
 }
 
-func persistMergedRestField(segments []*Segment, dropsIn []*roaring.Bitmap, fieldsMap map[string]uint16,
-	newDocNumsIn [][]uint64, newSegDocCount uint64, chunkMode uint32, w *countHashWriter, closeCh chan struct{},
-	fieldName string, newRoaring, fieldDocTracking *roaring.Bitmap, tfEncoder, locEncoder *chunkedIntCoder,
-	newVellum *vellum.Builder, vellumBuf *bytes.Buffer, bufMaxVarintLen64 []byte, fieldFreqs map[uint16]uint64,
-	fieldID int, dictLocs, fieldDvLocsStart, fieldDvLocsEnd []uint64) error {
+func persistMergedRestField(
+	segments []*Segment,
+	dropsIn []*roaring.Bitmap,
+	fieldsMap map[string]uint16,
+	newDocNumsIn [][]uint64,
+	newSegDocCount uint64,
+	chunkMode uint32,
+	w *countHashWriter,
+	closeCh chan struct{},
+	fieldName string,
+	newRoaring, fieldDocTracking *roaring.Bitmap,
+	tfEncoder, locEncoder *chunkedIntCoder,
+	newVellum *vellum.Builder,
+	vellumBuf *bytes.Buffer,
+	bufMaxVarintLen64 []byte,
+	fieldFreqs map[uint16]uint64,
+	fieldID int,
+	dictLocs, fieldDvLocsStart, fieldDvLocsEnd []uint64,
+) (err error) {
 	var postings *PostingsList
 	var postItr *PostingsIterator
 	var bufLoc []uint64
@@ -243,7 +257,7 @@ func persistMergedRestField(segments []*Segment, dropsIn []*roaring.Bitmap, fiel
 	newDocNums, drops, dicts, itrs, segmentsInFocus, err :=
 		setupActiveForField(segments, dropsIn, newDocNumsIn, closeCh, fieldName)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to setup active for field: %w", err)
 	}
 
 	var prevTerm []byte
