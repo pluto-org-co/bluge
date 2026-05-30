@@ -386,9 +386,8 @@ func TestArabicStemmerFilter(t *testing.T) {
 		},
 	}
 
-	arabicStemmerFilter := StemmerFilter()
 	for _, test := range tests {
-		actual := arabicStemmerFilter.Filter(test.input)
+		actual := ArabicStemmerFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %#v, got %#v", test.output, actual)
 			t.Errorf("expected % x, got % x", test.output[0].Term, actual[0].Term)

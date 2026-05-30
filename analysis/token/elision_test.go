@@ -60,7 +60,7 @@ func TestElisionFilter(t *testing.T) {
 	tokenMap.AddToken("ar")
 	elisionFilter := NewElisionFilter(tokenMap)
 	for _, test := range tests {
-		actual := elisionFilter.Filter(test.input)
+		actual := elisionFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output[0].Term, actual[0].Term)
 		}

@@ -76,7 +76,7 @@ func TestCharacterTokenizer(t *testing.T) {
 
 	tokenizer := NewCharacterTokenizer(unicode.IsLetter)
 	for _, test := range tests {
-		actual := tokenizer.Tokenize(test.input)
+		actual := tokenizer(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("Expected %v, got %v for %s", test.output, actual, string(test.input))
 		}

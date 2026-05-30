@@ -20,22 +20,14 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type TruncateTokenFilter struct {
-	length int
-}
-
-func NewTruncateTokenFilter(length int) *TruncateTokenFilter {
-	return &TruncateTokenFilter{
-		length: length,
-	}
-}
-
-func (s *TruncateTokenFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	for _, token := range input {
-		wordLen := utf8.RuneCount(token.Term)
-		if wordLen > s.length {
-			token.Term = analysis.TruncateRunes(token.Term, wordLen-s.length)
+func NewTruncateTokenFilter(length int) analysis.TokenFilter {
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		for _, token := range input {
+			wordLen := utf8.RuneCount(token.Term)
+			if wordLen > length {
+				token.Term = analysis.TruncateRunes(token.Term, wordLen-length)
+			}
 		}
+		return input
 	}
-	return input
 }

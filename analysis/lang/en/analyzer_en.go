@@ -29,14 +29,12 @@ import (
 
 const AnalyzerName = "en"
 
-func NewAnalyzer() *analysis.Analyzer {
-	return &analysis.Analyzer{
-		Tokenizer: tokenizer.NewUnicodeTokenizer(),
-		TokenFilters: []analysis.TokenFilter{
-			NewPossessiveFilter(),
-			token.DefaultLowerCaseFilter,
-			StopWordsFilter(),
-			StemmerFilter(),
-		},
-	}
+var Analyzer = &analysis.Analyzer{
+	Tokenizer: tokenizer.UnicodeTokenizer,
+	TokenFilters: []analysis.TokenFilter{
+		PossessiveFilter,
+		token.DefaultLowerCaseFilter,
+		StopWordsFilter,
+		EnglishStemmerFilter,
+	},
 }

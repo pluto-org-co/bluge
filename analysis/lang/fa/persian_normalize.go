@@ -32,14 +32,7 @@ const (
 	Heh        = '\u0647'
 )
 
-type PersianNormalizeFilter struct {
-}
-
-func NormalizeFilter() *PersianNormalizeFilter {
-	return &PersianNormalizeFilter{}
-}
-
-func (s *PersianNormalizeFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func PersianNormalizeFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		term := normalize(token.Term)
 		token.Term = term

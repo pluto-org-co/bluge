@@ -22,13 +22,7 @@ import (
 
 const Apostrophes = string(Apostrophe) + string(RightSingleQuotationMark)
 
-type ApostropheFilter struct{}
-
-func NewApostropheFilter() *ApostropheFilter {
-	return &ApostropheFilter{}
-}
-
-func (s *ApostropheFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func ApostropheFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		firstApostrophe := bytes.IndexAny(token.Term, Apostrophes)
 		if firstApostrophe >= 0 {

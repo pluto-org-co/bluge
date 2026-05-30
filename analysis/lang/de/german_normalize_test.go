@@ -92,9 +92,8 @@ func TestGermanNormalizeFilter(t *testing.T) {
 		},
 	}
 
-	germanNormalizeFilter := NormalizeFilter()
 	for _, test := range tests {
-		actual := germanNormalizeFilter.Filter(test.input)
+		actual := GermanNormalizeFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %#v, got %#v", test.output, actual)
 			t.Errorf("expected %s(% x), got %s(% x)", test.output[0].Term, test.output[0].Term, actual[0].Term, actual[0].Term)

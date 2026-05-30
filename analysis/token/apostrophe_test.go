@@ -99,8 +99,7 @@ func TestApostropheFilter(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		apostropheFilter := NewApostropheFilter()
-		actual := apostropheFilter.Filter(test.input)
+		actual := ApostropheFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output[0].Term, actual[0].Term)
 		}

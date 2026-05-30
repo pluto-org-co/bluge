@@ -18,13 +18,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type SingleTokenTokenizer struct{}
-
-func NewSingleTokenTokenizer() *SingleTokenTokenizer {
-	return &SingleTokenTokenizer{}
-}
-
-func (t *SingleTokenTokenizer) Tokenize(input []byte) analysis.TokenStream {
+func SingleTokenTokenizer(input []byte) analysis.TokenStream {
 	return MakeTokenStream(input)
 }
 

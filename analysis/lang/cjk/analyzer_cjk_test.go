@@ -611,8 +611,7 @@ func TestCJKAnalyzer(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		analyzer := Analyzer()
-		actual := analyzer.Analyze(test.input)
+		actual := Analyzer.Analyze(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %v, got %v", test.output, actual)
 		}
@@ -620,10 +619,9 @@ func TestCJKAnalyzer(t *testing.T) {
 }
 
 func BenchmarkCJKAnalyzer(b *testing.B) {
-	analyzer := Analyzer()
 
 	for i := 0; i < b.N; i++ {
-		analyzer.Analyze(wikiArticleJapanese)
+		Analyzer.Analyze(wikiArticleJapanese)
 	}
 }
 

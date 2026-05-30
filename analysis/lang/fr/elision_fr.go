@@ -18,6 +18,4 @@ import (
 	"github.com/pluto-org-co/bluge/analysis/token"
 )
 
-func ElisionFilter() *token.ElisionFilter {
-	return token.NewElisionFilter(Articles())
-}
+var ElisionFilter = token.NewElisionFilter(Articles())

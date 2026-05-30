@@ -20,14 +20,12 @@ import (
 	"github.com/pluto-org-co/bluge/analysis/tokenizer"
 )
 
-func Analyzer() *analysis.Analyzer {
-	return &analysis.Analyzer{
-		Tokenizer: tokenizer.NewUnicodeTokenizer(),
-		TokenFilters: []analysis.TokenFilter{
-			token.DefaultLowerCaseFilter,
-			StopWordsFilter(),
-			NormalizeFilter(),
-			LightStemmerFilter(),
-		},
-	}
+var Analyzer = &analysis.Analyzer{
+	Tokenizer: tokenizer.UnicodeTokenizer,
+	TokenFilters: []analysis.TokenFilter{
+		token.DefaultLowerCaseFilter,
+		StopWordsFilter,
+		GermanNormalizeFilter,
+		GermanLightStemmerFilter,
+	},
 }

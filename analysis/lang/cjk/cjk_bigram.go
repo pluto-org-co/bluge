@@ -26,10 +26,11 @@ type BigramFilter struct {
 	outputUnigram bool
 }
 
-func NewBigramFilter(outputUnigram bool) *BigramFilter {
-	return &BigramFilter{
+func NewBigramFilter(outputUnigram bool) analysis.TokenFilter {
+	filter := &BigramFilter{
 		outputUnigram: outputUnigram,
 	}
+	return filter.Filter
 }
 
 func (s *BigramFilter) Filter(input analysis.TokenStream) analysis.TokenStream {

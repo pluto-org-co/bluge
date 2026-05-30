@@ -126,9 +126,8 @@ func TestIndicNormalizeFilter(t *testing.T) {
 		},
 	}
 
-	indicNormalizeFilter := NormalizeFilter()
 	for _, test := range tests {
-		actual := indicNormalizeFilter.Filter(test.input)
+		actual := IndicNormalizeFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %#v, got %#v", test.output, actual)
 			t.Errorf("expected % x, got % x for % x", test.output[0].Term, actual[0].Term, test.input[0].Term)

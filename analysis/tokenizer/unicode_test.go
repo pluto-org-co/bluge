@@ -146,8 +146,7 @@ func TestUnicode(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		tokenizer := NewUnicodeTokenizer()
-		actual := tokenizer.Tokenize(test.input)
+		actual := UnicodeTokenizer(test.input)
 
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("Expected %v, got %v for %s", test.output, actual, string(test.input))
@@ -163,11 +162,10 @@ Typically, a BLEVE starts with a container of liquid which is held above its nor
 If the pressurized vessel, containing liquid at high temperature (which may be room temperature, depending on the substance) ruptures, the pressure which prevents the liquid from boiling is lost. If the rupture is catastrophic, where the vessel is immediately incapable of holding any pressure at all, then there suddenly exists a large mass of liquid which is at very high temperature and very low pressure. This causes the entire volume of liquid to instantaneously boil, which in turn causes an extremely rapid expansion. Depending on temperatures, pressures and the substance involved, that expansion may be so rapid that it can be classified as an explosion, fully capable of inflicting severe damage on its surroundings.`)
 
 func BenchmarkUnicodeTokenizeEnglishText(b *testing.B) {
-	tokenizer := NewUnicodeTokenizer()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		tokenizer.Tokenize(sampleLargeInput)
+		UnicodeTokenizer(sampleLargeInput)
 	}
 }
 

@@ -32,28 +32,40 @@ import (
 //
 // "tokenizer" (string): the name of the tokenizer processing the data not
 // matched by "exceptions".
-type ExceptionsTokenizer struct {
-	exception *regexp.Regexp
-	remaining analysis.Tokenizer
-}
+func NewExceptionsTokenizer(exception *regexp.Regexp, remaining analysis.Tokenizer) analysis.Tokenizer {
+	return func(input []byte) analysis.TokenStream {
+		rv := make(analysis.TokenStream, 0)
+		matches := exception.FindAllIndex(input, -1)
+		currInput := 0
+		for _, match := range matches {
+			start := match[0]
+			end := match[1]
+			if start > currInput {
+				// need to defer to remaining for unprocessed section
+				intermediate := remaining(input[currInput:start])
+				// add intermediate tokens to our result stream
+				for _, token := range intermediate {
+					// adjust token offsets
+					token.Start += currInput
+					token.End += currInput
+					rv = append(rv, token)
+				}
+			}
 
-func NewExceptionsTokenizer(exception *regexp.Regexp, remaining analysis.Tokenizer) *ExceptionsTokenizer {
-	return &ExceptionsTokenizer{
-		exception: exception,
-		remaining: remaining,
-	}
-}
+			// create single token with this regexp match
+			token := &analysis.Token{
+				Term:         input[start:end],
+				Start:        start,
+				End:          end,
+				PositionIncr: 1,
+			}
+			rv = append(rv, token)
+			currInput = end
+		}
 
-func (t *ExceptionsTokenizer) Tokenize(input []byte) analysis.TokenStream {
-	rv := make(analysis.TokenStream, 0)
-	matches := t.exception.FindAllIndex(input, -1)
-	currInput := 0
-	for _, match := range matches {
-		start := match[0]
-		end := match[1]
-		if start > currInput {
+		if currInput < len(input) {
 			// need to defer to remaining for unprocessed section
-			intermediate := t.remaining.Tokenize(input[currInput:start])
+			intermediate := remaining(input[currInput:])
 			// add intermediate tokens to our result stream
 			for _, token := range intermediate {
 				// adjust token offsets
@@ -63,28 +75,6 @@ func (t *ExceptionsTokenizer) Tokenize(input []byte) analysis.TokenStream {
 			}
 		}
 
-		// create single token with this regexp match
-		token := &analysis.Token{
-			Term:         input[start:end],
-			Start:        start,
-			End:          end,
-			PositionIncr: 1,
-		}
-		rv = append(rv, token)
-		currInput = end
+		return rv
 	}
-
-	if currInput < len(input) {
-		// need to defer to remaining for unprocessed section
-		intermediate := t.remaining.Tokenize(input[currInput:])
-		// add intermediate tokens to our result stream
-		for _, token := range intermediate {
-			// adjust token offsets
-			token.Start += currInput
-			token.End += currInput
-			rv = append(rv, token)
-		}
-	}
-
-	return rv
 }

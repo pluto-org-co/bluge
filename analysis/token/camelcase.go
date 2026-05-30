@@ -38,13 +38,7 @@ import (
 // The scan is greedy and generates the longest substring that fits into one of the classes.
 //
 // See the test file for examples of classes and their parsings.
-type CamelCaseFilter struct{}
-
-func NewCamelCaseFilter() *CamelCaseFilter {
-	return &CamelCaseFilter{}
-}
-
-func (f *CamelCaseFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func CamelCaseFilter(input analysis.TokenStream) analysis.TokenStream {
 	rv := make(analysis.TokenStream, 0, len(input))
 
 	for _, token := range input {
@@ -52,7 +46,7 @@ func (f *CamelCaseFilter) Filter(input analysis.TokenStream) analysis.TokenStrea
 		runes := bytes.Runes(token.Term)
 
 		p := NewParser(runeCount, token.Start)
-		for i := 0; i < runeCount; i++ {
+		for i := range runeCount {
 			if i+1 >= runeCount {
 				p.Push(runes[i], nil)
 			} else {

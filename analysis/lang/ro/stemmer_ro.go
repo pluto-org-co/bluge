@@ -20,14 +20,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type RomanianStemmerFilter struct {
-}
-
-func StemmerFilter() *RomanianStemmerFilter {
-	return &RomanianStemmerFilter{}
-}
-
-func (s *RomanianStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func RomanianStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		env := snowballstem.NewEnv(string(token.Term))
 		romanian.Stem(env)

@@ -297,9 +297,8 @@ func TestHindiStemmerFilter(t *testing.T) {
 		},
 	}
 
-	hindiStemmerFilter := StemmerFilter()
 	for _, test := range tests {
-		actual := hindiStemmerFilter.Filter(test.input)
+		actual := HindiStemmerFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %#v, got %#v", test.output, actual)
 			t.Errorf("expected % x, got % x", test.output[0].Term, actual[0].Term)

@@ -22,13 +22,7 @@ const initialMapFactor = 4
 
 // UniqueTermFilter retains only the tokens which mark the first occurrence of
 // a term. Tokens whose term appears in a preceding token are dropped.
-type UniqueTermFilter struct{}
-
-func NewUniqueTermFilter() *UniqueTermFilter {
-	return &UniqueTermFilter{}
-}
-
-func (f *UniqueTermFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func UniqueTermFilter(input analysis.TokenStream) analysis.TokenStream {
 	encounteredTerms := make(map[string]struct{}, len(input)/initialMapFactor)
 	var j, skipped int
 	for _, token := range input {

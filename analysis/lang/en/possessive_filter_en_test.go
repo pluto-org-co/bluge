@@ -88,9 +88,8 @@ func TestEnglishPossessiveFilter(t *testing.T) {
 		},
 	}
 
-	posFilter := NewPossessiveFilter()
 	for _, test := range tests {
-		actual := posFilter.Filter(test.input)
+		actual := PossessiveFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)
 		}
@@ -122,10 +121,9 @@ func BenchmarkEnglishPossessiveFilter(b *testing.B) {
 		},
 	}
 
-	posFilter := NewPossessiveFilter()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		posFilter.Filter(input)
+		PossessiveFilter(input)
 	}
 }

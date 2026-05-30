@@ -134,7 +134,6 @@ func TestExceptionsTokenizer(t *testing.T) {
 		},
 	}
 
-	remaining := NewUnicodeTokenizer()
 	for _, test := range tests {
 		pattern := strings.Join(test.patterns, "|")
 		r, err := regexp.Compile(pattern)
@@ -143,8 +142,8 @@ func TestExceptionsTokenizer(t *testing.T) {
 		}
 
 		// build the requested exception tokenizer
-		tokenizer := NewExceptionsTokenizer(r, remaining)
-		actual := tokenizer.Tokenize(test.input)
+		tokenizer := NewExceptionsTokenizer(r, UnicodeTokenizer)
+		actual := tokenizer(test.input)
 		if !reflect.DeepEqual(actual, test.result) {
 			t.Errorf("expected %v, got %v", test.result, actual)
 		}

@@ -29,14 +29,7 @@ const fullWidthApostrophe = '＇'
 // It handle a variety of apostrophe types, is case-insensitive
 // and doesn't distinguish between possessive and contraction.
 // (ie "She's So Rad" becomes "She So Rad")
-type PossessiveFilter struct {
-}
-
-func NewPossessiveFilter() *PossessiveFilter {
-	return &PossessiveFilter{}
-}
-
-func (s *PossessiveFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func PossessiveFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		lastRune, lastRuneSize := utf8.DecodeLastRune(token.Term)
 		if lastRune == 's' || lastRune == 'S' {

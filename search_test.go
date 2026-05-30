@@ -53,12 +53,12 @@ func TestNestedBooleanSearchers(t *testing.T) {
 		Tokenizer: tokenizer.NewWhitespaceTokenizer(),
 		TokenFilters: []analysis.TokenFilter{
 			token.DefaultLowerCaseFilter,
-			en.StopWordsFilter(),
+			en.StopWordsFilter,
 		},
 	}
 
 	singleLowercase := &analysis.Analyzer{
-		Tokenizer: tokenizer.NewSingleTokenTokenizer(),
+		Tokenizer: tokenizer.SingleTokenTokenizer,
 		TokenFilters: []analysis.TokenFilter{
 			token.DefaultLowerCaseFilter,
 		},
@@ -858,7 +858,7 @@ func TestBooleanMustSingleMatchNone(t *testing.T) {
 	}
 
 	customAnalyzer := &analysis.Analyzer{
-		Tokenizer: tokenizer.NewSingleTokenTokenizer(),
+		Tokenizer: tokenizer.SingleTokenTokenizer,
 		TokenFilters: []analysis.TokenFilter{
 			token.NewLengthFilter(3, 5),
 		},
@@ -921,7 +921,7 @@ func TestBooleanMustNotSingleMatchNone(t *testing.T) {
 	}
 
 	customAnalyzer := &analysis.Analyzer{
-		Tokenizer: tokenizer.NewUnicodeTokenizer(),
+		Tokenizer: tokenizer.UnicodeTokenizer,
 		TokenFilters: []analysis.TokenFilter{
 			token.NewShingleFilter(3, 5, false, " ", "_"),
 		},
@@ -1180,7 +1180,7 @@ func TestSearchHighlightingWithRegexpReplacement(t *testing.T) {
 		CharFilters: []analysis.CharFilter{
 			regexpReplace,
 		},
-		Tokenizer: tokenizer.NewUnicodeTokenizer(),
+		Tokenizer: tokenizer.UnicodeTokenizer,
 	}
 
 	tmpIndexPath := testsuite.TemporaryDirectory(t)

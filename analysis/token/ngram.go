@@ -21,47 +21,37 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type NgramFilter struct {
-	minLength int
-	maxLength int
-}
+func NewNgramFilter(minLength, maxLength int) analysis.TokenFilter {
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		rv := make(analysis.TokenStream, 0, len(input))
 
-func NewNgramFilter(minLength, maxLength int) *NgramFilter {
-	return &NgramFilter{
-		minLength: minLength,
-		maxLength: maxLength,
-	}
-}
-
-func (s *NgramFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	rv := make(analysis.TokenStream, 0, len(input))
-
-	for _, token := range input {
-		first := true
-		runeCount := utf8.RuneCount(token.Term)
-		runes := bytes.Runes(token.Term)
-		for i := 0; i < runeCount; i++ {
-			// index of the starting rune for this token
-			for ngramSize := s.minLength; ngramSize <= s.maxLength; ngramSize++ {
-				// build an ngram of this size starting at i
-				if i+ngramSize <= runeCount {
-					ngramTerm := analysis.BuildTermFromRunes(runes[i : i+ngramSize])
-					token := analysis.Token{
-						PositionIncr: 0,
-						Start:        token.Start,
-						End:          token.End,
-						Type:         token.Type,
-						Term:         ngramTerm,
+		for _, token := range input {
+			first := true
+			runeCount := utf8.RuneCount(token.Term)
+			runes := bytes.Runes(token.Term)
+			for i := 0; i < runeCount; i++ {
+				// index of the starting rune for this token
+				for ngramSize := minLength; ngramSize <= maxLength; ngramSize++ {
+					// build an ngram of this size starting at i
+					if i+ngramSize <= runeCount {
+						ngramTerm := analysis.BuildTermFromRunes(runes[i : i+ngramSize])
+						token := analysis.Token{
+							PositionIncr: 0,
+							Start:        token.Start,
+							End:          token.End,
+							Type:         token.Type,
+							Term:         ngramTerm,
+						}
+						if first {
+							token.PositionIncr = 1 // set first token to offset 1
+							first = false
+						}
+						rv = append(rv, &token)
 					}
-					if first {
-						token.PositionIncr = 1 // set first token to offset 1
-						first = false
-					}
-					rv = append(rv, &token)
 				}
 			}
 		}
-	}
 
-	return rv
+		return rv
+	}
 }

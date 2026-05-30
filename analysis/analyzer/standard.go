@@ -21,7 +21,7 @@ import (
 )
 
 var DefaultStandardAnalyzer = &analysis.Analyzer{
-	Tokenizer: tokenizer.NewUnicodeTokenizer(),
+	Tokenizer: tokenizer.UnicodeTokenizer,
 	TokenFilters: []analysis.TokenFilter{
 		token.DefaultLowerCaseFilter,
 	},

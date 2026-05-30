@@ -312,9 +312,8 @@ func TestSoraniNormalizeFilter(t *testing.T) {
 		},
 	}
 
-	soraniNormalizeFilter := NormalizeFilter()
 	for _, test := range tests {
-		actual := soraniNormalizeFilter.Filter(test.input)
+		actual := SoraniNormalizeFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %#v, got %#v", test.output, actual)
 			t.Errorf("expected % x, got % x", test.output[0].Term, actual[0].Term)

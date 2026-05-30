@@ -389,9 +389,8 @@ func TestPortugueseLightStemmer(t *testing.T) {
 		},
 	}
 
-	filter := LightStemmerFilter()
 	for _, test := range tests {
-		actual := filter.Filter(test.input)
+		actual := PortugueseLightStemmerFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output[0].Term, actual[0].Term)
 		}

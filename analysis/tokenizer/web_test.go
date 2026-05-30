@@ -132,7 +132,7 @@ func TestWeb(t *testing.T) {
 
 	tokenizer := NewWebTokenizer()
 	for _, test := range tests {
-		actual := tokenizer.Tokenize(test.input)
+		actual := tokenizer(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("Expected %v, got %v for %s", test.output, actual, string(test.input))
 		}

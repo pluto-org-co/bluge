@@ -75,7 +75,7 @@ func TestKeyWordMarkerFilter(t *testing.T) {
 	keyWordsMap.AddToken("park")
 
 	filter := NewKeyWordMarkerFilter(keyWordsMap)
-	outputTokenStream := filter.Filter(inputTokenStream)
+	outputTokenStream := filter(inputTokenStream)
 	if !reflect.DeepEqual(outputTokenStream, expectedTokenStream) {
 		t.Errorf("expected %#v got %#v", expectedTokenStream[0].KeyWord, outputTokenStream[0].KeyWord)
 	}

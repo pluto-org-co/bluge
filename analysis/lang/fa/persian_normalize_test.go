@@ -119,9 +119,8 @@ func TestPersianNormalizeFilter(t *testing.T) {
 		},
 	}
 
-	persianNormalizeFilter := NormalizeFilter()
 	for _, test := range tests {
-		actual := persianNormalizeFilter.Filter(test.input)
+		actual := PersianNormalizeFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %#v, got %#v", test.output, actual)
 			t.Errorf("expected % x, got % x", test.output[0].Term, actual[0].Term)

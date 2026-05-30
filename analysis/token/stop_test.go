@@ -63,7 +63,7 @@ func TestStopWordsFilter(t *testing.T) {
 	}
 	stopFilter := NewStopTokensFilter(tokenMap)
 
-	outputTokenStream := stopFilter.Filter(inputTokenStream)
+	outputTokenStream := stopFilter(inputTokenStream)
 	if !reflect.DeepEqual(outputTokenStream, expectedTokenStream) {
 		t.Errorf("expected %#v got %#v", expectedTokenStream, outputTokenStream)
 	}
@@ -97,6 +97,6 @@ func BenchmarkStopWordsFilter(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		stopFilter.Filter(inputTokenStream)
+		stopFilter(inputTokenStream)
 	}
 }

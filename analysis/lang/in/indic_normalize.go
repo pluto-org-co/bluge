@@ -20,14 +20,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type IndicNormalizeFilter struct {
-}
-
-func NormalizeFilter() *IndicNormalizeFilter {
-	return &IndicNormalizeFilter{}
-}
-
-func (s *IndicNormalizeFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func IndicNormalizeFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		runes := bytes.Runes(token.Term)
 		runes = normalize(runes)

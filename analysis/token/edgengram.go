@@ -26,71 +26,59 @@ type Side bool
 const BACK Side = true
 const FRONT Side = false
 
-type EdgeNgramFilter struct {
-	back      Side
-	minLength int
-	maxLength int
-}
+func NewEdgeNgramFilter(back Side, minLength, maxLength int) analysis.TokenFilter {
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		rv := make(analysis.TokenStream, 0, len(input))
 
-func NewEdgeNgramFilter(side Side, minLength, maxLength int) *EdgeNgramFilter {
-	return &EdgeNgramFilter{
-		back:      side,
-		minLength: minLength,
-		maxLength: maxLength,
-	}
-}
-
-func (s *EdgeNgramFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	rv := make(analysis.TokenStream, 0, len(input))
-
-	for _, token := range input {
-		first := true
-		runeCount := utf8.RuneCount(token.Term)
-		runes := bytes.Runes(token.Term)
-		if s.back {
-			i := runeCount
-			// index of the starting rune for this token
-			for ngramSize := s.minLength; ngramSize <= s.maxLength; ngramSize++ {
-				// build an ngram of this size starting at i
-				if i-ngramSize >= 0 {
-					ngramTerm := analysis.BuildTermFromRunes(runes[i-ngramSize : i])
-					token := analysis.Token{
-						PositionIncr: 0,
-						Start:        token.Start,
-						End:          token.End,
-						Type:         token.Type,
-						Term:         ngramTerm,
+		for _, token := range input {
+			first := true
+			runeCount := utf8.RuneCount(token.Term)
+			runes := bytes.Runes(token.Term)
+			if back {
+				i := runeCount
+				// index of the starting rune for this token
+				for ngramSize := minLength; ngramSize <= maxLength; ngramSize++ {
+					// build an ngram of this size starting at i
+					if i-ngramSize >= 0 {
+						ngramTerm := analysis.BuildTermFromRunes(runes[i-ngramSize : i])
+						token := analysis.Token{
+							PositionIncr: 0,
+							Start:        token.Start,
+							End:          token.End,
+							Type:         token.Type,
+							Term:         ngramTerm,
+						}
+						if first {
+							token.PositionIncr = 1 // set first token to offset 1
+							first = false
+						}
+						rv = append(rv, &token)
 					}
-					if first {
-						token.PositionIncr = 1 // set first token to offset 1
-						first = false
-					}
-					rv = append(rv, &token)
 				}
-			}
-		} else {
-			i := 0
-			// index of the starting rune for this token
-			for ngramSize := s.minLength; ngramSize <= s.maxLength; ngramSize++ {
-				// build an ngram of this size starting at i
-				if i+ngramSize <= runeCount {
-					ngramTerm := analysis.BuildTermFromRunes(runes[i : i+ngramSize])
-					token := analysis.Token{
-						PositionIncr: 0,
-						Start:        token.Start,
-						End:          token.End,
-						Type:         token.Type,
-						Term:         ngramTerm,
+			} else {
+				i := 0
+				// index of the starting rune for this token
+				for ngramSize := minLength; ngramSize <= maxLength; ngramSize++ {
+					// build an ngram of this size starting at i
+					if i+ngramSize <= runeCount {
+						ngramTerm := analysis.BuildTermFromRunes(runes[i : i+ngramSize])
+						token := analysis.Token{
+							PositionIncr: 0,
+							Start:        token.Start,
+							End:          token.End,
+							Type:         token.Type,
+							Term:         ngramTerm,
+						}
+						if first {
+							token.PositionIncr = 1 // set first token to offset 1
+							first = false
+						}
+						rv = append(rv, &token)
 					}
-					if first {
-						token.PositionIncr = 1 // set first token to offset 1
-						first = false
-					}
-					rv = append(rv, &token)
 				}
 			}
 		}
-	}
 
-	return rv
+		return rv
+	}
 }

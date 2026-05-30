@@ -18,9 +18,7 @@ import (
 	"fmt"
 )
 
-type CharFilter interface {
-	Filter([]byte) []byte
-}
+type CharFilter func(in []byte) (out []byte)
 
 type TokenType int
 
@@ -60,14 +58,10 @@ type TokenStream []*Token
 
 // A Tokenizer splits an input string into tokens, the usual behavior being to
 // map words to tokens.
-type Tokenizer interface {
-	Tokenize([]byte) TokenStream
-}
+type Tokenizer func([]byte) TokenStream
 
 // A TokenFilter adds, transforms or removes tokens from a token stream.
-type TokenFilter interface {
-	Filter(TokenStream) TokenStream
-}
+type TokenFilter func(TokenStream) TokenStream
 
 type Analyzer struct {
 	CharFilters  []CharFilter
@@ -78,13 +72,13 @@ type Analyzer struct {
 func (a *Analyzer) Analyze(input []byte) TokenStream {
 	if a.CharFilters != nil {
 		for _, cf := range a.CharFilters {
-			input = cf.Filter(input)
+			input = cf(input)
 		}
 	}
-	tokens := a.Tokenizer.Tokenize(input)
+	tokens := a.Tokenizer(input)
 	if a.TokenFilters != nil {
 		for _, tf := range a.TokenFilters {
-			tokens = tf.Filter(tokens)
+			tokens = tf(tokens)
 		}
 	}
 	return tokens

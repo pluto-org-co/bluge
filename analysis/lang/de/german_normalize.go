@@ -26,14 +26,7 @@ const (
 	U = 2 /* umlaut state, allows e-deletion */
 )
 
-type GermanNormalizeFilter struct {
-}
-
-func NormalizeFilter() *GermanNormalizeFilter {
-	return &GermanNormalizeFilter{}
-}
-
-func (s *GermanNormalizeFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func GermanNormalizeFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		term := normalize(token.Term)
 		token.Term = term

@@ -18,6 +18,4 @@ import (
 	"github.com/pluto-org-co/bluge/analysis/token"
 )
 
-func StopWordsFilter() *token.StopTokensFilter {
-	return token.NewStopTokensFilter(StopWords())
-}
+var StopWordsFilter = token.NewStopTokensFilter(StopWords())

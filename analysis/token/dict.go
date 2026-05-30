@@ -30,14 +30,15 @@ type DictionaryCompoundFilter struct {
 }
 
 func NewDictionaryCompoundFilter(dict analysis.TokenMap, minWordSize, minSubWordSize, maxSubWordSize int,
-	onlyLongestMatch bool) *DictionaryCompoundFilter {
-	return &DictionaryCompoundFilter{
+	onlyLongestMatch bool) analysis.TokenFilter {
+	filter := &DictionaryCompoundFilter{
 		dict:             dict,
 		minWordSize:      minWordSize,
 		minSubWordSize:   minSubWordSize,
 		maxSubWordSize:   maxSubWordSize,
 		onlyLongestMatch: onlyLongestMatch,
 	}
+	return filter.Filter
 }
 
 func (f *DictionaryCompoundFilter) Filter(input analysis.TokenStream) analysis.TokenStream {

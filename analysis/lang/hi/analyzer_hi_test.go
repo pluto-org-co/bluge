@@ -51,9 +51,8 @@ func TestHindiAnalyzer(t *testing.T) {
 		},
 	}
 
-	analyzer := Analyzer()
 	for _, test := range tests {
-		actual := analyzer.Analyze(test.input)
+		actual := Analyzer.Analyze(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %v, got %v", test.output, actual)
 		}

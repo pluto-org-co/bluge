@@ -83,8 +83,7 @@ func TestCJKWidthFilter(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		cjkWidthFilter := NewWidthFilter()
-		actual := cjkWidthFilter.Filter(test.input)
+		actual := WidthFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)
 		}

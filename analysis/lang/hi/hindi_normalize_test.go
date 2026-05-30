@@ -240,9 +240,8 @@ func TestHindiNormalizeFilter(t *testing.T) {
 		},
 	}
 
-	hindiNormalizeFilter := NormalizeFilter()
 	for _, test := range tests {
-		actual := hindiNormalizeFilter.Filter(test.input)
+		actual := HindiNormalizeFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %#v, got %#v", test.output, actual)
 			t.Errorf("expected % x, got % x", test.output[0].Term, actual[0].Term)

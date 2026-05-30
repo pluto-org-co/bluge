@@ -21,13 +21,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type ReverseFilter struct{}
-
-func NewReverseFilter() *ReverseFilter {
-	return &ReverseFilter{}
-}
-
-func (f *ReverseFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func ReverseFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		token.Term = reverse(token.Term)
 	}

@@ -20,14 +20,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type FrenchMinimalStemmerFilter struct {
-}
-
-func MinimalStemmerFilter() *FrenchMinimalStemmerFilter {
-	return &FrenchMinimalStemmerFilter{}
-}
-
-func (s *FrenchMinimalStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func FrenchMinimalStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		runes := bytes.Runes(token.Term)
 		runes = minstem(runes)

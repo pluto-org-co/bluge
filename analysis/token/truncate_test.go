@@ -76,7 +76,7 @@ func TestTruncateTokenFilter(t *testing.T) {
 
 	for _, test := range tests {
 		truncateTokenFilter := NewTruncateTokenFilter(test.length)
-		actual := truncateTokenFilter.Filter(test.input)
+		actual := truncateTokenFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output[0].Term, actual[0].Term)
 		}

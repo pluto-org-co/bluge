@@ -16,8 +16,10 @@ package tokenizer
 
 import (
 	"unicode"
+
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
-func NewLetterTokenizer() *CharacterTokenizer {
+func NewLetterTokenizer() analysis.Tokenizer {
 	return NewCharacterTokenizer(unicode.IsLetter)
 }

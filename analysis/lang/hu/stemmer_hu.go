@@ -20,14 +20,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type HungarianStemmerFilter struct {
-}
-
-func StemmerFilter() *HungarianStemmerFilter {
-	return &HungarianStemmerFilter{}
-}
-
-func (s *HungarianStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func HungarianStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		env := snowballstem.NewEnv(string(token.Term))
 		hungarian.Stem(env)

@@ -50,14 +50,7 @@ const (
 	Sukun    = '\u0652'
 )
 
-type SoraniNormalizeFilter struct {
-}
-
-func NormalizeFilter() *SoraniNormalizeFilter {
-	return &SoraniNormalizeFilter{}
-}
-
-func (s *SoraniNormalizeFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func SoraniNormalizeFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		term := normalize(token.Term)
 		token.Term = term

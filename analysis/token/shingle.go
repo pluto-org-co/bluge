@@ -28,97 +28,89 @@ type ShingleFilter struct {
 	fill           string
 }
 
-func NewShingleFilter(min, max int, outputOriginal bool, sep, fill string) *ShingleFilter {
-	return &ShingleFilter{
-		min:            min,
-		max:            max,
-		outputOriginal: outputOriginal,
-		tokenSeparator: sep,
-		fill:           fill,
-	}
-}
-
-func (s *ShingleFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	rv := make(analysis.TokenStream, 0, len(input))
-
-	aRing := ring.New(s.max)
-	itemsInRing := 0
-	for _, token := range input {
-		if s.outputOriginal {
-			rv = append(rv, token)
-		}
-
-		// if there are gaps, insert filler tokens
-		offset := token.PositionIncr - 1
-		for offset > 0 {
-			fillerToken := analysis.Token{
-				PositionIncr: 1,
-				Start:        -1,
-				End:          -1,
-				Type:         analysis.AlphaNumeric,
-				Term:         []byte(s.fill),
+func NewShingleFilter(min, max int, outputOriginal bool, sep, fill string) analysis.TokenFilter {
+	shingleCurrentRingState := func(aRing *ring.Ring, itemsInRing int) analysis.TokenStream {
+		rv := make(analysis.TokenStream, 0)
+		for shingleN := min; shingleN <= max; shingleN++ {
+			if itemsInRing < shingleN {
+				continue
 			}
-			aRing.Value = &fillerToken
-			if itemsInRing < s.max {
+			// if there are enough items in the ring
+			// to produce a shingle of this size
+			thisShingleRing := aRing.Move(-(shingleN - 1))
+			shingledBytes := make([]byte, 0)
+			start := -1
+			end := 0
+			for i := 0; i < shingleN; i++ {
+				if i != 0 {
+					shingledBytes = append(shingledBytes, []byte(sep)...)
+				}
+				curr := thisShingleRing.Value.(*analysis.Token)
+				if start == -1 && curr.Start != -1 {
+					start = curr.Start
+				}
+				if curr.End != -1 {
+					end = curr.End
+				}
+				shingledBytes = append(shingledBytes, curr.Term...)
+				thisShingleRing = thisShingleRing.Next()
+			}
+			token := analysis.Token{
+				Type:         analysis.Shingle,
+				Term:         shingledBytes,
+				PositionIncr: 1,
+			}
+			if start != -1 {
+				token.Start = start
+			}
+			if end != -1 {
+				token.End = end
+			}
+			if len(rv) > 0 || outputOriginal {
+				token.PositionIncr = 0
+			}
+			rv = append(rv, &token)
+		}
+		return rv
+	}
+
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		rv := make(analysis.TokenStream, 0, len(input))
+
+		aRing := ring.New(max)
+		itemsInRing := 0
+		for _, token := range input {
+			if outputOriginal {
+				rv = append(rv, token)
+			}
+
+			// if there are gaps, insert filler tokens
+			offset := token.PositionIncr - 1
+			for offset > 0 {
+				fillerToken := analysis.Token{
+					PositionIncr: 1,
+					Start:        -1,
+					End:          -1,
+					Type:         analysis.AlphaNumeric,
+					Term:         []byte(fill),
+				}
+				aRing.Value = &fillerToken
+				if itemsInRing < max {
+					itemsInRing++
+				}
+				rv = append(rv, shingleCurrentRingState(aRing, itemsInRing)...)
+				aRing = aRing.Next()
+				offset--
+			}
+
+			aRing.Value = token
+			if itemsInRing < max {
 				itemsInRing++
 			}
-			rv = append(rv, s.shingleCurrentRingState(aRing, itemsInRing)...)
+			rv = append(rv, shingleCurrentRingState(aRing, itemsInRing)...)
 			aRing = aRing.Next()
-			offset--
 		}
 
-		aRing.Value = token
-		if itemsInRing < s.max {
-			itemsInRing++
-		}
-		rv = append(rv, s.shingleCurrentRingState(aRing, itemsInRing)...)
-		aRing = aRing.Next()
+		return rv
 	}
-
-	return rv
-}
-
-func (s *ShingleFilter) shingleCurrentRingState(aRing *ring.Ring, itemsInRing int) analysis.TokenStream {
-	rv := make(analysis.TokenStream, 0)
-	for shingleN := s.min; shingleN <= s.max; shingleN++ {
-		if itemsInRing < shingleN {
-			continue
-		}
-		// if there are enough items in the ring
-		// to produce a shingle of this size
-		thisShingleRing := aRing.Move(-(shingleN - 1))
-		shingledBytes := make([]byte, 0)
-		start := -1
-		end := 0
-		for i := 0; i < shingleN; i++ {
-			if i != 0 {
-				shingledBytes = append(shingledBytes, []byte(s.tokenSeparator)...)
-			}
-			curr := thisShingleRing.Value.(*analysis.Token)
-			if start == -1 && curr.Start != -1 {
-				start = curr.Start
-			}
-			if curr.End != -1 {
-				end = curr.End
-			}
-			shingledBytes = append(shingledBytes, curr.Term...)
-			thisShingleRing = thisShingleRing.Next()
-		}
-		token := analysis.Token{
-			Type:         analysis.Shingle,
-			Term:         shingledBytes,
-			PositionIncr: 1,
-		}
-		if start != -1 {
-			token.Start = start
-		}
-		if end != -1 {
-			token.End = end
-		}
-		if len(rv) > 0 || s.outputOriginal {
-			token.PositionIncr = 0
-		}
-		rv = append(rv, &token)
-	}
-	return rv
 }

@@ -65,8 +65,7 @@ func TestSingleTokenTokenizer(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		tokenizer := NewSingleTokenTokenizer()
-		actual := tokenizer.Tokenize(test.input)
+		actual := SingleTokenTokenizer(test.input)
 
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("Expected %v, got %v for %s", test.output, actual, string(test.input))

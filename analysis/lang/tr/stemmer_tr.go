@@ -20,14 +20,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type TurkishStemmerFilter struct {
-}
-
-func StemmerFilter() *TurkishStemmerFilter {
-	return &TurkishStemmerFilter{}
-}
-
-func (s *TurkishStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func TurkishStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		env := snowballstem.NewEnv(string(token.Term))
 		turkish.Stem(env)

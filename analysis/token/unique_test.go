@@ -97,9 +97,8 @@ func TestUniqueTermFilter(t *testing.T) {
 			},
 		},
 	}
-	uniqueTermFilter := NewUniqueTermFilter()
 	for _, test := range tests {
-		actual := uniqueTermFilter.Filter(test.input)
+		actual := UniqueTermFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s \n\n got %s", actual, test.output)
 		}

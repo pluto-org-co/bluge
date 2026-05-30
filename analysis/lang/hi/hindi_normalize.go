@@ -20,14 +20,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type HindiNormalizeFilter struct {
-}
-
-func NormalizeFilter() *HindiNormalizeFilter {
-	return &HindiNormalizeFilter{}
-}
-
-func (s *HindiNormalizeFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func HindiNormalizeFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		term := normalize(token.Term)
 		token.Term = term

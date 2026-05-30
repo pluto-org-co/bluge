@@ -19,19 +19,11 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-type UnicodeNormalizeFilter struct {
-	form norm.Form
-}
-
-func NewUnicodeNormalizeFilter(form norm.Form) *UnicodeNormalizeFilter {
-	return &UnicodeNormalizeFilter{
-		form: form,
+func NewUnicodeNormalizeFilter(form norm.Form) analysis.TokenFilter {
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		for _, token := range input {
+			token.Term = form.Bytes(token.Term)
+		}
+		return input
 	}
-}
-
-func (s *UnicodeNormalizeFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	for _, token := range input {
-		token.Term = s.form.Bytes(token.Term)
-	}
-	return input
 }

@@ -24,11 +24,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type LowerCaseFilter struct{}
-
-var DefaultLowerCaseFilter = &LowerCaseFilter{}
-
-func (f *LowerCaseFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func DefaultLowerCaseFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		token.Term = toLowerDeferredCopy(token.Term)
 	}

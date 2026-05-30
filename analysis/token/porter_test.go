@@ -87,8 +87,7 @@ func TestPorterStemmer(t *testing.T) {
 		},
 	}
 
-	filter := NewPorterStemmer()
-	outputTokenStream := filter.Filter(inputTokenStream)
+	outputTokenStream := PorterStemmer(inputTokenStream)
 	if !reflect.DeepEqual(outputTokenStream, expectedTokenStream) {
 		t.Errorf("expected %#v got %#v", expectedTokenStream[3], outputTokenStream[3])
 	}
@@ -117,10 +116,9 @@ func BenchmarkPorterStemmer(b *testing.B) {
 		},
 	}
 
-	filter := NewPorterStemmer()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		filter.Filter(inputTokenStream)
+		PorterStemmer(inputTokenStream)
 	}
 }

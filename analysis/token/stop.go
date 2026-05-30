@@ -25,29 +25,21 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type StopTokensFilter struct {
-	stopTokens analysis.TokenMap
-}
-
-func NewStopTokensFilter(stopTokens analysis.TokenMap) *StopTokensFilter {
-	return &StopTokensFilter{
-		stopTokens: stopTokens,
-	}
-}
-
-func (f *StopTokensFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	var j, skipped int
-	for _, token := range input {
-		_, isStopToken := f.stopTokens[string(token.Term)]
-		if !isStopToken {
-			token.PositionIncr += skipped
-			skipped = 0
-			input[j] = token
-			j++
-		} else {
-			skipped += token.PositionIncr
+func NewStopTokensFilter(stopTokens analysis.TokenMap) analysis.TokenFilter {
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		var j, skipped int
+		for _, token := range input {
+			_, isStopToken := stopTokens[string(token.Term)]
+			if !isStopToken {
+				token.PositionIncr += skipped
+				skipped = 0
+				input[j] = token
+				j++
+			} else {
+				skipped += token.PositionIncr
+			}
 		}
-	}
 
-	return input[:j]
+		return input[:j]
+	}
 }

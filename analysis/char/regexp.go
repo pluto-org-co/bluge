@@ -16,20 +16,12 @@ package char
 
 import (
 	"regexp"
+
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type RegexpCharFilter struct {
-	r           *regexp.Regexp
-	replacement []byte
-}
-
-func NewRegexpCharFilter(r *regexp.Regexp, replacement []byte) *RegexpCharFilter {
-	return &RegexpCharFilter{
-		r:           r,
-		replacement: replacement,
+func NewRegexpCharFilter(r *regexp.Regexp, replacement []byte) analysis.CharFilter {
+	return func(input []byte) []byte {
+		return r.ReplaceAll(input, replacement)
 	}
-}
-
-func (s *RegexpCharFilter) Filter(input []byte) []byte {
-	return s.r.ReplaceAll(input, s.replacement)
 }

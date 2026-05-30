@@ -77,7 +77,7 @@ func TestWhitespaceTokenizer(t *testing.T) {
 
 	for _, test := range tests {
 		tokenizer := NewWhitespaceTokenizer()
-		actual := tokenizer.Tokenize(test.input)
+		actual := tokenizer(test.input)
 
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("Expected %v, got %v for %s", test.output, actual, string(test.input))
@@ -90,6 +90,6 @@ func BenchmarkWhitespaceTokenizeEnglishText(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		tokenizer.Tokenize(sampleLargeInput)
+		tokenizer(sampleLargeInput)
 	}
 }

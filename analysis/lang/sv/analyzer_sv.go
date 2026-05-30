@@ -22,11 +22,11 @@ import (
 
 func Analyzer() *analysis.Analyzer {
 	return &analysis.Analyzer{
-		Tokenizer: tokenizer.NewUnicodeTokenizer(),
+		Tokenizer: tokenizer.UnicodeTokenizer,
 		TokenFilters: []analysis.TokenFilter{
 			token.DefaultLowerCaseFilter,
-			StopWordsFilter(),
-			StemmerFilter(),
+			StopWordsFilter,
+			SwedishStemmerFilter,
 		},
 	}
 }

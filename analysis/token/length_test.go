@@ -118,7 +118,7 @@ func TestLengthFilter(t *testing.T) {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
 			lengthFilter := NewLengthFilter(test.min, test.max)
-			actual := lengthFilter.Filter(test.output)
+			actual := lengthFilter(test.output)
 			if !reflect.DeepEqual(actual, test.output) {
 				t.Errorf("expected %s, got %s", test.output[0].Term, actual[0].Term)
 			}

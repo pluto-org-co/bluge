@@ -50,9 +50,8 @@ func TestNorwegianAnalyzer(t *testing.T) {
 		},
 	}
 
-	analyzer := Analyzer()
 	for _, test := range tests {
-		actual := analyzer.Analyze(test.input)
+		actual := Analyzer.Analyze(test.input)
 		if len(actual) != len(test.output) {
 			t.Fatalf("expected length: %d, got %d", len(test.output), len(actual))
 		}

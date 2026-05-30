@@ -18,22 +18,14 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type KeyWordMarkerFilter struct {
-	keyWords analysis.TokenMap
-}
-
-func NewKeyWordMarkerFilter(keyWords analysis.TokenMap) *KeyWordMarkerFilter {
-	return &KeyWordMarkerFilter{
-		keyWords: keyWords,
-	}
-}
-
-func (f *KeyWordMarkerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	for _, token := range input {
-		_, isKeyWord := f.keyWords[string(token.Term)]
-		if isKeyWord {
-			token.KeyWord = true
+func NewKeyWordMarkerFilter(keyWords analysis.TokenMap) analysis.TokenFilter {
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		for _, token := range input {
+			_, isKeyWord := keyWords[string(token.Term)]
+			if isKeyWord {
+				token.KeyWord = true
+			}
 		}
+		return input
 	}
-	return input
 }

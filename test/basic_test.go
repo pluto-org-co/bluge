@@ -35,13 +35,11 @@ func init() {
 }
 
 func basicLoad(writer *bluge.Writer) error {
-	enAnalyzer := en.NewAnalyzer()
-
 	err := writer.Insert(documents.NewDocument("a").
 		AddField(documents.NewTextField("name", "marty").
 			SearchTermPositions().
 			StoreValue().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewNumericField("age", 19)).
 		AddField(documents.NewTextField("title", "mista").
 			StoreValue()).
@@ -64,7 +62,7 @@ func basicLoad(writer *bluge.Writer) error {
 		AddField(documents.NewTextField("name", "steve has <a> long & complicated name").
 			SearchTermPositions().
 			StoreValue().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewNumericField("age", 27)).
 		AddField(documents.NewTextField("title", "missess").
 			StoreValue()).
@@ -82,7 +80,7 @@ func basicLoad(writer *bluge.Writer) error {
 		AddField(documents.NewTextField("name", "bob walks home").
 			SearchTermPositions().
 			StoreValue().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewNumericField("age", 64)).
 		AddField(documents.NewTextField("title", "masta").
 			StoreValue()).
@@ -100,7 +98,7 @@ func basicLoad(writer *bluge.Writer) error {
 		AddField(documents.NewTextField("name", "bobbleheaded wings top the phone").
 			SearchTermPositions().
 			StoreValue().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewNumericField("age", 72)).
 		AddField(documents.NewTextField("title", "mizz").
 			StoreValue()).
@@ -114,7 +112,6 @@ func basicLoad(writer *bluge.Writer) error {
 }
 
 func basicTests() []*RequestVerify {
-	enAnalyzer := en.NewAnalyzer()
 	return []*RequestVerify{
 		{
 			Comment: "test term search, exact match",
@@ -143,7 +140,7 @@ func basicTests() []*RequestVerify {
 			Comment: "test match phrase search",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("complicated name").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations: standardAggs,
 			ExpectTotal:  1,
 			ExpectMatches: []*match{
@@ -167,7 +164,7 @@ func basicTests() []*RequestVerify {
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchQuery("walking").
 					SetField("name").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations: standardAggs,
 			ExpectTotal:  1,
 			ExpectMatches: []*match{

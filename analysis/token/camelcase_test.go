@@ -70,8 +70,7 @@ func TestCamelCaseFilter(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		ccFilter := NewCamelCaseFilter()
-		actual := ccFilter.Filter(test.input)
+		actual := CamelCaseFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s \n\n got %s", test.output, actual)
 		}

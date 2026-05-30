@@ -20,14 +20,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type FinnishStemmerFilter struct {
-}
-
-func StemmerFilter() *FinnishStemmerFilter {
-	return &FinnishStemmerFilter{}
-}
-
-func (s *FinnishStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func FinnishStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		env := snowballstem.NewEnv(string(token.Term))
 		finnish.Stem(env)

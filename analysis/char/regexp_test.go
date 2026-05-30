@@ -91,7 +91,7 @@ func TestRegexpCharFilter(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			patternRegexp := regexp.MustCompile(test.pattern)
 			filter := NewRegexpCharFilter(patternRegexp, test.replacement)
-			output := filter.Filter(test.input)
+			output := filter(test.input)
 			if !reflect.DeepEqual(output, test.output) {
 				t.Errorf("Expected:\n`%s`\ngot:\n`%s`\nfor:\n`%s`\n", string(test.output), string(output), string(test.input))
 			}

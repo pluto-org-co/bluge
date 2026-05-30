@@ -25,6 +25,6 @@ var DefaultWebAnalyzer = &analysis.Analyzer{
 	Tokenizer: tokenizer.NewWebTokenizer(),
 	TokenFilters: []analysis.TokenFilter{
 		token.DefaultLowerCaseFilter,
-		en.StopWordsFilter(),
+		en.StopWordsFilter,
 	},
 }

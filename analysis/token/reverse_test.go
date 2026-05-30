@@ -118,8 +118,7 @@ func TestReverseFilter(t *testing.T) {
 		},
 	}
 
-	filter := NewReverseFilter()
-	outputTokenStream := filter.Filter(inputTokenStream)
+	outputTokenStream := ReverseFilter(inputTokenStream)
 	for i := 0; i < len(expectedTokenStream); i++ {
 		if !bytes.Equal(outputTokenStream[i].Term, expectedTokenStream[i].Term) {
 			t.Errorf("[%d] expected %s got %s",
@@ -197,10 +196,9 @@ func BenchmarkReverseFilter(b *testing.B) {
 			Term: []byte("Me gustaría una cerveza."),
 		},
 	}
-	filter := NewReverseFilter()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		filter.Filter(input)
+		ReverseFilter(input)
 	}
 }

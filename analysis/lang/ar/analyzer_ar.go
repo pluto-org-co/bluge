@@ -21,15 +21,15 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-func Analyzer() *analysis.Analyzer {
-	return &analysis.Analyzer{
-		Tokenizer: tokenizer.NewUnicodeTokenizer(),
-		TokenFilters: []analysis.TokenFilter{
-			token.DefaultLowerCaseFilter,
-			token.NewUnicodeNormalizeFilter(norm.NFKC),
-			StopWordsFilter(),
-			NormalizeFilter(),
-			StemmerFilter(),
-		},
-	}
+var UnicodeNormalizeFilter = token.NewUnicodeNormalizeFilter(norm.NFKC)
+
+var Analyzer = &analysis.Analyzer{
+	Tokenizer: tokenizer.UnicodeTokenizer,
+	TokenFilters: []analysis.TokenFilter{
+		token.DefaultLowerCaseFilter,
+		UnicodeNormalizeFilter,
+		StopWordsFilter,
+		ArabicNormalizeFilter,
+		ArabicStemmerFilter,
+	},
 }

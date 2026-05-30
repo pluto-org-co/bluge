@@ -22,52 +22,44 @@ import (
 
 type IsTokenRune func(r rune) bool
 
-type CharacterTokenizer struct {
-	isTokenRun IsTokenRune
-}
+func NewCharacterTokenizer(isTokenRun IsTokenRune) analysis.Tokenizer {
+	return func(input []byte) analysis.TokenStream {
+		rv := make(analysis.TokenStream, 0, 1024)
 
-func NewCharacterTokenizer(f IsTokenRune) *CharacterTokenizer {
-	return &CharacterTokenizer{
-		isTokenRun: f,
-	}
-}
-
-func (c *CharacterTokenizer) Tokenize(input []byte) analysis.TokenStream {
-	rv := make(analysis.TokenStream, 0, 1024)
-
-	offset := 0
-	start := 0
-	end := 0
-	for currRune, size := utf8.DecodeRune(input[offset:]); currRune != utf8.RuneError; currRune, size = utf8.DecodeRune(input[offset:]) {
-		isToken := c.isTokenRun(currRune)
-		if isToken {
-			end = offset + size
-		} else {
-			if end-start > 0 {
-				// build token
-				rv = append(rv, &analysis.Token{
-					Term:         input[start:end],
-					Start:        start,
-					End:          end,
-					PositionIncr: 1,
-					Type:         analysis.AlphaNumeric,
-				})
+		offset := 0
+		start := 0
+		end := 0
+		for currRune, size := utf8.DecodeRune(input[offset:]); currRune != utf8.RuneError; currRune, size = utf8.DecodeRune(input[offset:]) {
+			isToken := isTokenRun(currRune)
+			if isToken {
+				end = offset + size
+			} else {
+				if end-start > 0 {
+					// build token
+					rv = append(rv, &analysis.Token{
+						Term:         input[start:end],
+						Start:        start,
+						End:          end,
+						PositionIncr: 1,
+						Type:         analysis.AlphaNumeric,
+					})
+				}
+				start = offset + size
+				end = start
 			}
-			start = offset + size
-			end = start
+			offset += size
 		}
-		offset += size
+		// if we ended in the middle of a token, finish it
+		if end-start > 0 {
+			// build token
+			rv = append(rv, &analysis.Token{
+				Term:         input[start:end],
+				Start:        start,
+				End:          end,
+				PositionIncr: 1,
+				Type:         analysis.AlphaNumeric,
+			})
+		}
+		return rv
 	}
-	// if we ended in the middle of a token, finish it
-	if end-start > 0 {
-		// build token
-		rv = append(rv, &analysis.Token{
-			Term:         input[start:end],
-			Start:        start,
-			End:          end,
-			PositionIncr: 1,
-			Type:         analysis.AlphaNumeric,
-		})
-	}
-	return rv
 }

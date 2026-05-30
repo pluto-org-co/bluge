@@ -21,14 +21,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type FrenchLightStemmerFilter struct {
-}
-
-func LightStemmerFilter() *FrenchLightStemmerFilter {
-	return &FrenchLightStemmerFilter{}
-}
-
-func (s *FrenchLightStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func FrenchLightStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		runes := bytes.Runes(token.Term)
 		runes = stem(runes)

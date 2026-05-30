@@ -21,13 +21,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type WidthFilter struct{}
-
-func NewWidthFilter() *WidthFilter {
-	return &WidthFilter{}
-}
-
-func (s *WidthFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func WidthFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		runeCount := utf8.RuneCount(token.Term)
 		runes := bytes.Runes(token.Term)

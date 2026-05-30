@@ -46,9 +46,8 @@ func TestFrenchElision(t *testing.T) {
 		},
 	}
 
-	elisionFilter := ElisionFilter()
 	for _, test := range tests {
-		actual := elisionFilter.Filter(test.input)
+		actual := ElisionFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output[0].Term, actual[0].Term)
 		}

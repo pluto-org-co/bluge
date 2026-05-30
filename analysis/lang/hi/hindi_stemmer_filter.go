@@ -21,14 +21,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type HindiStemmerFilter struct {
-}
-
-func StemmerFilter() *HindiStemmerFilter {
-	return &HindiStemmerFilter{}
-}
-
-func (s *HindiStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func HindiStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		// if not protected keyword, stem it
 		if !token.KeyWord {

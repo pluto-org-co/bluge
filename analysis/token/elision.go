@@ -23,32 +23,24 @@ import (
 const RightSingleQuotationMark = '’'
 const Apostrophe = '\''
 
-type ElisionFilter struct {
-	articles analysis.TokenMap
-}
-
-func NewElisionFilter(articles analysis.TokenMap) *ElisionFilter {
-	return &ElisionFilter{
-		articles: articles,
-	}
-}
-
-func (s *ElisionFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	for _, token := range input {
-		term := token.Term
-		for i := 0; i < len(term); {
-			r, size := utf8.DecodeRune(term[i:])
-			if r == Apostrophe || r == RightSingleQuotationMark {
-				// see if the prefix matches one of the articles
-				prefix := term[0:i]
-				_, articleMatch := s.articles[string(prefix)]
-				if articleMatch {
-					token.Term = term[i+size:]
-					break
+func NewElisionFilter(articles analysis.TokenMap) analysis.TokenFilter {
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		for _, token := range input {
+			term := token.Term
+			for i := 0; i < len(term); {
+				r, size := utf8.DecodeRune(term[i:])
+				if r == Apostrophe || r == RightSingleQuotationMark {
+					// see if the prefix matches one of the articles
+					prefix := term[0:i]
+					_, articleMatch := articles[string(prefix)]
+					if articleMatch {
+						token.Term = term[i+size:]
+						break
+					}
 				}
+				i += size
 			}
-			i += size
 		}
+		return input
 	}
-	return input
 }

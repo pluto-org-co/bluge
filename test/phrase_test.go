@@ -21,13 +21,12 @@ import (
 )
 
 func phraseLoad(writer *bluge.Writer) error {
-	enAnalyzer := en.NewAnalyzer()
 
 	err := writer.Insert(documents.NewDocument("a").
 		AddField(documents.NewTextField("body", "Twenty Thousand Leagues Under The Sea").
 			SearchTermPositions().
 			StoreValue().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
@@ -37,11 +36,11 @@ func phraseLoad(writer *bluge.Writer) error {
 		AddField(documents.NewTextField("body", "bad call").
 			SearchTermPositions().
 			StoreValue().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewTextField("body", "defenseless receiver").
 			SearchTermPositions().
 			StoreValue().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewCompositeFieldExcluding("_all", []string{"_id"})))
 	if err != nil {
 		return err
@@ -51,13 +50,12 @@ func phraseLoad(writer *bluge.Writer) error {
 }
 
 func phraseTests() []*RequestVerify {
-	enAnalyzer := en.NewAnalyzer()
 	return []*RequestVerify{
 		{
 			Comment: "phrase 1",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -66,7 +64,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 2",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty Thousand").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -75,7 +73,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 3",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty Thousand Leagues").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -84,7 +82,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 4",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty Thousand Leagues Under").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -93,7 +91,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 5",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty Thousand Leagues Under the").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -102,7 +100,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 6",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty Thousand Leagues Under the Sea").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -111,7 +109,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 7",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Thousand").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -120,7 +118,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 8",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Thousand Leagues").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -129,7 +127,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 9",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Thousand Leagues Under").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -138,7 +136,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 10",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Thousand Leagues Under the").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -147,7 +145,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 11",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Thousand Leagues Under the Sea").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -156,7 +154,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 12",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Leagues").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -165,7 +163,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 13",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Leagues Under").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -174,7 +172,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 14",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Leagues Under the").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -183,7 +181,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 15",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Leagues Under the Sea").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -192,7 +190,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 16",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Under the Sea").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -201,7 +199,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 17",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("the Sea").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -210,7 +208,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 18",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Sea").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("a"),
@@ -219,7 +217,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 19",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("bad call").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("b"),
@@ -228,7 +226,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 20",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("defenseless receiver").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
 			ExpectMatches: newIDMatches("b"),
@@ -237,7 +235,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 21",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("bad receiver").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   0,
 			ExpectMatches: []*match{},
@@ -254,7 +252,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 23",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("call defenseless").
-					SetAnalyzer(enAnalyzer)),
+					SetAnalyzer(en.Analyzer)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   0,
 			ExpectMatches: []*match{},
@@ -263,7 +261,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 24",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty Thousand").
-					SetAnalyzer(enAnalyzer).
+					SetAnalyzer(en.Analyzer).
 					SetSlop(1)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
@@ -273,7 +271,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 25",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty Leagues").
-					SetAnalyzer(enAnalyzer).
+					SetAnalyzer(en.Analyzer).
 					SetSlop(1)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,
@@ -283,7 +281,7 @@ func phraseTests() []*RequestVerify {
 			Comment: "phrase 26",
 			Request: bluge.NewTopNSearch(10,
 				bluge.NewMatchPhraseQuery("Twenty under the sea").
-					SetAnalyzer(enAnalyzer).
+					SetAnalyzer(en.Analyzer).
 					SetSlop(2)),
 			Aggregations:  standardAggs,
 			ExpectTotal:   1,

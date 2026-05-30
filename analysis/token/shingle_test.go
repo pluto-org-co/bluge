@@ -360,7 +360,7 @@ func TestShingleFilter(t *testing.T) {
 
 	for _, test := range tests {
 		shingleFilter := NewShingleFilter(test.min, test.max, test.outputOriginal, test.separator, test.filler)
-		actual := shingleFilter.Filter(test.input)
+		actual := shingleFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)
 		}
@@ -453,7 +453,7 @@ func TestShingleFilterBug431(t *testing.T) {
 
 	shingleFilter := NewShingleFilter(2, 2, false, " ", "_")
 	for _, test := range tests {
-		actual := shingleFilter.Filter(test.input)
+		actual := shingleFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)
 		}

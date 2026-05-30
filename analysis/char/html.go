@@ -20,6 +20,4 @@ import (
 
 var htmlCharFilterRegexp = regexp.MustCompile(`</?[!\w]+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)/?>`)
 
-func NewHTMLCharFilter() *RegexpCharFilter {
-	return NewRegexpCharFilter(htmlCharFilterRegexp, []byte(" "))
-}
+var HTMLCharFilter = NewRegexpCharFilter(htmlCharFilterRegexp, []byte(" "))

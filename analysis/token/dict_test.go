@@ -107,7 +107,7 @@ func TestDictionaryCompoundFilter(t *testing.T) {
 	}
 	dictFilter := NewDictionaryCompoundFilter(tokenMap, 5, 2, 15, false)
 
-	outputTokenStream := dictFilter.Filter(inputTokenStream)
+	outputTokenStream := dictFilter(inputTokenStream)
 	if !reflect.DeepEqual(outputTokenStream, expectedTokenStream) {
 		t.Errorf("expected %#v got %#v", expectedTokenStream, outputTokenStream)
 	}
@@ -151,7 +151,7 @@ func TestStopWordsFilterLongestMatch(t *testing.T) {
 	}
 	dictFilter := NewDictionaryCompoundFilter(tokenMap, 5, 2, 15, true)
 
-	outputTokenStream := dictFilter.Filter(inputTokenStream)
+	outputTokenStream := dictFilter(inputTokenStream)
 	if !reflect.DeepEqual(outputTokenStream, expectedTokenStream) {
 		t.Errorf("expected %#v got %#v", expectedTokenStream, outputTokenStream)
 	}

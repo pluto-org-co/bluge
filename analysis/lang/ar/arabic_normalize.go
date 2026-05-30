@@ -40,14 +40,7 @@ const (
 	Sukun          = '\u0652'
 )
 
-type ArabicNormalizeFilter struct {
-}
-
-func NormalizeFilter() *ArabicNormalizeFilter {
-	return &ArabicNormalizeFilter{}
-}
-
-func (s *ArabicNormalizeFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func ArabicNormalizeFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		term := normalize(token.Term)
 		token.Term = term

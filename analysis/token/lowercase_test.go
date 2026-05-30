@@ -91,7 +91,7 @@ func TestLowerCaseFilter(t *testing.T) {
 	}
 
 	filter := DefaultLowerCaseFilter
-	ouputTokenStream := filter.Filter(inputTokenStream)
+	ouputTokenStream := filter(inputTokenStream)
 	if !reflect.DeepEqual(ouputTokenStream, expectedTokenStream) {
 		t.Errorf("expected %#v got %#v", expectedTokenStream, ouputTokenStream)
 		t.Errorf("expected %s got %s", expectedTokenStream[0].Term, ouputTokenStream[0].Term)
@@ -174,6 +174,6 @@ func BenchmarkLowerCaseFilter(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		filter.Filter(input)
+		filter(input)
 	}
 }

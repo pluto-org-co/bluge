@@ -43,13 +43,7 @@ var suffixes = [][]rune{
 	[]rune("ي"),
 }
 
-type ArabicStemmerFilter struct{}
-
-func StemmerFilter() *ArabicStemmerFilter {
-	return &ArabicStemmerFilter{}
-}
-
-func (s *ArabicStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func ArabicStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		term := stem(token.Term)
 		token.Term = term

@@ -21,14 +21,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type SoraniStemmerFilter struct {
-}
-
-func StemmerFilter() *SoraniStemmerFilter {
-	return &SoraniStemmerFilter{}
-}
-
-func (s *SoraniStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func SoraniStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		// if not protected keyword, stem it
 		if !token.KeyWord {

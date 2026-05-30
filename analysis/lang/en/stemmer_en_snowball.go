@@ -20,14 +20,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type EnglishStemmerFilter struct {
-}
-
-func StemmerFilter() *EnglishStemmerFilter {
-	return &EnglishStemmerFilter{}
-}
-
-func (s *EnglishStemmerFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
+func EnglishStemmerFilter(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		env := snowballstem.NewEnv(string(token.Term))
 		english.Stem(env)

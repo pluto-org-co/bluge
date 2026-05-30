@@ -25,33 +25,28 @@ type LengthFilter struct {
 	max int
 }
 
-func NewLengthFilter(min, max int) *LengthFilter {
-	return &LengthFilter{
-		min: min,
-		max: max,
+func NewLengthFilter(min, max int) analysis.TokenFilter {
+	return func(input analysis.TokenStream) analysis.TokenStream {
+		rv := make(analysis.TokenStream, 0, len(input))
+
+		var skipped int
+		for _, token := range input {
+			wordLen := utf8.RuneCount(token.Term)
+			if min > 0 && min > wordLen {
+				skipped += token.PositionIncr
+				continue
+			}
+			if max > 0 && max < wordLen {
+				skipped += token.PositionIncr
+				continue
+			}
+			if skipped > 0 {
+				token.PositionIncr += skipped
+				skipped = 0
+			}
+			rv = append(rv, token)
+		}
+
+		return rv
 	}
-}
-
-func (f *LengthFilter) Filter(input analysis.TokenStream) analysis.TokenStream {
-	rv := make(analysis.TokenStream, 0, len(input))
-
-	var skipped int
-	for _, token := range input {
-		wordLen := utf8.RuneCount(token.Term)
-		if f.min > 0 && f.min > wordLen {
-			skipped += token.PositionIncr
-			continue
-		}
-		if f.max > 0 && f.max < wordLen {
-			skipped += token.PositionIncr
-			continue
-		}
-		if skipped > 0 {
-			token.PositionIncr += skipped
-			skipped = 0
-		}
-		rv = append(rv, token)
-	}
-
-	return rv
 }

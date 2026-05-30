@@ -21,13 +21,7 @@ import (
 	"github.com/pluto-org-co/bluge/analysis"
 )
 
-type PorterStemmer struct{}
-
-func NewPorterStemmer() *PorterStemmer {
-	return &PorterStemmer{}
-}
-
-func (s *PorterStemmer) Filter(input analysis.TokenStream) analysis.TokenStream {
+func PorterStemmer(input analysis.TokenStream) analysis.TokenStream {
 	for _, token := range input {
 		// if it is not a protected keyword, stem it
 		if !token.KeyWord {

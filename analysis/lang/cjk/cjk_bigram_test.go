@@ -466,7 +466,7 @@ func TestCJKBigramFilter(t *testing.T) {
 
 	for _, test := range tests {
 		cjkBigramFilter := NewBigramFilter(test.outputUnigram)
-		actual := cjkBigramFilter.Filter(test.input)
+		actual := cjkBigramFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)
 		}

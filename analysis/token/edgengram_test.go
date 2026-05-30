@@ -208,7 +208,7 @@ func TestEdgeNgramFilter(t *testing.T) {
 
 	for _, test := range tests {
 		edgeNgramFilter := NewEdgeNgramFilter(test.side, test.min, test.max)
-		actual := edgeNgramFilter.Filter(test.input)
+		actual := edgeNgramFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)
 		}

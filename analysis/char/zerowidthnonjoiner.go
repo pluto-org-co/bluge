@@ -20,6 +20,4 @@ import (
 
 var zeroWidthNonJoinerRegexp = regexp.MustCompile(`\x{200C}`)
 
-func NewZeroWidthNonJoinerCharFilter() *RegexpCharFilter {
-	return NewRegexpCharFilter(zeroWidthNonJoinerRegexp, []byte(" "))
-}
+var ZeroWidthNonJoinerCharFilter = NewRegexpCharFilter(zeroWidthNonJoinerRegexp, []byte(" "))

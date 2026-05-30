@@ -152,7 +152,7 @@ func TestNgramFilter(t *testing.T) {
 
 	for _, test := range tests {
 		ngramFilter := NewNgramFilter(test.min, test.max)
-		actual := ngramFilter.Filter(test.input)
+		actual := ngramFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output, actual)
 		}

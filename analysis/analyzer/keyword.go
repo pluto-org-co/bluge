@@ -20,5 +20,5 @@ import (
 )
 
 var DefaultKeywordAnalyzer = &analysis.Analyzer{
-	Tokenizer: tokenizer.NewSingleTokenTokenizer(),
+	Tokenizer: tokenizer.SingleTokenTokenizer,
 }

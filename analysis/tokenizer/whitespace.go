@@ -16,9 +16,11 @@ package tokenizer
 
 import (
 	"unicode"
+
+	"github.com/pluto-org-co/bluge/analysis"
 )
 
-func NewWhitespaceTokenizer() *CharacterTokenizer {
+func NewWhitespaceTokenizer() analysis.Tokenizer {
 	return NewCharacterTokenizer(notSpace)
 }
 

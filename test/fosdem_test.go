@@ -23,14 +23,12 @@ import (
 )
 
 func fosdemLoad(writer *bluge.Writer) error {
-	enAnalyzer := en.NewAnalyzer()
-
 	err := writer.Insert(documents.NewDocument("3311@FOSDEM15@fosdem.org").
 		AddField(documents.NewTextField("description",
 			"From Prolog to Erlang to Haskell to Lisp to TLC and then back to Prolog I have journeyed, and I'd like to share some of the beautiful").
 			StoreValue().
 			SearchTermPositions().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewKeywordField("category", "Word").
 			StoreValue().
 			SearchTermPositions()).
@@ -44,7 +42,7 @@ func fosdemLoad(writer *bluge.Writer) error {
 			"different cats").
 			StoreValue().
 			SearchTermPositions().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewKeywordField("category", "Perl").
 			StoreValue().
 			SearchTermPositions()).
@@ -58,7 +56,7 @@ func fosdemLoad(writer *bluge.Writer) error {
 			"many cats").
 			StoreValue().
 			SearchTermPositions().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewKeywordField("category", "Perl").
 			StoreValue().
 			SearchTermPositions()).
@@ -72,7 +70,7 @@ func fosdemLoad(writer *bluge.Writer) error {
 			"From Prolog to Erlang to Haskell to Lisp to TLC and then back to Prolog I have journeyed, and I'd like to share some of the beautiful").
 			StoreValue().
 			SearchTermPositions().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewKeywordField("category", "Perl").
 			StoreValue().
 			SearchTermPositions()).
@@ -86,7 +84,7 @@ func fosdemLoad(writer *bluge.Writer) error {
 			"From Prolog to Erlang to Haskell to Gel to TLC and then back to Prolog I have journeyed, and I'd like to share some of the beautifull").
 			StoreValue().
 			SearchTermPositions().
-			WithAnalyzer(enAnalyzer)).
+			WithAnalyzer(en.Analyzer)).
 		AddField(documents.NewKeywordField("category", "Perl").
 			StoreValue().
 			SearchTermPositions()).
@@ -99,7 +97,6 @@ func fosdemLoad(writer *bluge.Writer) error {
 }
 
 func fosdemTests() []*RequestVerify {
-	enAnalyzer := en.NewAnalyzer()
 	keywordAnalyzer := analyzer.DefaultKeywordAnalyzer
 	return []*RequestVerify{
 		{
@@ -206,7 +203,7 @@ func fosdemTests() []*RequestVerify {
 						bluge.NewBooleanQuery().
 							AddMust(
 								bluge.NewMatchQuery("cats").
-									SetAnalyzer(enAnalyzer)))).
+									SetAnalyzer(en.Analyzer)))).
 				SortBy([]string{"-_score", "_id"}),
 			Aggregations: standardAggs,
 			ExpectTotal:  2,

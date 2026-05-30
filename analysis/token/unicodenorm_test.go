@@ -172,7 +172,7 @@ func TestUnicodeNormalization(t *testing.T) {
 
 	for _, test := range tests {
 		filter := NewUnicodeNormalizeFilter(test.norm)
-		actual := filter.Filter(test.input)
+		actual := filter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %s, got %s", test.output[0].Term, actual[0].Term)
 			t.Errorf("expected %#v, got %#v", test.output[0].Term, actual[0].Term)

@@ -223,9 +223,8 @@ func TestArabicNormalizeFilter(t *testing.T) {
 		},
 	}
 
-	arabicNormalizeFilter := NormalizeFilter()
 	for _, test := range tests {
-		actual := arabicNormalizeFilter.Filter(test.input)
+		actual := ArabicNormalizeFilter(test.input)
 		if !reflect.DeepEqual(actual, test.output) {
 			t.Errorf("expected %#v, got %#v", test.output, actual)
 			t.Errorf("expected % x, got % x", test.output[0].Term, actual[0].Term)

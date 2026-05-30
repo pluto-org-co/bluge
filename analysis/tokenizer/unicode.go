@@ -23,13 +23,7 @@ import (
 const maxEstimatedRemainingSegments = 1000
 const maxRvCapacity = 256
 
-type UnicodeTokenizer struct{}
-
-func NewUnicodeTokenizer() *UnicodeTokenizer {
-	return &UnicodeTokenizer{}
-}
-
-func (rt *UnicodeTokenizer) Tokenize(input []byte) analysis.TokenStream {
+func UnicodeTokenizer(input []byte) analysis.TokenStream {
 	rvx := make([]analysis.TokenStream, 0, 10) // When rv gets full, append to rvx.
 	rv := make(analysis.TokenStream, 0, 1)
 
