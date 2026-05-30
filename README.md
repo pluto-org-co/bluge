@@ -19,7 +19,7 @@ This fork addresses those problems at the root:
 - **Mono-repo consolidation** — `bluge`, `bluge_segment_api`, and all internal packages collapsed into a single module, enabling cross-package inlining and atomic refactoring
 - **`bluge_segment_api` removed entirely** — the speculative interface layer had one implementation and zero external implementors; it was pure overhead
 - **All field types made concrete** — `KeywordField`, `TextField`, `NumericField` and all others are now concrete structs with public fields, no interface receivers, no getters or setters
-- **Offline writer redesigned** — `OfflineWriter` now accepts `segmentSize` and `workers` parameters and exposes a streaming `Insert` API alongside the batch `Batch` API, replacing the original all-or-nothing batch model
+- **Offline writer redesigned** — `OfflineWriter` now accepts `segmentSize` and `workers` parameters, replacing the original all-or-nothing batch model
 
 ### Performance
 
@@ -29,18 +29,18 @@ Benchmark: 1,000,000 documents × 4 keyword fields each (`_id`, `name`, `index`,
 
 | | upstream | this fork | delta |
 |---|---|---|---|
-| time | 15,746 ms | 4,497 ms | **−71% / 3.5× faster** |
-| memory | 10,948 MB | 7,010 MB | **−36%** |
-| allocs/op | 216,480,276 | 120,655,268 | **−44%** |
+| time | 15,746 ms | ~5,196 ms | **−67% / 3.0× faster** |
+| memory | 10,948 MB | 6,344 MB | **−42%** |
+| allocs/op | 216,480,276 | 104,852,169 | **−52%** |
 
 #### OfflineWriter vs Writer (1M documents)
 
 | variant | time | memory | allocs/op |
 |---|---|---|---|
 | `Writer` | ~9,000 ms | 6,197 MB | 83.0M |
-| `OfflineWriter` | ~4,900 ms | 7,010 MB | 120.7M |
+| `OfflineWriter` | ~5,200 ms | 6,344 MB | 104.9M |
 
-`OfflineWriter` is ~45% faster than `Writer` for bulk ingestion at the cost of higher peak memory — it buffers segments in memory before flushing rather than streaming incrementally. For batch indexing workloads where you control when the process runs, `OfflineWriter` is the correct choice. For live indexing with concurrent reads, use `Writer`.
+`OfflineWriter` is ~43% faster than `Writer` for bulk ingestion at the cost of higher peak memory — it buffers segments in memory before flushing rather than streaming incrementally. For batch indexing workloads where you control when the process runs, `OfflineWriter` is the correct choice. For live indexing with concurrent reads, use `Writer`.
 
 #### How the gains were achieved
 
@@ -49,9 +49,10 @@ Benchmark: 1,000,000 documents × 4 keyword fields each (`_id`, `name`, `index`,
 | Write path optimization + `segmentSize`/`workers` exposure | −64% | −18% |
 | `bluge_segment_api` removal + concrete types | −12% | −20% |
 | Public fields, incremental cleanup | ~flat | −6% |
-| **total** | **−71%** | **−44%** |
+| Analyzer interface removal + memory allocation improvements | ~flat | −8% |
+| **total** | **−67%** | **−52%** |
 
-The allocation reduction is the most meaningful number — it is hardware-independent and noise-resistant. 96 million fewer allocations per operation means proportionally less GC pressure under sustained indexing load.
+The allocation reduction is the most meaningful number — it is hardware-independent and noise-resistant. 111 million fewer allocations per operation means proportionally less GC pressure under sustained indexing load.
 
 ### New APIs
 
@@ -60,10 +61,7 @@ The allocation reduction is the most meaningful number — it is hardware-indepe
 // workers controls how many segments are built in parallel
 writer, err := bluge.OpenOfflineWriter(config, 50_000, 10)
 
-// streaming insert — no need to pre-build a batch
-err = writer.Insert(doc)
-
-// or batch insert as before
+// batch insert
 err = writer.Batch(batch)
 
 // FieldDefinition pattern — zero overhead vs direct field construction
