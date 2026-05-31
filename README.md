@@ -25,13 +25,26 @@ This fork addresses those problems at the root:
 
 Benchmark: 1,000,000 documents × 4 keyword fields each (`_id`, `name`, `index`, `reversed-name`), `BenchmarkOfflineWriter`, Intel i9-10900K, linux/amd64, `go test -bench -benchmem -count 5`.
 
-#### BenchmarkOfflineWriter
+#### vs upstream bluge
 
 | | upstream | this fork | delta |
 |---|---|---|---|
 | time | 15,746 ms | ~5,196 ms | **−67% / 3.0× faster** |
 | memory | 10,948 MB | 6,344 MB | **−42%** |
 | allocs/op | 216,480,276 | 104,852,169 | **−52%** |
+
+#### vs bleve
+
+Bleve has no dedicated offline writer — `BenchmarkOfflineWriter` uses `bleve.NewUsing` with scorch/zap segment hints, the closest equivalent. Both benchmarks index the same 1M document workload.
+
+| | bleve | this fork | delta |
+|---|---|---|---|
+| time (OfflineWriter) | 24,007 ms | ~5,196 ms | **−78% / 4.6× faster** |
+| memory (OfflineWriter) | 10,070 MB | 6,344 MB | **−37%** |
+| allocs/op (OfflineWriter) | 146,542,599 | 104,852,169 | **−28%** |
+| time (Writer) | 25,133 ms | ~5,196 ms | **−79% / 4.8× faster** |
+| memory (Writer) | 10,459 MB | 6,344 MB | **−39%** |
+| allocs/op (Writer) | 158,542,972 | 104,852,169 | **−34%** |
 
 #### OfflineWriter vs Writer (1M documents)
 
@@ -116,7 +129,7 @@ Copyright (C) 2024 Antonio José Donis Hung (Shoriwe) and contributors to this f
     * Metrics
         * Min/Max/Count/Sum
         * Avg/Weighted Avg
-        * Cardinality Estimation ([HyperLogLog++](https://github.com/axiomhq/hyperloglog))
+        * Cardinality Estimation ([HyperLogLog++](https://github.com/axiomhz/hyperloglog))
         * Quantile Approximation ([T-Digest](https://github.com/caio/go-tdigest))
 
 ## Indexing
