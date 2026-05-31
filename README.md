@@ -23,37 +23,45 @@ This fork addresses those problems at the root:
 
 ### Performance
 
-Benchmark: 1,000,000 documents × 4 keyword fields each (`_id`, `name`, `index`, `reversed-name`), `BenchmarkOfflineWriter`, Intel i9-10900K, linux/amd64, `go test -bench -benchmem -count 5`.
+Benchmark: 1,000,000 documents × 4 keyword fields each (`_id`, `name`, `index`, `reversed-name`), Intel i9-10900K, linux/amd64, `go test -bench -benchmem -count 5`. All numbers are averages across 5 runs.
 
-#### vs upstream bluge
+#### vs upstream — Writer
 
 | | upstream | this fork | delta |
 |---|---|---|---|
-| time | 15,746 ms | ~5,196 ms | **−67% / 3.0× faster** |
-| memory | 10,948 MB | 6,344 MB | **−42%** |
-| allocs/op | 216,480,276 | 104,852,169 | **−52%** |
+| time | 12,187 ms | 9,148 ms | **−25% / 1.33× faster** |
+| memory | 8,204 MB | 4,722 MB | **−42%** |
+| allocs/op | 131,033,474 | 56,233,336 | **−57%** |
+
+#### vs upstream — OfflineWriter
+
+| | upstream | this fork | delta |
+|---|---|---|---|
+| time | 14,283 ms | 5,004 ms | **−65% / 2.85× faster** |
+| memory | 9,291 MB | 6,345 MB | **−32%** |
+| allocs/op | 185,834,990 | 104,854,713 | **−44%** |
 
 #### vs bleve
 
-Bleve has no dedicated offline writer — `BenchmarkOfflineWriter` uses `bleve.NewUsing` with scorch/zap segment hints, the closest equivalent. Both benchmarks index the same 1M document workload.
+Bleve has no dedicated offline writer — `BenchmarkOfflineWriter` uses `bleve.NewUsing` with scorch/zap segment hints, the closest equivalent. This fork's `OfflineWriter` is compared against both bleve variants.
 
-| | bleve | this fork | delta |
+| | bleve | this fork (OfflineWriter) | delta |
 |---|---|---|---|
-| time (OfflineWriter) | 24,007 ms | ~5,196 ms | **−78% / 4.6× faster** |
-| memory (OfflineWriter) | 10,070 MB | 6,344 MB | **−37%** |
-| allocs/op (OfflineWriter) | 146,542,599 | 104,852,169 | **−28%** |
-| time (Writer) | 25,133 ms | ~5,196 ms | **−79% / 4.8× faster** |
-| memory (Writer) | 10,459 MB | 6,344 MB | **−39%** |
-| allocs/op (Writer) | 158,542,972 | 104,852,169 | **−34%** |
+| time (OfflineWriter) | 24,007 ms | 5,004 ms | **−79% / 4.80× faster** |
+| memory (OfflineWriter) | 10,070 MB | 6,345 MB | **−37%** |
+| allocs/op (OfflineWriter) | 146,542,599 | 104,854,713 | **−28%** |
+| time (Writer) | 25,133 ms | 5,004 ms | **−80% / 5.02× faster** |
+| memory (Writer) | 10,459 MB | 6,345 MB | **−39%** |
+| allocs/op (Writer) | 158,542,972 | 104,854,713 | **−34%** |
 
-#### OfflineWriter vs Writer (1M documents)
+#### OfflineWriter vs Writer (this fork, 1M documents)
 
 | variant | time | memory | allocs/op |
 |---|---|---|---|
-| `Writer` | ~9,000 ms | 6,197 MB | 83.0M |
-| `OfflineWriter` | ~5,200 ms | 6,344 MB | 104.9M |
+| `Writer` | 9,148 ms | 4,722 MB | 56.2M |
+| `OfflineWriter` | 5,004 ms | 6,345 MB | 104.9M |
 
-`OfflineWriter` is ~43% faster than `Writer` for bulk ingestion at the cost of higher peak memory — it buffers segments in memory before flushing rather than streaming incrementally. For batch indexing workloads where you control when the process runs, `OfflineWriter` is the correct choice. For live indexing with concurrent reads, use `Writer`.
+`OfflineWriter` is ~45% faster than `Writer` for bulk ingestion by parallelising segment construction across workers. The tradeoff is higher peak memory and more allocations — it buffers segments in memory before flushing rather than streaming incrementally. For batch indexing workloads where throughput matters, `OfflineWriter` is the correct choice. For live indexing with concurrent reads, use `Writer`.
 
 #### How the gains were achieved
 
@@ -63,9 +71,10 @@ Bleve has no dedicated offline writer — `BenchmarkOfflineWriter` uses `bleve.N
 | `bluge_segment_api` removal + concrete types | −12% | −20% |
 | Public fields, incremental cleanup | ~flat | −6% |
 | Analyzer interface removal + memory allocation improvements | ~flat | −8% |
-| **total** | **−67%** | **−52%** |
+| **total (OfflineWriter vs upstream)** | **−65%** | **−44%** |
+| **total (Writer vs upstream)** | **−25%** | **−57%** |
 
-The allocation reduction is the most meaningful number — it is hardware-independent and noise-resistant. 111 million fewer allocations per operation means proportionally less GC pressure under sustained indexing load.
+The allocation reduction is the most meaningful number — it is hardware-independent and noise-resistant. The Writer path in particular dropped from 131M to 56M allocs, a reduction of 75 million allocations per operation.
 
 ### New APIs
 
