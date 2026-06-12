@@ -1,7 +1,3 @@
-// Copyright (c) 2024 The BuscaSECOP Authors.
-// Benchmark equivalent of bluge writer_bench_test.go and offline_writer_bench_test.go,
-// implemented against github.com/blevesearch/bleve/v2.
-
 package bleve_bench
 
 import (
