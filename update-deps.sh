@@ -10,7 +10,6 @@ go get -u github.com/blevesearch/segment@latest
 go get -u github.com/blevesearch/snowballstem@latest
 go get -u github.com/caio/go-tdigest@latest
 go get -u github.com/klauspost/compress@latest
-go get -u github.com/spf13/cobra@latest
 go get -u github.com/stretchr/testify@latest
 go get -u github.com/zeebo/xxh3@latest
 go get -u golang.org/x/sys@latest
